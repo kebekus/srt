@@ -15,6 +15,11 @@ typedef float v4sf __attribute__ ((__vector_size__ (16)));
 typedef int v4si __attribute__ ((__vector_size__ (16)));
 typedef unsigned int v4su __attribute__ ((__vector_size__ (16)));
 
+v4sf v4sf_set1(float a)
+{
+	return (v4sf){ a, a, a, a };
+}
+
 v4sf v4sf_splat0(v4sf a)
 {
 	return (v4sf)_mm_shuffle_ps(a, a, _MM_SHUFFLE(0,0,0,0));
@@ -147,6 +152,12 @@ v4sf v4sf_hmax3(v4sf a)
 float v4sf_hmax3_float(v4sf a)
 {
 	return fmaxf(fmaxf(a[0], a[1]), a[2]);
+}
+
+v4sf v4sf_normal3(v4sf a)
+{
+	float f = 1.0f / sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+	return (v4sf){a[0] * f, a[1] * f, a[2] * f, 0};
 }
 
 v4sf v4sf_select(v4su a, v4sf b, v4sf c)
