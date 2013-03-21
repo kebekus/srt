@@ -13,7 +13,18 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 struct camera
 {
 	v4sf up, right, dir, origin;
-	float far, near;
+	float near, far;
 };
+
+struct camera init_camera()
+{
+	return (struct camera) {
+		{ 0, 1, 0, 0 },
+		{ 1, 0, 0, 0 },
+		{ 0, 0, -1, 0 },
+		{ 0, 0, 10, 0 },
+		5, 100
+	};
+}
 
 #endif
