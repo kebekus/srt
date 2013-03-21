@@ -64,19 +64,38 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-uint32_t argb(int r, int g, int b)
+uint32_t argb(v4sf c)
 {
+	int r = fmaxf(fminf(255 * c[0], 255), 0);
+	int g = fmaxf(fminf(255 * c[1], 255), 0);
+	int b = fmaxf(fminf(255 * c[2], 255), 0);
 	return ((r & 255) << 16) | ((g & 255) << 8) | ((b & 255) << 0);
 }
 
-void draw(SDL_Surface *screen)
+void draw(SDL_Surface *screen, struct camera camera)
 {
+	struct aabb aabb = {
+		{ -1, -1, -1, 0 },
+		{ 1, 1, 1, 0 }
+	};
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
-	for (int j = 0; j < h; j++)
-		for (int i = 0; i < w; i++)
-			fb[w * j + i] = argb(i, j, 0);
+	v4sf dU = v4sf_set1(2) * camera.right / v4sf_set1(w);
+	v4sf dV = - v4sf_set1(2) * camera.up / v4sf_set1(h);
+	v4sf V = camera.up;
+	for (int j = 0; j < h; j++, V += dV) {
+		v4sf U = - camera.right;
+		for (int i = 0; i < w; i++, U += dU) {
+			v4sf dir = v4sf_normal3(U + V + camera.dir);
+			struct ray ray = init_ray(camera.origin, dir);
+			fb[w * j + i] = 0;
+			v4sf l[2];
+			if (aabb_ray(l, aabb, ray))
+				fb[w * j + i] = argb((v4sf){ 1, 1, 1, 0 });
+
+		}
+	}
 }
 
 int main(int argc, char **argv)
@@ -92,8 +111,9 @@ int main(int argc, char **argv)
 		exit(1);
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	struct camera camera = init_camera();
 	for (;;) {
-		draw(screen);
+		draw(screen, camera);
 		SDL_Flip(screen);
 		SDL_Delay(10);
 		handle_events();
