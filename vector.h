@@ -195,7 +195,7 @@ float v4sf_dot(v4sf a, v4sf b)
 
 v4sf v4sf_normal3(v4sf a)
 {
-	float f = 1.0f / sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+	float f = 1.0f / sqrtf(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
 	return (v4sf){a[0] * f, a[1] * f, a[2] * f, 0};
 }
 
