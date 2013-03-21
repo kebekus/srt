@@ -39,5 +39,16 @@ m4sf m4sf_mul(m4sf l, m4sf r)
 	};
 }
 
+m4sf m4sf_rot(v4sf v, float a)
+{
+	float c = cosf(a);
+	float s = sinf(a);
+	return (m4sf) {
+		{ v[0]*v[0]*(1-c)+c,		v[0]*v[1]*(1-c)-v[2]*s,	v[0]*v[2]*(1-c)+v[1]*s,	0 },
+		{ v[1]*v[0]*(1-c)+v[2]*s,	v[1]*v[1]*(1-c)+c,	v[1]*v[2]*(1-c)-v[0]*s,	0 },
+		{ v[2]*v[0]*(1-c)-v[1]*s,	v[2]*v[1]*(1-c)+v[0]*s,	v[2]*v[2]*(1-c)+c,	0 },
+		{ 0,				0,			0,			1 }
+	};
+}
 #endif
 
