@@ -1,4 +1,5 @@
 
+CC = gcc-4.6.3
 CFLAGS = $(shell sdl-config --cflags) -std=gnu99 -Wall -W -O3 -Wextra -fno-math-errno -ffinite-math-only -fno-rounding-math -fno-signaling-nans -fno-trapping-math -fcx-limited-range -fsingle-precision-constant -g
 LDFLAGS = $(shell sdl-config --libs) -lm
 
