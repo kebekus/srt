@@ -22,8 +22,8 @@ struct ray init_ray(v4sf o, v4sf d)
 	struct ray ray;
 	ray.o = o;
 	ray.d = d;
-	ray.inv_d = (v4sf){1, 1, 1, 1} / d;
-	ray.sign = v4sf_ge(d, (v4sf){0, 0, 0, 0});
+	ray.inv_d = v4sf_set1(1) / d;
+	ray.sign = v4sf_ge(d, v4sf_set1(0));
 	return ray;
 }
 
