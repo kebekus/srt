@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "aabb.h"
 #include "camera.h"
 #include "utils.h"
+#include "tests.h"
 
 void handle_events()
 {
@@ -78,32 +79,11 @@ void draw(SDL_Surface *screen)
 			fb[w * j + i] = argb(i, j, 0);
 }
 
-void test()
-{
-	v4sf V = { 1, 2, 3, 4 };
-	v4sf_print_name(V, "V");
-	m4sf A = {
-		{ 1, 2, 3, 4 },
-		{ 5, 6, 7, 8 },
-		{ 9, 10, 11, 12 },
-		{ 13, 14, 15, 16 }
-	};
-	m4sf_print_name(A, "A");
-	m4sf B = {
-		{ 17, 18, 19, 20 },
-		{ 21, 22, 23, 24 },
-		{ 25, 26, 27, 28 },
-		{ 29, 30, 31, 32 }
-	};
-	m4sf_print_name(B, "B");
-	m4sf_print_name(m4sf_mul(A, B), "A * B");
-}
-
 int main(int argc, char **argv)
 {
 	(void)argc; (void)argv;
 	atexit(SDL_Quit);
-	test();
+	matrix_tests();
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Surface *screen = SDL_SetVideoMode(1024, 1024, 32, SDL_DOUBLEBUF);
 	if (!screen)
