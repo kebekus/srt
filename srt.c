@@ -29,6 +29,24 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 				break;
 			case SDL_KEYDOWN:
 				switch (event.key.keysym.sym) {
+					case SDLK_w:
+						camera->origin += v4sf_set1(0.2) * camera->dir;
+						break;
+					case SDLK_s:
+						camera->origin -= v4sf_set1(0.2) * camera->dir;
+						break;
+					case SDLK_a:
+						camera->origin -= v4sf_set1(0.2) * camera->right;
+						break;
+					case SDLK_d:
+						camera->origin += v4sf_set1(0.2) * camera->right;
+						break;
+					case SDLK_c:
+						camera->origin -= v4sf_set1(0.2) * camera->up;
+						break;
+					case SDLK_SPACE:
+						camera->origin += v4sf_set1(0.2) * camera->up;
+						break;
 					case SDLK_q:
 					case SDLK_ESCAPE:
 						exit(0);
