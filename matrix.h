@@ -39,6 +39,16 @@ m4sf m4sf_mul(m4sf l, m4sf r)
 	};
 }
 
+v4sf m4sf_vmul(m4sf l, v4sf r)
+{
+	return (v4sf) {
+		v4sf_dot(l.v0, r),
+		v4sf_dot(l.v1, r),
+		v4sf_dot(l.v2, r),
+		v4sf_dot(l.v3, r),
+	};
+}
+
 m4sf m4sf_rot(v4sf v, float a)
 {
 	float c = cosf(a);
