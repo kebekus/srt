@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 {
 	(void)argc; (void)argv;
 	atexit(SDL_Quit);
-	matrix_tests();
+	// matrix_tests();
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Surface *screen = SDL_SetVideoMode(1024, 1024, 32, SDL_DOUBLEBUF);
 	if (!screen)
