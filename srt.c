@@ -17,9 +17,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "utils.h"
 #include "tests.h"
 
-void handle_events()
+void handle_events(SDL_Surface *screen, struct camera *camera)
 {
 	static int focus = 1;
+	static int button_left = 0;
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
@@ -34,6 +35,35 @@ void handle_events()
 						break;
 					default:
 						break;
+				}
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				switch (event.button.button) {
+					case SDL_BUTTON_LEFT:
+						button_left = 1;
+						break;
+					default:
+						break;
+				}
+				break;
+			case SDL_MOUSEBUTTONUP:
+				switch (event.button.button) {
+					case SDL_BUTTON_LEFT:
+						button_left = 0;
+						break;
+					default:
+						break;
+				}
+				break;
+			case SDL_MOUSEMOTION:
+				if (button_left) {
+					m4sf rotation = m4sf_mul(
+						m4sf_rot((v4sf){1, 0, 0, 0}, M_PI * (float)event.motion.yrel / (float)screen->h),
+						m4sf_rot((v4sf){0, 1, 0, 0}, -M_PI * (float)event.motion.xrel / (float)screen->w)
+					);
+					camera->dir = m4sf_vmul(rotation, camera->dir);
+					camera->up = m4sf_vmul(rotation, camera->up);
+					camera->right = m4sf_vmul(rotation, camera->right);
 				}
 				break;
 			case SDL_QUIT:
@@ -116,7 +146,7 @@ int main(int argc, char **argv)
 		draw(screen, camera);
 		SDL_Flip(screen);
 		SDL_Delay(10);
-		handle_events();
+		handle_events(screen, &camera);
 		handle_stats(screen);
 	}
 	return 0;
