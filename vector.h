@@ -154,6 +154,14 @@ float v4sf_hmax3_float(v4sf a)
 	return fmaxf(fmaxf(a[0], a[1]), a[2]);
 }
 
+v4sf v4sf_cross3(v4sf a, v4sf b)
+{
+	return (v4sf)_mm_sub_ps(
+		_mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3,0,2,1)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3,1,0,2))),
+		_mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3,1,0,2)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3,0,2,1)))
+	);
+}
+
 float v4sf_dot(v4sf a, v4sf b)
 {
 	v4sf c = a * b;
