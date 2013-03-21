@@ -14,14 +14,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void v4sf_print(v4sf a)
 {
-	float *v = (float *)&a;
-	printf("[%g %g %g %g];\n", v[0], v[1], v[2], v[3]);
+	printf("[%g %g %g %g];\n", a[0], a[1], a[2], a[3]);
 }
 
 void v4sf_print_name(v4sf a, char *name)
 {
-	float *v = (float *)&a;
-	printf("%s = [%g %g %g %g];\n", name, v[0], v[1], v[2], v[3]);
+	printf("%s = [%g %g %g %g];\n", name, a[0], a[1], a[2], a[3]);
 }
 
 void m4sf_print(m4sf a)

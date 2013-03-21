@@ -157,8 +157,7 @@ v4sf v4sf_hmin3(v4sf a)
 
 float v4sf_hmin3_float(v4sf a)
 {
-	float *v = (float *)&a;
-	return fminf(fminf(v[0], v[1]), v[2]);
+	return fminf(fminf(a[0], a[1]), a[2]);
 }
 
 v4sf v4sf_hmax3(v4sf a)
@@ -168,8 +167,7 @@ v4sf v4sf_hmax3(v4sf a)
 
 float v4sf_hmax3_float(v4sf a)
 {
-	float *v = (float *)&a;
-	return fmaxf(fmaxf(v[0], v[1]), v[2]);
+	return fmaxf(fmaxf(a[0], a[1]), a[2]);
 }
 
 v4sf v4sf_select(v4su a, v4sf b, v4sf c)
