@@ -22,6 +22,6 @@ int aabb_ray(v4sf l[2], struct aabb box, struct ray ray)
 	v4sf b = (box.c1 - ray.o) * ray.inv_d;
 	l[0] = v4sf_hmax3(v4sf_min(a, b));
 	l[1] = v4sf_hmin3(v4sf_max(a, b));
-	return v4su_get1(v4sf_lt1(l[0], l[1]));
+	return v4sf_lt1(l[0], l[1])[0];
 }
 #endif
