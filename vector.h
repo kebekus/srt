@@ -15,27 +15,6 @@ typedef float v4sf __attribute__ ((__vector_size__ (16)));
 typedef int v4si __attribute__ ((__vector_size__ (16)));
 typedef unsigned int v4su __attribute__ ((__vector_size__ (16)));
 
-unsigned int v4sf_get1(v4sf a)
-{
-	float r;
-	_mm_store_ss(&r, a);
-	return r;
-}
-
-unsigned int v4su_get1(v4su a)
-{
-	unsigned int r;
-	_mm_store_ss((float *)&r, (__m128)a);
-	return r;
-}
-
-unsigned int v4si_get1(v4si a)
-{
-	int r;
-	_mm_store_ss((float *)&r, (__m128)a);
-	return r;
-}
-
 v4sf v4sf_splat0(v4sf a)
 {
 	return (v4sf)_mm_shuffle_ps(a, a, _MM_SHUFFLE(0,0,0,0));
