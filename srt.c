@@ -57,13 +57,11 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 				break;
 			case SDL_MOUSEMOTION:
 				if (button_left) {
-					m4sf rotation = m4sf_mul(
-						m4sf_rot((v4sf){1, 0, 0, 0}, M_PI * (float)event.motion.yrel / (float)screen->h),
-						m4sf_rot((v4sf){0, 1, 0, 0}, -M_PI * (float)event.motion.xrel / (float)screen->w)
-					);
-					camera->dir = m4sf_vmul(rotation, camera->dir);
-					camera->up = m4sf_vmul(rotation, camera->up);
-					camera->right = m4sf_vmul(rotation, camera->right);
+					m4sf pitch = m4sf_rot((v4sf){1, 0, 0, 0}, M_PI * (float)event.motion.yrel / (float)screen->h);
+					m4sf yaw = m4sf_rot((v4sf){0, 1, 0, 0}, -M_PI * (float)event.motion.xrel / (float)screen->w);
+					camera->up = m4sf_vmul(pitch, camera->up);
+					camera->right = m4sf_vmul(yaw, camera->right);
+					camera->dir = v4sf_cross3(camera->up, camera->right);
 				}
 				break;
 			case SDL_QUIT:
