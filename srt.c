@@ -47,6 +47,9 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 					case SDLK_SPACE:
 						camera->origin += v4sf_set1(0.2) * camera->up;
 						break;
+					case SDLK_r:
+						*camera = init_camera();
+						break;
 					case SDLK_q:
 					case SDLK_ESCAPE:
 						exit(0);
