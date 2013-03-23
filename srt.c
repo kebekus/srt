@@ -112,10 +112,8 @@ void handle_stats(SDL_Surface *screen)
 
 uint32_t argb(v4sf c)
 {
-	int r = fmaxf(fminf(255 * c[0], 255), 0);
-	int g = fmaxf(fminf(255 * c[1], 255), 0);
-	int b = fmaxf(fminf(255 * c[2], 255), 0);
-	return ((r & 255) << 16) | ((g & 255) << 8) | ((b & 255) << 0);
+	v4si rgb = v4sf_cvt(v4sf_clamp(v4sf_set1(255) * c, v4sf_set1(0), v4sf_set1(255)));
+	return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);
 }
 
 void draw(SDL_Surface *screen, struct camera camera)
@@ -138,7 +136,7 @@ void draw(SDL_Surface *screen, struct camera camera)
 			fb[w * j + i] = 0;
 			v4sf l[2];
 			if (aabb_ray(l, aabb, ray))
-				fb[w * j + i] = argb((v4sf){ 1, 1, 1, 0 });
+				fb[w * j + i] = argb(v4sf_set1(1));
 
 		}
 	}
