@@ -98,15 +98,19 @@ void handle_stats(SDL_Surface *screen)
 {
 	static int64_t pixels;
 	static int64_t last;
+	static int frames;
 	int64_t ticks = SDL_GetTicks();
 	pixels += screen->w * screen->h;
+	frames++;
 	if (abs(ticks - last) > 1000) {
 		char tmp[100];
 		float mpps = 0.001 * (float)(pixels / (ticks - last));
-		snprintf(tmp, 100, "SIMD Ray Tracing - %g mega pixels / second", mpps);
+		int fps = (1000 * frames) / (ticks - last);
+		snprintf(tmp, 100, "SIMD Ray Tracing - %g mega pixels / second, %d frames / second", mpps, fps);
 		SDL_WM_SetCaption(tmp, "srt");
 		last = ticks;
 		pixels = 0;
+		frames = 0;
 	}
 }
 
