@@ -199,6 +199,11 @@ v4sf v4sf_normal3(v4sf a)
 	return (v4sf){a[0] * f, a[1] * f, a[2] * f, 0};
 }
 
+v4sf v4sf_clamp(v4sf a, v4sf b, v4sf c)
+{
+	return (v4sf)_mm_min_ps(_mm_max_ps(a, b), c);
+}
+
 v4sf v4sf_select(v4su a, v4sf b, v4sf c)
 {
 //	return (v4sf)_mm_xor_si128(_mm_and_si128((__m128i)a, _mm_xor_si128((__m128i)b, (__m128i)c)), (__m128i)c);
