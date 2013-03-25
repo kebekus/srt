@@ -118,13 +118,13 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-void draw(SDL_Surface *screen, struct camera camera, short **bunny)
+void draw(SDL_Surface *screen, struct camera camera, unsigned short **bunny)
 {
 	struct aabb aabb = {
 		{ -1, -1, -1, 0 },
 		{ 1, 1, 1, 0 }
 	};
-	v4si cells = { 512, 512, 360, 0 };
+	v4si cells = { 512, 512, 361, 0 };
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
@@ -136,25 +136,35 @@ void draw(SDL_Surface *screen, struct camera camera, short **bunny)
 		for (int i = 0; i < w; i++, U += dU) {
 			v4sf dir = v4sf_normal3(U + V + camera.dir);
 			struct ray ray = init_ray(camera.origin, dir);
-			fb[w * j + i] = 0;
 			struct grid grid;
-			if (init_traversal(&grid, ray, aabb, cells))
-				fb[w * j + i] = argb(v4sf_set1(1));
+			int color = 0;
+			if (init_traversal(&grid, ray, aabb, cells)) {
+				for (first_voxel(&grid); inside_grid(&grid); next_voxel(&grid))
+					color += bunny[grid.g[2]][512 * grid.g[1] + grid.g[0]];
+			}
+			fb[w * j + i] = argb(v4sf_set1((float)color * 0.0000001));
 
 		}
 	}
 }
 
-void load_bunny(short **bunny)
+void load_bunny(unsigned short **bunny)
 {
+	int min = 65535, max = 0;
 	for (int i = 0; i < 361; i++) {
 		char name[100];
 		snprintf(name, 100, "../bunny-ctscan/%d", i+1);
 		FILE *f = fopen(name, "r");
 		bunny[i] = malloc(512*512*2);
-		fread(bunny[i], 512*512*2, 1, f);
+		if (!fread(bunny[i], 512*512*2, 1, f))
+			exit(1);
 		fclose(f);
+		for (int j = 0; j < 512*512; j++) {
+			min = fminf(min, bunny[i][j]);
+			max = fmaxf(max, bunny[i][j]);
+		}
 	}
+	printf("min = %d max = %d\n", min, max);
 }
 
 int main(int argc, char **argv)
@@ -171,7 +181,7 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
-	short *bunny[361];
+	unsigned short *bunny[361];
 	load_bunny(bunny);
 
 	for (;;) {
