@@ -118,7 +118,7 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-void draw(SDL_Surface *screen, struct camera camera)
+void draw(SDL_Surface *screen, struct camera camera, short **bunny)
 {
 	struct aabb aabb = {
 		{ -1, -1, -1, 0 },
@@ -145,6 +145,18 @@ void draw(SDL_Surface *screen, struct camera camera)
 	}
 }
 
+void load_bunny(short **bunny)
+{
+	for (int i = 0; i < 361; i++) {
+		char name[100];
+		snprintf(name, 100, "../bunny-ctscan/%d", i+1);
+		FILE *f = fopen(name, "r");
+		bunny[i] = malloc(512*512*2);
+		fread(bunny[i], 512*512*2, 1, f);
+		fclose(f);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	(void)argc; (void)argv;
@@ -159,8 +171,11 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
+	short *bunny[361];
+	load_bunny(bunny);
+
 	for (;;) {
-		draw(screen, camera);
+		draw(screen, camera, bunny);
 		SDL_Flip(screen);
 		SDL_Delay(10);
 		handle_events(screen, &camera);
