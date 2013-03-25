@@ -67,7 +67,7 @@ v4sf v4sf_splat3(v4sf a)
 
 v4si v4sf_cvt(v4sf a)
 {
-	return (v4si)_mm_cvtps_epi32(a);
+	return (v4si)_mm_cvttps_epi32(a);
 }
 
 v4sf v4si_cvt(v4si a)
