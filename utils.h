@@ -1,6 +1,6 @@
 
 /*
-srt - SIMD Ray Tracing
+sos - SDL OpenGL Skeleton
 Written in 2013 by <Ahmet Inan> <xdsopl@googlemail.com>
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
@@ -23,11 +23,25 @@ void v4sf_print(v4sf a)
 	printf("[%g %g %g %g];\n", a[0], a[1], a[2], a[3]);
 }
 
+void v4si_print(v4si a)
+{
+	printf("[%d %d %d %d];\n", a[0], a[1], a[2], a[3]);
+}
+
 void v4sf_print_once(v4sf a)
 {
 	static int once;
 	if (!once) {
-		printf("[%g %g %g %g];\n", a[0], a[1], a[2], a[3]);
+		v4sf_print(a);
+		once = 1;
+	}
+}
+
+void v4si_print_once(v4si a)
+{
+	static int once;
+	if (!once) {
+		v4si_print(a);
 		once = 1;
 	}
 }
