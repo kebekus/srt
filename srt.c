@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "matrix.h"
 #include "ray.h"
 #include "aabb.h"
+#include "voxel.h"
 #include "camera.h"
 #include "utils.h"
 #include "tests.h"
@@ -123,6 +124,7 @@ void draw(SDL_Surface *screen, struct camera camera)
 		{ -1, -1, -1, 0 },
 		{ 1, 1, 1, 0 }
 	};
+	v4si cells = { 512, 512, 360, 0 };
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
@@ -135,8 +137,8 @@ void draw(SDL_Surface *screen, struct camera camera)
 			v4sf dir = v4sf_normal3(U + V + camera.dir);
 			struct ray ray = init_ray(camera.origin, dir);
 			fb[w * j + i] = 0;
-			v4sf l[2];
-			if (aabb_ray(l, aabb, ray))
+			struct grid grid;
+			if (init_traversal(&grid, ray, aabb, cells))
 				fb[w * j + i] = argb(v4sf_set1(1));
 
 		}
