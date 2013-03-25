@@ -21,7 +21,6 @@ struct grid {
 	v4sf fp;
 	v4sf step;
 	v4si sign;
-	v4sf cell_len;
 	float l[2];
 };
 
