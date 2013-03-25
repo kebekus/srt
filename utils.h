@@ -23,6 +23,15 @@ void v4sf_print(v4sf a)
 	printf("[%g %g %g %g];\n", a[0], a[1], a[2], a[3]);
 }
 
+void v4sf_print_once(v4sf a)
+{
+	static int once;
+	if (!once) {
+		printf("[%g %g %g %g];\n", a[0], a[1], a[2], a[3]);
+		once = 1;
+	}
+}
+
 void v4sf_print_name(v4sf a, char *name)
 {
 	printf("%s = [%g %g %g %g];\n", name, a[0], a[1], a[2], a[3]);
