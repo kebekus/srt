@@ -224,5 +224,10 @@ v4su v4su_select(v4su a, v4su b, v4su c)
 //	return (v4su)_mm_or_ps(_mm_and_ps((__m128)a, (__m128)b), _mm_andnot_ps((__m128)a, (__m128)c));
 	return (v4su)_mm_xor_ps(_mm_and_ps((__m128)a, _mm_xor_ps((__m128)b, (__m128)c)), (__m128)c);
 }
+
+int v4si_inside3(v4si a, v4si b)
+{
+	return (a[0] >= 0) & (a[1] >= 0) & (a[2] >= 0) & (a[0] < b[0]) & (a[1] < b[1]) & (a[2] < b[2]);
+}
 #endif
 
