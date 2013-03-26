@@ -22,6 +22,7 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 {
 	static int focus = 1;
 	static int button_left = 0;
+	static int button_right = 0;
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
@@ -64,6 +65,9 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 					case SDL_BUTTON_LEFT:
 						button_left = 1;
 						break;
+					case SDL_BUTTON_RIGHT:
+						button_right = 1;
+						break;
 					default:
 						break;
 				}
@@ -72,6 +76,9 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 				switch (event.button.button) {
 					case SDL_BUTTON_LEFT:
 						button_left = 0;
+						break;
+					case SDL_BUTTON_RIGHT:
+						button_right = 0;
 						break;
 					default:
 						break;
@@ -83,6 +90,15 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 					m4sf yaw = m4sf_rot(camera->up, -M_PI * (float)event.motion.xrel / (float)screen->w);
 					camera->up = m4sf_vmul(pitch, camera->up);
 					camera->right = m4sf_vmul(yaw, camera->right);
+					camera->dir = v4sf_cross3(camera->up, camera->right);
+				}
+				if (button_right) {
+					m4sf rotx = m4sf_rot(camera->right, -M_PI * (float)event.motion.yrel / (float)screen->h);
+					m4sf roty = m4sf_rot(camera->up, -M_PI * (float)event.motion.xrel / (float)screen->w);
+					m4sf rotation = m4sf_mul(rotx, roty);
+					camera->origin = m4sf_vmul(rotation, camera->origin);
+					camera->up = m4sf_vmul(rotation, camera->up);
+					camera->right = m4sf_vmul(rotation, camera->right);
 					camera->dir = v4sf_cross3(camera->up, camera->right);
 				}
 				break;
