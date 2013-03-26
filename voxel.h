@@ -30,10 +30,10 @@ void first_voxel(struct grid *grid)
 	float epsilon = 0.001;
 	v4sf inside = v4sf_set1(grid->l[0] + epsilon) *  grid->ray.d + grid->ray.o;
 	grid->g = v4sf_cvt((inside - grid->box.c0) / cell_len);
-	v4si far_planes = (v4si)(grid->ray.sign & (v4su)v4si_set(1, 1, 1, 0));
+	v4si far_planes = (v4si)(grid->ray.sign & (v4su)v4si_set3(1, 1, 1));
 	grid->fp = cell_len * v4si_cvt(grid->g + far_planes) + grid->box.c0;
 	grid->step = v4sf_select(grid->ray.sign, cell_len, -cell_len);
-	grid->sign = v4si_select(grid->ray.sign, v4si_set(1, 1, 1, 0), v4si_set(-1, -1, -1, 0));
+	grid->sign = v4si_select(grid->ray.sign, v4si_set3(1, 1, 1), v4si_set3(-1, -1, -1));
 }
 
 int init_traversal(struct grid *grid, struct ray ray, struct aabb box, v4si cells)

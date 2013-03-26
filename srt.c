@@ -120,11 +120,8 @@ void handle_stats(SDL_Surface *screen)
 
 void draw(SDL_Surface *screen, struct camera camera, unsigned short **bunny)
 {
-	struct aabb aabb = {
-		{ -1, -1, -1, 0 },
-		{ 1, 1, 1, 0 }
-	};
-	v4si cells = { 512, 512, 361, 0 };
+	struct aabb aabb = { v4sf_set3(-1, -1, -1), v4sf_set3(1, 1, 1) };
+	v4si cells = v4si_set3(512, 512, 361);
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;

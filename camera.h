@@ -19,10 +19,10 @@ struct camera
 struct camera init_camera()
 {
 	return (struct camera) {
-		{ 0, 1, 0, 0 },
-		{ 1, 0, 0, 0 },
-		{ 0, 0, -1, 0 },
-		{ 0, 0, 10, 0 },
+		v4sf_set3(0, 1, 0),
+		v4sf_set3(1, 0, 0),
+		v4sf_set3(0, 0, -1),
+		v4sf_set3(0, 0, 10),
 		5, 100
 	};
 }
