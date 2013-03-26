@@ -20,6 +20,11 @@ v4sf v4sf_set1(float a)
 	return (v4sf){ a, a, a, a };
 }
 
+v4sf v4sf_set3(float a, float b, float c)
+{
+	return (v4sf){ a, b, c, 0 };
+}
+
 v4sf v4sf_set(float a, float b, float c, float d)
 {
 	return (v4sf){ a, b, c, d };
@@ -30,6 +35,11 @@ v4si v4si_set1(int a)
 	return (v4si){ a, a, a, a };
 }
 
+v4si v4si_set3(int a, int b, int c)
+{
+	return (v4si){ a, b, c, 0 };
+}
+
 v4si v4si_set(int a, int b, int c, int d)
 {
 	return (v4si){ a, b, c, d };
@@ -38,6 +48,11 @@ v4si v4si_set(int a, int b, int c, int d)
 v4su v4su_set1(unsigned int a)
 {
 	return (v4su){ a, a, a, a };
+}
+
+v4su v4su_set3(unsigned int a, unsigned int b, unsigned int c)
+{
+	return (v4su){ a, b, c, 0 };
 }
 
 v4su v4su_set(unsigned int a, unsigned int b, unsigned int c, unsigned int d)
