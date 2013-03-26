@@ -227,7 +227,12 @@ v4su v4su_select(v4su a, v4su b, v4su c)
 
 int v4si_inside3(v4si a, v4si b)
 {
+#if 0
 	return (a[0] >= 0) & (a[1] >= 0) & (a[2] >= 0) & (a[0] < b[0]) & (a[1] < b[1]) & (a[2] < b[2]);
+#else
+	v4su t = (v4su)_mm_andnot_ps((__m128)_mm_cmplt_epi32((__m128i)a, _mm_set1_epi32(0)), (__m128)_mm_cmplt_epi32((__m128i)a, (__m128i)b));
+	return t[0] & t[1] & t[2];
+#endif
 }
 #endif
 
