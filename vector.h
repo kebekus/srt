@@ -10,6 +10,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define VECTOR_H
 #include <math.h>
 #include <emmintrin.h>
+#ifdef __SSE4_1__
+#include <smmintrin.h>
+#endif
 
 typedef float v4sf __attribute__ ((__vector_size__ (16)));
 typedef int v4si __attribute__ ((__vector_size__ (16)));
@@ -246,7 +249,11 @@ int v4si_inside3(v4si a, v4si b)
 	return (a[0] >= 0) & (a[1] >= 0) & (a[2] >= 0) & (a[0] < b[0]) & (a[1] < b[1]) & (a[2] < b[2]);
 #else
 	v4su t = (v4su)_mm_andnot_si128(_mm_cmplt_epi32((__m128i)a, _mm_set1_epi32(0)), _mm_cmplt_epi32((__m128i)a, (__m128i)b));
+#ifdef __SSE4_1__
+	return _mm_testc_si128((__m128i)t, (__m128i)v4si_set(-1, -1, -1, 0));
+#else
 	return t[0] & t[1] & t[2];
+#endif
 #endif
 }
 #endif
