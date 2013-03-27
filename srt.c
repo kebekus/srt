@@ -134,6 +134,14 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
+int value(struct grid *grid, unsigned short **bunny)
+{
+	int tmp = 0;
+	for (first_voxel(grid); inside_grid(grid); next_voxel(grid))
+		tmp += bunny[grid->g[2]][512 * grid->g[1] + grid->g[0]];
+	return tmp;
+}
+
 void draw(SDL_Surface *screen, struct camera camera, unsigned short **bunny)
 {
 	struct aabb aabb = { v4sf_set3(-1, -1, -1), v4sf_set3(1, 1, 1) };
@@ -150,12 +158,10 @@ void draw(SDL_Surface *screen, struct camera camera, unsigned short **bunny)
 			v4sf dir = v4sf_normal3(U + V + camera.dir);
 			struct ray ray = init_ray(camera.origin, dir);
 			struct grid grid;
-			int color = 0;
-			if (init_traversal(&grid, ray, aabb, cells)) {
-				for (first_voxel(&grid); inside_grid(&grid); next_voxel(&grid))
-					color += bunny[grid.g[2]][512 * grid.g[1] + grid.g[0]];
-			}
-			fb[w * j + i] = argb(v4sf_set1((float)color * 0.0000001));
+			uint32_t color = 0;
+			if (init_traversal(&grid, ray, aabb, cells))
+				color = argb(v4sf_set1((float)value(&grid, bunny) / 10000000));
+			fb[w * j + i] = color;
 
 		}
 	}
