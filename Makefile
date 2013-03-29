@@ -20,5 +20,5 @@ win32/srt.exe: srt.c *.h Makefile
 	$(WIN32_CC) -o win32/srt.exe srt.c $(WIN32_CFLAGS) $(WIN32_LDFLAGS)
 
 clean:
-	rm -f srt win32/srt.exe
+	rm -f srt win32/srt.exe win32/*.txt
 
