@@ -63,5 +63,11 @@ int inside_grid(struct grid *grid)
 {
 	return v4si_inside3(grid->g, grid->cells);
 }
+
+int voxel_idx(struct grid *grid)
+{
+	return grid->cells[0] * (grid->cells[1] * grid->g[2] + grid->g[1]) + grid->g[0];
+}
+
 #endif
 
