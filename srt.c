@@ -172,9 +172,15 @@ void load_bunny(unsigned short *bunny)
 	for (int i = 0; i < 361; i++) {
 		char name[100];
 		snprintf(name, 100, "../bunny-ctscan/%d", i+1);
-		FILE *f = fopen(name, "r");
-		if (!fread(bunny + 512*512*i, 512*512*2, 1, f))
+		FILE *f = fopen(name, "rb");
+		if (!f) {
+			fprintf(stderr, "could not open file \"%s\"\n", name);
 			exit(1);
+		}
+		if (!fread(bunny + 512*512*i, 512*512*2, 1, f)) {
+			fprintf(stderr, "could not read file \"%s\"\n", name);
+			exit(1);
+		}
 		fclose(f);
 	}
 	int min = 65535, max = 0;
