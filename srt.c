@@ -126,7 +126,7 @@ void handle_stats(SDL_Surface *screen)
 		char tmp[100];
 		float mpps = 0.001 * (float)(pixels / (ticks - last));
 		int fps = (1000 * frames) / (ticks - last);
-		snprintf(tmp, 100, "SIMD Ray Tracing - %g mega pixels / second, %d frames / second", mpps, fps);
+		snprintf(tmp, 100, "SIMD Ray Tracing - %g mp/s, %d f/s", mpps, fps);
 		SDL_WM_SetCaption(tmp, "srt");
 		last = ticks;
 		pixels = 0;
@@ -197,7 +197,7 @@ int main(int argc, char **argv)
 	atexit(SDL_Quit);
 	// matrix_tests();
 	SDL_Init(SDL_INIT_VIDEO);
-	SDL_Surface *screen = SDL_SetVideoMode(1024, 1024, 32, SDL_DOUBLEBUF);
+	SDL_Surface *screen = SDL_SetVideoMode(512, 512, 32, SDL_DOUBLEBUF);
 	if (!screen)
 		exit(1);
 	if (screen->format->BytesPerPixel != 4)
