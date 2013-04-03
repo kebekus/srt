@@ -136,12 +136,22 @@ void handle_stats(SDL_Surface *screen)
 
 float curve(v4sf v)
 {
+#if 0
 	return v4sf_dot3(v, v) - 1.0;
+#endif
+#if 1
+	// (2x² + y² + z² - 1)³ - x²z³/10 - y²z³
+	float x = v[0];
+	float y = v[1];
+	float z = v[2];
+	float t = 2*x*x + y*y + z*z - 1;
+	return t*t*t - x*x*z*z*z/10 - y*y*z*z*z;
+#endif
 }
 
 void draw(SDL_Surface *screen, struct camera camera)
 {
-	struct aabb aabb = { v4sf_set3(-1, -1, -1), v4sf_set3(1, 1, 1) };
+	struct aabb aabb = { v4sf_set3(-1.0, -1.5, -1.5), v4sf_set3(1.0, 1.5, 1.5) };
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
