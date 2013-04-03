@@ -211,6 +211,12 @@ float v4sf_dot(v4sf a, v4sf b)
 	return c[0] + c[1] + c[2] + c[3];
 }
 
+float v4sf_dot3(v4sf a, v4sf b)
+{
+	v4sf c = a * b;
+	return c[0] + c[1] + c[2];
+}
+
 v4sf v4sf_normal3(v4sf a)
 {
 	float f = 1.0f / sqrtf(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
