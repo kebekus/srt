@@ -2,3 +2,4 @@
 srt
 win32/srt.exe
 win32/*.txt
+*.so
