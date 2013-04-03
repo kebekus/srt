@@ -12,6 +12,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "matrix.h"
 #include "stdio.h"
 
+float sqf(float f)
+{
+	return f * f;
+}
+
+float cbf(float f)
+{
+	return f * f * f;
+}
+
 uint32_t argb(v4sf c)
 {
 	v4si rgb = v4sf_cvt(v4sf_clamp(v4sf_set1(255) * c, v4sf_set1(0), v4sf_set1(255)));
