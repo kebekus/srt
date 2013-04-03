@@ -6,6 +6,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+#include <dlfcn.h>
 #include <math.h>
 #include <stdlib.h>
 #include <SDL.h>
@@ -134,28 +135,7 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-float curve(v4sf v)
-{
-#if 0
-	return v4sf_dot3(v, v) - 1.0;
-#endif
-#if 1
-	// (2x² + y² + z² - 1)³ - x²z³/10 - y²z³
-	return cbf(2 * sqf(v[0]) + sqf(v[1]) + sqf(v[2]) - 1) - 0.1 * sqf(v[0]) * cbf(v[2]) - sqf(v[1]) * cbf(v[2]);
-#endif
-}
-
-int value(float l[2], struct ray ray)
-{
-	float last = curve(ray.o + v4sf_set1(l[0]) * ray.d);
-	for (float len = l[0]; len < l[1]; len += 0.1) {
-		float value = curve(ray.o + v4sf_set1(len) * ray.d);
-		if (last * value <= 0)
-			return 1;
-		last = value;
-	}
-	return 0;
-}
+int (*value)(float l[2], struct ray ray);
 
 void draw(SDL_Surface *screen, struct camera camera)
 {
@@ -193,6 +173,18 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
+
+	void *lh = dlopen("heart.so", RTLD_LAZY);
+	if (!lh) {
+		fprintf(stderr, "%s\n", dlerror());
+		exit(1);
+	}
+	value = dlsym(lh, "value");
+	if (!value) {
+		fprintf(stderr, "%s\n", dlerror());
+		exit(1);
+	}
+	//dlclose(lh);
 
 	for (;;) {
 		draw(screen, camera);

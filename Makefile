@@ -13,12 +13,15 @@ win: win32/srt.exe
 test: srt
 	./srt
 
-srt: srt.c *.h Makefile
+srt: srt.c heart.so *.h Makefile
 	$(CC) -o srt srt.c $(CFLAGS) $(LDFLAGS)
+
+heart.so: heart.c *.h Makefile
+	$(CC) -o heart.so heart.c -shared -fPIC $(CFLAGS) $(LDFLAGS)
 
 win32/srt.exe: srt.c *.h Makefile
 	$(WIN32_CC) -o win32/srt.exe srt.c $(WIN32_CFLAGS) $(WIN32_LDFLAGS)
 
 clean:
-	rm -f srt win32/srt.exe win32/*.txt
+	rm -f srt win32/srt.exe win32/*.txt *.so
 
