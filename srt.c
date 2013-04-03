@@ -134,6 +134,11 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
+float curve(v4sf v)
+{
+	return v4sf_dot3(v, v) - 1.0;
+}
+
 void draw(SDL_Surface *screen, struct camera camera)
 {
 	struct aabb aabb = { v4sf_set3(-1, -1, -1), v4sf_set3(1, 1, 1) };
@@ -150,8 +155,17 @@ void draw(SDL_Surface *screen, struct camera camera)
 			struct ray ray = init_ray(camera.origin, dir);
 			uint32_t color = 0;
 			float l[2];
-			if (aabb_ray(l, aabb, ray))
-				color = argb(v4sf_set1(1));
+			if (aabb_ray(l, aabb, ray)) {
+				float last = curve(ray.o + v4sf_set1(l[0]) * ray.d);
+				for (float len = l[0]; len < l[1]; len += 0.1) {
+					float value = curve(ray.o + v4sf_set1(len) * ray.d);
+					if (last * value <= 0) {
+						color = argb(v4sf_set1(1));
+						break;
+					}
+					last = value;
+				}
+			}
 			fb[w * j + i] = color;
 
 		}
