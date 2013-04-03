@@ -134,18 +134,9 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-int value(struct grid *grid, unsigned short *bunny)
-{
-	int tmp = 0;
-	for (first_voxel(grid); inside_grid(grid); next_voxel(grid))
-		tmp += bunny[voxel_idx(grid)];
-	return tmp;
-}
-
-void draw(SDL_Surface *screen, struct camera camera, unsigned short *bunny)
+void draw(SDL_Surface *screen, struct camera camera)
 {
 	struct aabb aabb = { v4sf_set3(-1, -1, -1), v4sf_set3(1, 1, 1) };
-	v4si cells = v4si_set3(512, 512, 361);
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
@@ -157,38 +148,14 @@ void draw(SDL_Surface *screen, struct camera camera, unsigned short *bunny)
 		for (int i = 0; i < w; i++, U += dU) {
 			v4sf dir = v4sf_normal3(U + V + camera.dir);
 			struct ray ray = init_ray(camera.origin, dir);
-			struct grid grid;
 			uint32_t color = 0;
-			if (init_traversal(&grid, ray, aabb, cells))
-				color = argb(v4sf_set1((float)value(&grid, bunny) / 10000000));
+			float l[2];
+			if (aabb_ray(l, aabb, ray))
+				color = argb(v4sf_set1(1));
 			fb[w * j + i] = color;
 
 		}
 	}
-}
-
-void load_bunny(unsigned short *bunny)
-{
-	for (int i = 0; i < 361; i++) {
-		char name[100];
-		snprintf(name, 100, "../bunny-ctscan/%d", i+1);
-		FILE *f = fopen(name, "rb");
-		if (!f) {
-			fprintf(stderr, "could not open file \"%s\"\n", name);
-			exit(1);
-		}
-		if (!fread(bunny + 512*512*i, 512*512*2, 1, f)) {
-			fprintf(stderr, "could not read file \"%s\"\n", name);
-			exit(1);
-		}
-		fclose(f);
-	}
-	int min = 65535, max = 0;
-	for (int i = 0; i < 361*512*512; i++) {
-		min = fminf(min, bunny[i]);
-		max = fmaxf(max, bunny[i]);
-	}
-	printf("min = %d max = %d\n", min, max);
 }
 
 int main(int argc, char **argv)
@@ -205,11 +172,9 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
-	unsigned short *bunny = malloc(361*512*512*2);
-	load_bunny(bunny);
 
 	for (;;) {
-		draw(screen, camera, bunny);
+		draw(screen, camera);
 		SDL_Flip(screen);
 		SDL_Delay(10);
 		handle_events(screen, &camera);
