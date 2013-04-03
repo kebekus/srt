@@ -141,11 +141,7 @@ float curve(v4sf v)
 #endif
 #if 1
 	// (2x² + y² + z² - 1)³ - x²z³/10 - y²z³
-	float x = v[0];
-	float y = v[1];
-	float z = v[2];
-	float t = 2*x*x + y*y + z*z - 1;
-	return t*t*t - x*x*z*z*z/10 - y*y*z*z*z;
+	return cbf(2 * sqf(v[0]) + sqf(v[1]) + sqf(v[2]) - 1) - 0.1 * sqf(v[0]) * cbf(v[2]) - sqf(v[1]) * cbf(v[2]);
 #endif
 }
 
