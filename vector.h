@@ -8,11 +8,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #ifndef VECTOR_H
 #define VECTOR_H
-#include <math.h>
 #include <emmintrin.h>
 #ifdef __SSE4_1__
 #include <smmintrin.h>
 #endif
+#include "scalar.h"
 
 typedef float v4sf __attribute__ ((__vector_size__ (16)));
 typedef int v4si __attribute__ ((__vector_size__ (16)));

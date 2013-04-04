@@ -8,16 +8,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "ray.h"
 
-float sqf(float f)
-{
-	return f * f;
-}
-
-float cbf(float f)
-{
-	return f * f * f;
-}
-
 float curve(v4sf v)
 {
 #if 0

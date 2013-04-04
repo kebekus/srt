@@ -8,6 +8,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #ifndef SCALAR_H
 #define SCALAR_H
+#include <math.h>
 
 float sqf(float f)
 {
