@@ -14,3 +14,13 @@ static inline float curve(v4sf v)
 	return sqf(v4sf_dot3(v, v) + 0.2) - (sqf(v[0]) + sqf(v[1]));
 }
 
+static inline v4sf gradient(v4sf v)
+{
+	// (4x(x² + y² + z² + 0.2) - 2x, 4y(x² + y² + z² + 0.2) - 2y, 4z(x² + y² + z² + 0.2))
+	return v4sf_set3(
+		4 * v[0] * (v4sf_dot3(v, v) + 0.2) - 2 * v[0],
+		4 * v[1] * (v4sf_dot3(v, v) + 0.2) - 2 * v[1],
+		4 * v[2] * (v4sf_dot3(v, v) + 0.2)
+	);
+}
+
