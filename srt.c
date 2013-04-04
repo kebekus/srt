@@ -19,6 +19,25 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "utils.h"
 #include "tests.h"
 
+int (*value)(float l[2], struct ray ray);
+
+void load_curve(char *name)
+{
+	static void *lh = 0;
+	if (lh)
+		dlclose(lh);
+	lh = dlopen(name, RTLD_LAZY);
+	if (!lh) {
+		fprintf(stderr, "%s\n", dlerror());
+		exit(1);
+	}
+	value = dlsym(lh, "value");
+	if (!value) {
+		fprintf(stderr, "%s\n", dlerror());
+		exit(1);
+	}
+}
+
 void handle_events(SDL_Surface *screen, struct camera *camera)
 {
 	static int focus = 1;
@@ -135,8 +154,6 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-int (*value)(float l[2], struct ray ray);
-
 void draw(SDL_Surface *screen, struct camera camera)
 {
 	struct aabb aabb = { v4sf_set3(-1.0, -1.5, -1.5), v4sf_set3(1.0, 1.5, 1.5) };
@@ -175,18 +192,7 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
-
-	void *lh = dlopen("curves/heart.so", RTLD_LAZY);
-	if (!lh) {
-		fprintf(stderr, "%s\n", dlerror());
-		exit(1);
-	}
-	value = dlsym(lh, "value");
-	if (!value) {
-		fprintf(stderr, "%s\n", dlerror());
-		exit(1);
-	}
-	//dlclose(lh);
+	load_curve("curves/heart.so");
 
 	for (;;) {
 		draw(screen, camera);
