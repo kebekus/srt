@@ -17,7 +17,7 @@ struct ray
 	v4su sign;
 };
 
-struct ray init_ray(v4sf o, v4sf d)
+static inline struct ray init_ray(v4sf o, v4sf d)
 {
 	struct ray ray;
 	ray.o = o;

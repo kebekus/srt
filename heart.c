@@ -8,7 +8,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "ray.h"
 
-float curve(v4sf v)
+static inline float curve(v4sf v)
 {
 #if 0
 	return v4sf_dot3(v, v) - 1.0;

@@ -19,7 +19,7 @@ typedef struct {
 	v4sf v3;
 } m4sf;
 
-m4sf m4sf_identity()
+static inline m4sf m4sf_identity()
 {
 	return (m4sf) {
 		{ 1, 0, 0, 0 },
@@ -29,7 +29,7 @@ m4sf m4sf_identity()
 	};
 }
 
-m4sf m4sf_mul(m4sf l, m4sf r)
+static inline m4sf m4sf_mul(m4sf l, m4sf r)
 {
 	return (m4sf) {
 		v4sf_splat0(l.v0) * r.v0 + v4sf_splat1(l.v0) * r.v1 + v4sf_splat2(l.v0) * r.v2 + v4sf_splat3(l.v0) * r.v3,
@@ -39,7 +39,7 @@ m4sf m4sf_mul(m4sf l, m4sf r)
 	};
 }
 
-v4sf m4sf_vmul(m4sf l, v4sf r)
+static inline v4sf m4sf_vmul(m4sf l, v4sf r)
 {
 	return (v4sf) {
 		v4sf_dot(l.v0, r),
@@ -49,7 +49,7 @@ v4sf m4sf_vmul(m4sf l, v4sf r)
 	};
 }
 
-m4sf m4sf_rot(v4sf v, float a)
+static inline m4sf m4sf_rot(v4sf v, float a)
 {
 	float c = cosf(a);
 	float s = sinf(a);

@@ -10,12 +10,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define SCALAR_H
 #include <math.h>
 
-float sqf(float f)
+static inline float sqf(float f)
 {
 	return f * f;
 }
 
-float cbf(float f)
+static inline float cbf(float f)
 {
 	return f * f * f;
 }

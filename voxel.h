@@ -51,7 +51,7 @@ int init_traversal(struct grid *grid, struct ray ray, struct aabb box, v4si cell
 	return 1;
 }
 
-void next_voxel(struct grid *grid)
+static inline void next_voxel(struct grid *grid)
 {
 	v4sf max = (grid->fp - grid->ray.o) * grid->ray.inv_d;
 	v4su s = v4sf_eq(v4sf_hmin3(max), max);
@@ -59,12 +59,12 @@ void next_voxel(struct grid *grid)
 	grid->g += (v4si)(s & (v4su)grid->sign);
 }
 
-int inside_grid(struct grid *grid)
+static inline int inside_grid(struct grid *grid)
 {
 	return v4si_inside3(grid->g, grid->cells);
 }
 
-int voxel_idx(struct grid *grid)
+static inline int voxel_idx(struct grid *grid)
 {
 	return grid->cells[0] * (grid->cells[1] * grid->g[2] + grid->g[1]) + grid->g[0];
 }

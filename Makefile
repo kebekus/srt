@@ -19,7 +19,7 @@ srt: srt.c heart.so *.h Makefile
 	$(CC) -o srt srt.c $(SDL_CFLAGS) $(CFLAGS) $(SDL_LDFLAGS) $(LDFLAGS)
 
 heart.so: heart.c *.h Makefile
-	$(CC) -o heart.so heart.c -shared $(CFLAGS) $(LDFLAGS)
+	$(CC) -o heart.so heart.c -shared -fPIC $(CFLAGS) $(LDFLAGS)
 
 win32/srt.exe: srt.c *.h Makefile
 	$(WIN32_CC) -o win32/srt.exe srt.c $(WIN32_CFLAGS) $(WIN32_LDFLAGS)

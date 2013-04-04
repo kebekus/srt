@@ -16,7 +16,7 @@ struct aabb
 	v4sf c0, c1;
 };
 
-int aabb_ray(float l[2], struct aabb box, struct ray ray)
+static inline int aabb_ray(float l[2], struct aabb box, struct ray ray)
 {
 	v4sf a = (box.c0 - ray.o) * ray.inv_d;
 	v4sf b = (box.c1 - ray.o) * ray.inv_d;
