@@ -10,6 +10,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 static inline float curve(v4sf v)
 {
+	// x² + y² + z² - 1
 	return v4sf_dot3(v, v) - 1.0;
 }
 
