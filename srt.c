@@ -19,7 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "utils.h"
 #include "tests.h"
 
-int (*value)(float l[2], struct ray ray);
+float (*value)(float l[2], struct ray ray);
 
 void load_curve(char *name)
 {
