@@ -15,15 +15,18 @@ win: win32/srt.exe
 test: srt
 	./srt
 
-srt: srt.c heart.so *.h Makefile
+srt: srt.c curves/heart.so curves/sphere.so *.h Makefile
 	$(CC) -o srt srt.c $(SDL_CFLAGS) $(CFLAGS) $(SDL_LDFLAGS) $(LDFLAGS)
 
-heart.so: heart.c *.h Makefile
-	$(CC) -o heart.so heart.c -shared -fPIC $(CFLAGS) $(LDFLAGS)
+curves/heart.so: value.c curves/heart.h *.h Makefile
+	$(CC) -o curves/heart.so -I. -DCURVE="curves/heart.h" value.c -shared -fPIC $(CFLAGS) $(LDFLAGS)
+
+curves/sphere.so: value.c curves/sphere.h *.h Makefile
+	$(CC) -o curves/sphere.so -I. -DCURVE="curves/sphere.h" value.c -shared -fPIC $(CFLAGS) $(LDFLAGS)
 
 win32/srt.exe: srt.c *.h Makefile
 	$(WIN32_CC) -o win32/srt.exe srt.c $(WIN32_CFLAGS) $(WIN32_LDFLAGS)
 
 clean:
-	rm -f srt win32/srt.exe win32/*.txt *.so
+	rm -f srt win32/srt.exe win32/*.txt curves/*.so
 

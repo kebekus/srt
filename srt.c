@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
 
-	void *lh = dlopen("heart.so", RTLD_LAZY);
+	void *lh = dlopen("curves/heart.so", RTLD_LAZY);
 	if (!lh) {
 		fprintf(stderr, "%s\n", dlerror());
 		exit(1);
