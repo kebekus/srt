@@ -8,19 +8,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #ifndef UTILS_H
 #define UTILS_H
+#include "scalar.h"
 #include "vector.h"
 #include "matrix.h"
 #include "stdio.h"
-
-float sqf(float f)
-{
-	return f * f;
-}
-
-float cbf(float f)
-{
-	return f * f * f;
-}
 
 uint32_t argb(v4sf c)
 {
