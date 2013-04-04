@@ -78,6 +78,9 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 					case SDLK_2:
 						load_curve("curves/sphere.so");
 						break;
+					case SDLK_3:
+						load_curve("curves/torus.so");
+						break;
 					case SDLK_q:
 					case SDLK_ESCAPE:
 						exit(0);
@@ -162,7 +165,7 @@ void handle_stats(SDL_Surface *screen)
 
 void draw(SDL_Surface *screen, struct camera camera)
 {
-	struct aabb aabb = { v4sf_set3(-1.0, -1.5, -1.5), v4sf_set3(1.0, 1.5, 1.5) };
+	struct aabb aabb = { v4sf_set3(-1.5, -1.5, -1.5), v4sf_set3(1.5, 1.5, 1.5) };
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
