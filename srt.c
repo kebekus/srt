@@ -72,6 +72,12 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 					case SDLK_r:
 						*camera = init_camera();
 						break;
+					case SDLK_1:
+						load_curve("curves/heart.so");
+						break;
+					case SDLK_2:
+						load_curve("curves/sphere.so");
+						break;
 					case SDLK_q:
 					case SDLK_ESCAPE:
 						exit(0);
