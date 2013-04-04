@@ -1,7 +1,9 @@
 
 CC = $(shell ls /usr/bin/gcc-*.*.* | tail -n1)
-CFLAGS = $(shell sdl-config --cflags) -march=native -std=gnu99 -Wall -W -O3 -Wextra -fno-math-errno -ffinite-math-only -fno-rounding-math -fno-signaling-nans -fno-trapping-math -fcx-limited-range -fsingle-precision-constant -g
-LDFLAGS = $(shell sdl-config --libs) -lm
+CFLAGS = -march=native -std=gnu99 -Wall -W -O3 -Wextra -fno-math-errno -ffinite-math-only -fno-rounding-math -fno-signaling-nans -fno-trapping-math -fcx-limited-range -fsingle-precision-constant -g
+LDFLAGS = -lm
+SDL_CFLAGS = $(shell sdl-config --cflags)
+SDL_LDFLAGS = $(shell sdl-config --libs)
 
 WIN32_CC = i686-mingw32-gcc
 WIN32_CFLAGS = -I../SDL-1.2.15/include/SDL -D_GNU_SOURCE=1 -Dmain=SDL_main -std=gnu99 -Wall -W -O3 -Wextra -fno-math-errno -ffinite-math-only -fno-rounding-math -fno-signaling-nans -fno-trapping-math -fcx-limited-range -fsingle-precision-constant -msse -msse2 -mfpmath=sse
@@ -14,7 +16,7 @@ test: srt
 	./srt
 
 srt: srt.c heart.so *.h Makefile
-	$(CC) -o srt srt.c $(CFLAGS) $(LDFLAGS)
+	$(CC) -o srt srt.c $(SDL_CFLAGS) $(CFLAGS) $(SDL_LDFLAGS) $(LDFLAGS)
 
 heart.so: heart.c *.h Makefile
 	$(CC) -o heart.so heart.c -shared $(CFLAGS) $(LDFLAGS)
