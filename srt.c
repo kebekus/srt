@@ -179,8 +179,10 @@ void draw(SDL_Surface *screen, struct camera camera)
 			struct ray ray = init_ray(camera.origin, dir);
 			float l[2];
 			uint32_t color = 0;
-			if (aabb_ray(l, aabb, ray))
+			if (aabb_ray(l, aabb, ray) && l[1] > 0) {
+				l[0] = fmaxf(l[0], 0);
 				color = argb(value(l, ray));
+			}
 			fb[w * j + i] = color;
 
 		}
