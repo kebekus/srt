@@ -19,7 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "utils.h"
 #include "tests.h"
 
-float (*value)(float l[2], struct ray ray);
+v4sf (*value)(float l[2], struct ray ray);
 
 void load_curve(char *name)
 {
@@ -180,7 +180,7 @@ void draw(SDL_Surface *screen, struct camera camera)
 			float l[2];
 			uint32_t color = 0;
 			if (aabb_ray(l, aabb, ray))
-				color = argb(v4sf_set1(value(l, ray)));
+				color = argb(value(l, ray));
 			fb[w * j + i] = color;
 
 		}

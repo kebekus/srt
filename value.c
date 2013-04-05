@@ -11,16 +11,21 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include str(CURVE)
 #include "ray.h"
 
-float value(float l[2], struct ray ray)
+v4sf value(float l[2], struct ray ray)
 {
 	float last = curve(ray.o + v4sf_set1(l[0]) * ray.d);
 	for (float len = l[0]; len < l[1]; len += 0.1) {
 		v4sf p = ray.o + v4sf_set1(len) * ray.d;
 		float value = curve(p);
-		if (last * value <= 0)
-			return -v4sf_dot3(ray.d, v4sf_normal3(gradient(p)));
+		if (last * value <= 0) {
+			float tmp = v4sf_dot3(ray.d, v4sf_normal3(gradient(p)));
+			if (tmp < 0)
+				return v4sf_set3(0, -tmp, 0);
+			else
+				return v4sf_set3(tmp, 0, 0);
+		}
 		last = value;
 	}
-	return 0;
+	return v4sf_set1(0);
 }
 
