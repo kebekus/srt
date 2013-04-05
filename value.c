@@ -13,13 +13,18 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 v4sf value(float l[2], struct ray ray)
 {
+
 	float a = curve(ray.o + v4sf_set1(l[0]) * ray.d);
-	float b = curve(ray.o + v4sf_set1(l[1]) * ray.d);
-	while (l[0] < l[1] && a * b > 0) {
-		l[1] -= 0.1;
-		b = curve(ray.o + v4sf_set1(l[1]) * ray.d);
+	float b = a;
+	for (float len = l[0] + 0.1; len < l[1]; len += 0.1) {
+		b = curve(ray.o + v4sf_set1(len) * ray.d);
+		if (a * b <= 0) {
+			l[1] = len;
+			break;
+		}
+		l[0] = len;
 	}
-	if (l[0] >= l[1])
+	if (a * b > 0)
 		return v4sf_set1(0);
 	v4sf p;
 	for (int i = 0; i < 10; i++) {
