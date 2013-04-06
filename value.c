@@ -26,15 +26,20 @@ v4sf value(float l[2], struct ray ray)
 	}
 	if (a * b > 0)
 		return v4sf_set1(0);
-	v4sf p;
-	for (int i = 0; i < 10; i++) {
-		float mid = 0.5 * (l[0] + l[1]);
-		p = ray.o + v4sf_set1(mid) * ray.d;
-		float value = curve(p);
-		if (a * value > 0)
-			l[0] = mid;
-		if (b * value > 0)
-			l[1] = mid;
+	float n = 0.5 * (l[0] + l[1]);
+	v4sf p = ray.o + v4sf_set1(n) * ray.d;
+	for (int i = 0; i < 3; i++) {
+		n -= curve(p) / v4sf_dot3(ray.d, gradient(p));
+		if (n < l[0] || l[1] < n) {
+			float mid = 0.5 * (l[0] + l[1]);
+			float tmp = curve(ray.o + v4sf_set1(mid) * ray.d);
+			if (a * tmp > 0)
+				l[0] = mid;
+			if (b * tmp > 0)
+				l[1] = mid;
+			n = 0.5 * (l[0] + l[1]);
+		}
+		p = ray.o + v4sf_set1(n) * ray.d;
 	}
 	float tmp = v4sf_dot3(ray.d, v4sf_normal3(gradient(p)));
 	if (tmp < 0)
