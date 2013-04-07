@@ -90,6 +90,9 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 					case SDLK_6:
 						load_curve("curves/cylinder.so");
 						break;
+					case SDLK_7:
+						load_curve("curves/cone.so");
+						break;
 					case SDLK_q:
 					case SDLK_ESCAPE:
 						exit(0);
