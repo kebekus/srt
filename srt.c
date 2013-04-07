@@ -211,8 +211,10 @@ void draw(SDL_Surface *screen, struct camera camera)
 				if (snap && mouse_y == j && mouse_x == i) {
 					snap = 0;
 					FILE *file = fopen("plot.dat", "w");
+					for (float x = l[0]; x < l[1]; x += 0.1)
+						fprintf(file, "%g %g NaN\n", x, curve(ray.o + v4sf_set1(x) * ray.d));
 					for (float x = l[0]; x < l[1]; x += 0.001)
-						fprintf(file, "%g %g\n", x, curve(ray.o + v4sf_set1(x) * ray.d));
+						fprintf(file, "%g NaN %g\n", x, curve(ray.o + v4sf_set1(x) * ray.d));
 					fclose(file);
 				}
 				color = argb(value(l, ray));
