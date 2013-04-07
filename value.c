@@ -29,16 +29,14 @@ v4sf value(float l[2], struct ray ray)
 	v4sf p = ray.o + v4sf_set1(n) * ray.d;
 	for (int i = 0; i < 3; i++) {
 		n -= curve(p) / v4sf_dot3(ray.d, gradient(p));
-		if (n < l[0] || l[1] < n) {
-			float mid = 0.5 * (l[0] + l[1]);
-			float sign = a * curve(ray.o + v4sf_set1(mid) * ray.d);
-			if (sign > 0)
-				l[0] = mid;
-			else
-				l[1] = mid;
+		if (n < l[0] || l[1] < n)
 			n = 0.5 * (l[0] + l[1]);
-		}
 		p = ray.o + v4sf_set1(n) * ray.d;
+		float sign = a * curve(p);
+		if (sign > 0)
+			l[0] = n;
+		else
+			l[1] = n;
 	}
 	float tmp = v4sf_dot3(ray.d, v4sf_normal3(gradient(p)));
 	if (tmp < 0)
