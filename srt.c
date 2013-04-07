@@ -19,7 +19,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "utils.h"
 #include "tests.h"
 
+int mouse_x = 0;
+int mouse_y = 0;
+int snap = 0;
+
 v4sf (*value)(float l[2], struct ray ray);
+float (*curve)(v4sf v);
 
 void load_curve(char *name)
 {
@@ -36,12 +41,18 @@ void load_curve(char *name)
 		fprintf(stderr, "%s\n", dlerror());
 		exit(1);
 	}
+	curve = dlsym(lh, "curve");
+	if (!curve) {
+		fprintf(stderr, "%s\n", dlerror());
+		exit(1);
+	}
 }
 
 void handle_events(SDL_Surface *screen, struct camera *camera)
 {
 	static int focus = 1;
 	static int button_left = 0;
+	static int button_middle = 0;
 	static int button_right = 0;
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
@@ -106,6 +117,9 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 					case SDL_BUTTON_LEFT:
 						button_left = 1;
 						break;
+					case SDL_BUTTON_MIDDLE:
+						button_middle = 1;
+						break;
 					case SDL_BUTTON_RIGHT:
 						button_right = 1;
 						break;
@@ -117,6 +131,10 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 				switch (event.button.button) {
 					case SDL_BUTTON_LEFT:
 						button_left = 0;
+						break;
+					case SDL_BUTTON_MIDDLE:
+						button_middle = 0;
+						snap = 1;
 						break;
 					case SDL_BUTTON_RIGHT:
 						button_right = 0;
@@ -132,6 +150,10 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 					camera->up = m4sf_vmul(pitch, camera->up);
 					camera->right = m4sf_vmul(yaw, camera->right);
 					camera->dir = v4sf_cross3(camera->up, camera->right);
+				}
+				if (button_middle) {
+					mouse_x = event.motion.x;
+					mouse_y = event.motion.y;
 				}
 				if (button_right) {
 					m4sf rotx = m4sf_rot(camera->right, -M_PI * (float)event.motion.yrel / (float)screen->h);
@@ -193,10 +215,16 @@ void draw(SDL_Surface *screen, struct camera camera)
 			uint32_t color = 0;
 			if (aabb_ray(l, aabb, ray) && l[1] > 0) {
 				l[0] = fmaxf(l[0], 0);
+				if (snap && mouse_y == j && mouse_x == i) {
+					snap = 0;
+					FILE *file = fopen("plot.dat", "w");
+					for (float x = l[0]; x < l[1]; x += 0.001)
+						fprintf(file, "%g %g\n", x, curve(ray.o + v4sf_set1(x) * ray.d));
+					fclose(file);
+				}
 				color = argb(value(l, ray));
 			}
 			fb[w * j + i] = color;
-
 		}
 	}
 }
