@@ -15,27 +15,25 @@ v4sf value(float l[2], struct ray ray)
 {
 
 	float a = curve(ray.o + v4sf_set1(l[0]) * ray.d);
-	float b = a;
-	for (float len = l[0] + 0.1; len < l[1]; len += 0.1) {
-		b = curve(ray.o + v4sf_set1(len) * ray.d);
-		if (a * b <= 0) {
-			l[1] = len;
+	while (l[0] < l[1]) {
+		float sign = a * curve(ray.o + v4sf_set1(l[0] + 0.1) * ray.d);
+		if (sign <= 0)
 			break;
-		}
-		l[0] = len;
+		l[0] += 0.1;
 	}
-	if (a * b > 0)
+	if (l[0] >= l[1])
 		return v4sf_set1(0);
+	l[1] = l[0] + 0.1;
 	float n = 0.5 * (l[0] + l[1]);
 	v4sf p = ray.o + v4sf_set1(n) * ray.d;
 	for (int i = 0; i < 3; i++) {
 		n -= curve(p) / v4sf_dot3(ray.d, gradient(p));
 		if (n < l[0] || l[1] < n) {
 			float mid = 0.5 * (l[0] + l[1]);
-			float tmp = curve(ray.o + v4sf_set1(mid) * ray.d);
-			if (a * tmp > 0)
+			float sign = a * curve(ray.o + v4sf_set1(mid) * ray.d);
+			if (sign > 0)
 				l[0] = mid;
-			if (b * tmp > 0)
+			else
 				l[1] = mid;
 			n = 0.5 * (l[0] + l[1]);
 		}
