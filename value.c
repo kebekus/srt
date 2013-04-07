@@ -17,13 +17,14 @@ v4sf value(float l[2], struct ray ray)
 	float a = curve(ray.o + v4sf_set1(l[0]) * ray.d);
 	while (l[0] < l[1]) {
 		float sign = a * curve(ray.o + v4sf_set1(l[0] + 0.1) * ray.d);
-		if (sign <= 0)
+		if (sign <= 0) {
+			l[1] = l[0] + 0.1;
 			break;
+		}
 		l[0] += 0.1;
 	}
 	if (l[0] >= l[1])
 		return v4sf_set1(0);
-	l[1] = l[0] + 0.1;
 	float n = 0.5 * (l[0] + l[1]);
 	v4sf p = ray.o + v4sf_set1(n) * ray.d;
 	for (int i = 0; i < 3; i++) {
