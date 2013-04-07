@@ -8,13 +8,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "vector.h"
 
-static inline float curve(v4sf v)
+extern inline float curve(v4sf v)
 {
 	// z
 	return v[2];
 }
 
-static inline v4sf gradient(v4sf v)
+extern inline v4sf gradient(v4sf v)
 {
 	// (0, 0, 1)
 	(void)v;
