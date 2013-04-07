@@ -15,7 +15,7 @@ win: win32/srt.exe
 test: srt
 	./srt
 
-srt: srt.c curves/heart.so curves/sphere.so curves/torus.so *.h Makefile
+srt: srt.c $(patsubst %.h,%.so,curves/*.h) *.h Makefile
 	$(CC) -o srt srt.c $(SDL_CFLAGS) $(CFLAGS) $(SDL_LDFLAGS) $(LDFLAGS)
 
 curves/%.so: curves/%.h value.c *.h Makefile
