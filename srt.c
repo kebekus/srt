@@ -86,7 +86,7 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 						load_curve("curves/heart.so");
 						break;
 					case SDLK_2:
-						load_curve("curves/sphere.so");
+						load_curve("curves/mnm.so");
 						break;
 					case SDLK_3:
 						load_curve("curves/torus.so");
