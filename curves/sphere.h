@@ -17,6 +17,6 @@ extern inline float curve(v4sf v)
 extern inline v4sf gradient(v4sf v)
 {
 	// (2x, 2y, 2z)
-	return 2 * v;
+	return v4sf_set1(2) * v;
 }
 
