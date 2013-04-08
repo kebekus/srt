@@ -26,7 +26,7 @@ v4sf value(float l[2], struct ray ray)
 		}
 		v4sf p1 = ray.o + v4sf_set1(x1) * ray.d;
 		float n1 = - curve(p1) / v4sf_dot3(ray.d, gradient(p1));
-		if (0 < n && n < 0.1 && -0.1 < n1 && n1 < 0) {
+		if ((0 < n && n < 0.1) || (-0.1 < n1 && n1 < 0)) {
 			while (l[0] < x1) {
 				float x01 = l[0] + 0.01;
 				float sign = a * curve(ray.o + v4sf_set1(x01) * ray.d);
