@@ -11,6 +11,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include str(CURVE)
 #include "ray.h"
 
+#define coarse (0.1)
+#define fine (0.01)
+
 v4sf value(float l[2], struct ray ray)
 {
 
@@ -18,9 +21,18 @@ v4sf value(float l[2], struct ray ray)
 	v4sf p = ray.o + v4sf_set1(l[0]) * ray.d;
 	float n = - curve(p) / v4sf_dot3(ray.d, gradient(p));
 	while (l[0] < l[1]) {
-		float x1 = l[0] + 0.1;
+		float x1 = l[0] + coarse;
 		float sign = a * curve(ray.o + v4sf_set1(x1) * ray.d);
 		if (sign <= 0) {
+			while (l[0] < x1) {
+				float x01 = l[0] + fine;
+				float sign = a * curve(ray.o + v4sf_set1(x01) * ray.d);
+				if (sign <= 0) {
+					l[1] = x01;
+					goto end;
+				}
+				l[0] = x01;
+			}
 			l[1] = x1;
 			break;
 		}
@@ -28,7 +40,7 @@ v4sf value(float l[2], struct ray ray)
 		float n1 = - curve(p1) / v4sf_dot3(ray.d, gradient(p1));
 		if ((0 < n && n < 0.1) || (-0.1 < n1 && n1 < 0)) {
 			while (l[0] < x1) {
-				float x01 = l[0] + 0.01;
+				float x01 = l[0] + fine;
 				float sign = a * curve(ray.o + v4sf_set1(x01) * ray.d);
 				if (sign <= 0) {
 					l[1] = x01;
