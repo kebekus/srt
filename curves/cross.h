@@ -10,14 +10,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 extern inline float curve(v4sf v)
 {
-	// z
-	return v[2];
+	// xyz
+	return v[0] * v[1] * v[2];
 }
 
 extern inline v4sf gradient(v4sf v)
 {
-	// (0, 0, 1)
+	// (yz, xz, xy)
 	(void)v;
-	return v4sf_set3(0, 0, 1);
+	return v4sf_set3(v[1] * v[2], v[0] * v[2], v[0] * v[1]);
 }
 

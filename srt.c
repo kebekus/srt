@@ -92,7 +92,7 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 						load_curve("curves/torus.so");
 						break;
 					case SDLK_4:
-						load_curve("curves/plane.so");
+						load_curve("curves/cross.so");
 						break;
 					case SDLK_5:
 						load_curve("curves/paraboloid.so");
