@@ -18,26 +18,27 @@ v4sf value(float l[2], struct ray ray)
 	while (l[0] < l[1]) {
 		float x0 = l[0];
 		float x1 = l[0] + 0.1;
+		float sign = a * curve(ray.o + v4sf_set1(x1) * ray.d);
+		if (sign <= 0) {
+			l[1] = x1;
+			break;
+		}
 		v4sf p0 = ray.o + v4sf_set1(x0) * ray.d;
 		v4sf p1 = ray.o + v4sf_set1(x1) * ray.d;
-		x0 -= curve(p0) / v4sf_dot3(ray.d, gradient(p0));
-		x1 -= curve(p1) / v4sf_dot3(ray.d, gradient(p1));
-		float sign = a * curve(ray.o + v4sf_set1(l[0] + 0.1) * ray.d);
-		if (sign <= 0) {
-			l[1] = l[0] + 0.1;
-			break;
-		} else if (l[0] < x0 && x0 < (l[0] + 0.1) && l[0] < x1 && x1 < (l[0] + 0.1)) {
-			while (l[0] < l[1]) {
-				float sign = a * curve(ray.o + v4sf_set1(l[0] + 0.01) * ray.d);
+		float d0 = - curve(p0) / v4sf_dot3(ray.d, gradient(p0));
+		float d1 = - curve(p1) / v4sf_dot3(ray.d, gradient(p1));
+		if (0 < d0 && d0 < 0.1 && -0.1 < d1 && d1 < 0) {
+			while (l[0] < x1) {
+				float x01 = l[0] + 0.01;
+				float sign = a * curve(ray.o + v4sf_set1(x01) * ray.d);
 				if (sign <= 0) {
-					l[1] = l[0] + 0.01;
+					l[1] = x01;
 					goto end;
 				}
-				l[0] += 0.01;
+				l[0] = x01;
 			}
-		} else {
-			l[0] += 0.1;
 		}
+		l[0] = x1;
 	}
 end:
 	if (l[0] >= l[1])
