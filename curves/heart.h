@@ -16,7 +16,7 @@ extern inline float curve(v4sf v)
 
 extern inline v4sf gradient(v4sf v)
 {
-	// (4*x*(x^2 + y^2 + z^2 + 0.2) - 2*x, 4*y*(x^2 + y^2 + z^2 + 0.2) - 2*y, 4*z*(x^2 + y^2 + z^2 + 0.2))
+	// (12*x*(2*x^2 + y^2 + z^2 - 1)^2 - 0.2*x*z^3, 6*y*(2*x^2 + y^2 + z^2 - 1)^2 - 2*y*z^3, 6*z*(2*x^2 + y^2 + z^2 - 1)^2 - 3*y^2*z^2 - 0.3*x^2*z^2)
 	return v4sf_set3(
 		12 * v[0] * sqf(2 * sqf(v[0]) + sqf(v[1]) + sqf(v[2]) - 1) - 0.2 * v[0] * cbf(v[2]),
 		6 * v[1] * sqf(2 * sqf(v[0]) + sqf(v[1]) + sqf(v[2]) - 1) - 2 * v[1] * cbf(v[2]),
