@@ -21,10 +21,41 @@ struct jit
 
 static void reset_jit(struct jit *jit)
 {
-	LLVMDisposeExecutionEngine(jit->engine);
-	LLVMDisposePassManager(jit->pass);
-	LLVMDisposeBuilder(jit->builder);
-//	LLVMDisposeModule(jit->module); engine owns module ..
+	char *error = 0;
+	if (LLVMRemoveModule(jit->engine, jit->module, &jit->module, &error)) {
+		fprintf(stderr, "LLVMRemoveModule:\n%s\n", error);
+		LLVMDisposeMessage(error);
+		abort();
+	}
+	LLVMDisposeMessage(error);
+	error = 0;
+	if (jit->bc) {
+		if (LLVMParseBitcode(jit->bc, &jit->module, &error)) {
+			fprintf(stderr, "LLVMParseBitcode:\n%s\n", error);
+			LLVMDisposeMessage(error);
+			abort();
+		}
+	} else {
+		jit->module = LLVMModuleCreateWithName("jit");
+	}
+	LLVMDisposeMessage(error);
+	LLVMAddModule(jit->engine, jit->module);
+}
+
+void parser_reset_jit(struct parser_jit *parser_jit)
+{
+	reset_jit((struct jit *)parser_jit->data);
+}
+
+struct parser_jit *parser_alloc_jit(char *bc, int len)
+{
+	LLVMLinkInJIT();
+	LLVMInitializeNativeTarget();
+	struct jit *jit = malloc(sizeof(struct jit));
+
+	jit->bc = 0;
+	if (bc && len)
+		jit->bc = LLVMGetMemoryBufferFromArray(bc, len);
 
 	char *error = 0;
 	if (jit->bc) {
@@ -38,12 +69,14 @@ static void reset_jit(struct jit *jit)
 	}
 	LLVMDisposeMessage(error);
 
+	error = 0;
 	if (LLVMCreateJITCompilerForModule(&jit->engine, jit->module, 2, &error)) {
 		fprintf(stderr, "LLVMCreateJITCompilerForModule:\n%s\n", error);
 		LLVMDisposeMessage(error);
 		abort();
 	}
 	LLVMDisposeMessage(error);
+
 	jit->builder = LLVMCreateBuilder();
 	jit->pass = LLVMCreatePassManager();
 
@@ -55,32 +88,6 @@ static void reset_jit(struct jit *jit)
 	LLVMAddGVNPass(jit->pass);
 	LLVMAddCFGSimplificationPass(jit->pass);
 	LLVMAddFunctionInliningPass(jit->pass);
-}
-
-void parser_reset_jit(struct parser_jit *parser_jit)
-{
-	reset_jit((struct jit *)parser_jit->data);
-}
-
-struct parser_jit *parser_alloc_jit(char *bc, int len)
-{
-	static int init;
-	if (!init) {
-		LLVMLinkInJIT();
-		LLVMInitializeNativeTarget();
-		init = 1;
-	}
-	struct jit *jit = malloc(sizeof(struct jit));
-	jit->module = 0;
-	jit->builder = 0;
-	jit->pass = 0;
-	jit->engine = 0;
-	jit->bc = 0;
-
-	if (bc && len)
-		jit->bc = LLVMGetMemoryBufferFromArray(bc, len);
-
-	reset_jit(jit);
 
 	struct parser_jit *parser_jit = malloc(sizeof(struct parser_jit));
 	parser_jit->data = jit;
