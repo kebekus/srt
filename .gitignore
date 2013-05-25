@@ -1,6 +1,6 @@
 .*.swp
 srt
-win32/srt.exe
-win32/*.txt
-curves/*.so
 plot.dat
+*.o
+*.bc
+*_bc.h

@@ -1,29 +1,30 @@
 
-CC = $(shell ls /usr/bin/gcc-*.*.* | tail -n1)
-CFLAGS = -march=native -std=gnu99 -Wall -W -O3 -Wextra -fno-math-errno -ffinite-math-only -fno-rounding-math -fno-signaling-nans -fno-trapping-math -fcx-limited-range -fsingle-precision-constant -g
-LDFLAGS = -lm
-SDL_CFLAGS = $(shell sdl-config --cflags)
-SDL_LDFLAGS = $(shell sdl-config --libs)
-
-WIN32_CC = i686-mingw32-gcc
-WIN32_CFLAGS = -I../SDL-1.2.15/include/SDL -D_GNU_SOURCE=1 -Dmain=SDL_main -std=gnu99 -Wall -W -O3 -Wextra -fno-math-errno -ffinite-math-only -fno-rounding-math -fno-signaling-nans -fno-trapping-math -fcx-limited-range -fsingle-precision-constant -msse -msse2 -mfpmath=sse
-WIN32_LDFLAGS = -L../SDL-1.2.15/lib -lmingw32 -lSDLmain -lSDL -mwindows
-
 all: srt
-win: win32/srt.exe
 
 test: srt
 	./srt
 
-srt: srt.c $(patsubst %.h,%.so,$(wildcard curves/*.h)) *.h Makefile
-	$(CC) -o srt srt.c $(SDL_CFLAGS) $(CFLAGS) $(SDL_LDFLAGS) $(LDFLAGS)
+srt: srt.o parser.o deriv.o error.o eval.o reduce.o copy.o cbind.o jit.o
+	clang -o $@ $^ -lm $(shell llvm-config --libs --ldflags ipo jit native bitreader) -lstdc++ $(shell sdl-config --libs)
 
-curves/%.so: curves/%.h value.c *.h Makefile
-	$(CC) -o $@ -I. -DCURVE="$<" value.c -shared -fPIC $(CFLAGS) $(LDFLAGS)
+srt.o: srt.c value_bc.h *.h Makefile
+	clang -o srt.o srt.c -c -std=gnu99 -Wall -W -O3 -Wextra -march=native -ffast-math $(shell sdl-config --cflags)
 
-win32/srt.exe: srt.c *.h Makefile
-	$(WIN32_CC) -o win32/srt.exe srt.c $(WIN32_CFLAGS) $(WIN32_LDFLAGS)
+cbind.o: cbind.cpp cbind.h Makefile
+	clang++ -o cbind.o cbind.cpp -c -Wall -W -O3 -Wextra $(shell llvm-config --cflags)
+
+jit.o: jit.c jit.h parser.h Makefile
+	clang -o $@ $< -c -std=c99 -W -Wall -Wextra -O3 $(shell llvm-config --cflags)
+
+value.bc: value.c ray.h vector.h scalar.h Makefile
+	clang -o value.bc value.c -c -std=gnu99 -Wall -W -O3 -Wextra -fPIC -march=native -ffast-math -emit-llvm
+
+value_bc.h: value.bc Makefile
+	xxd -i value.bc value_bc.h
+
+%.o: %.c parser.h Makefile
+	clang -o $@ $< -c -std=c99 -W -Wall -Wextra -O3
 
 clean:
-	rm -f srt win32/srt.exe win32/*.txt curves/*.so
+	rm -f srt *.o
 

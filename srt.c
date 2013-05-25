@@ -6,7 +6,6 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#include <dlfcn.h>
 #include <math.h>
 #include <stdlib.h>
 #include <SDL.h>
@@ -19,6 +18,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "utils.h"
 #include "tests.h"
 
+#include "parser.h"
+#include "deriv.h"
+#include "error.h"
+#include "reduce.h"
+#include "jit.h"
+#include "value_bc.h"
+
 int mouse_x = 0;
 int mouse_y = 0;
 int snap = 0;
@@ -26,26 +32,49 @@ int snap = 0;
 v4sf (*value)(float l[2], struct ray ray);
 float (*curve)(v4sf v);
 
-void load_curve(char *name)
+int jit_curve(char *str)
 {
-	static void *lh = 0;
-	if (lh)
-		dlclose(lh);
-	lh = dlopen(name, RTLD_LAZY);
-	if (!lh) {
-		fprintf(stderr, "%s\n", dlerror());
-		exit(1);
+	static struct parser_jit *jit;
+	static struct parser_tree *curve_tree;
+	static struct parser_tree *deriv_tree[3];
+
+	static int init = 0;
+	if (!init) {
+		jit = parser_alloc_jit((char *)value_bc, value_bc_len);
+		curve_tree = parser_alloc_tree(8192);
+		for (int j = 0; j < 3; j++)
+			deriv_tree[j] = parser_alloc_tree(8192);
+		init = 1;
 	}
-	value = dlsym(lh, "value");
-	if (!value) {
-		fprintf(stderr, "%s\n", dlerror());
-		exit(1);
+
+	if (!parser_parse(curve_tree, str)) {
+		fprintf(stderr, "\n%s\n", str);
+		for (int i = 0; i < get_err_pos(); i++)
+			fprintf(stderr, " ");
+		fprintf(stderr, "~ %s\n\n", get_err_str());
+		return 0;
 	}
-	curve = dlsym(lh, "curve");
-	if (!curve) {
-		fprintf(stderr, "%s\n", dlerror());
-		exit(1);
+	if (!parser_reduce(curve_tree)) {
+		fprintf(stderr, "%s\n", get_err_str());
+		return 0;
 	}
+	for (int j = 0; j < 3; j++) {
+		deriv_tree[j] = parser_alloc_tree(8192);
+		if (!parser_deriv(deriv_tree[j], curve_tree, token_x + j) || !parser_reduce(deriv_tree[j])) {
+			fprintf(stderr, "%s\n", get_err_str());
+			return 0;
+		}
+	}
+	parser_reset_jit(jit);
+	parser_jit_build(jit, curve_tree, "curve_xyza");
+	parser_jit_build(jit, deriv_tree[0], "deriv_x");
+	parser_jit_build(jit, deriv_tree[1], "deriv_y");
+	parser_jit_build(jit, deriv_tree[2], "deriv_z");
+
+	parser_jit_opt(jit);
+	value = parser_jit_func(jit, "value");
+	curve = parser_jit_func(jit, "curve");
+	return 1;
 }
 
 void handle_events(SDL_Surface *screen, struct camera *camera)
@@ -83,25 +112,25 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 						*camera = init_camera();
 						break;
 					case SDLK_1:
-						load_curve("curves/heart.so");
+						jit_curve("(2*x^2 + y^2 + z^2 - 1)^3 - x^2*z^3/10 - y^2*z^3");
 						break;
 					case SDLK_2:
-						load_curve("curves/mnm.so");
+						jit_curve("x^2 + 4 * y^2 + z^2 - 1");
 						break;
 					case SDLK_3:
-						load_curve("curves/torus.so");
+						jit_curve("(x^2 + y^2 + z^2 + 0.2)^2 - (x^2 + y^2)");
 						break;
 					case SDLK_4:
-						load_curve("curves/cross.so");
+						jit_curve("x*y*z");
 						break;
 					case SDLK_5:
-						load_curve("curves/paraboloid.so");
+						jit_curve("x^2 + y^2 + z - 1");
 						break;
 					case SDLK_6:
-						load_curve("curves/cylinder.so");
+						jit_curve("x^2 + y^2 - 1");
 						break;
 					case SDLK_7:
-						load_curve("curves/cone.so");
+						jit_curve("x^2 + y^2 - z^2");
 						break;
 					case SDLK_q:
 					case SDLK_ESCAPE:
@@ -238,7 +267,7 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
-	load_curve("curves/heart.so");
+	jit_curve("(2*x^2 + y^2 + z^2 - 1)^3 - x^2*z^3/10 - y^2*z^3");
 
 	for (;;) {
 		draw(screen, camera);

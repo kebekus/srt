@@ -6,10 +6,26 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#define xstr(s) #s
-#define str(s) xstr(s)
-#include str(CURVE)
 #include "ray.h"
+
+float curve_xyza(float x, float y, float z, float a);
+float deriv_x(float x, float y, float z, float a);
+float deriv_y(float x, float y, float z, float a);
+float deriv_z(float x, float y, float z, float a);
+
+float curve(v4sf v)
+{
+	return curve_xyza(v[0], v[1], v[2], 0);
+}
+
+v4sf gradient(v4sf v)
+{
+	return v4sf_set3(
+		deriv_x(v[0], v[1], v[2], 0),
+		deriv_y(v[0], v[1], v[2], 0),
+		deriv_z(v[0], v[1], v[2], 0)
+	);
+}
 
 #define coarse (0.1)
 #define fine (0.01)
