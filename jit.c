@@ -140,11 +140,11 @@ void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, c
 {
 	struct jit *jit = parser_jit->data;
 	LLVMValueRef func;
-	if (!LLVMFindFunction(jit->engine, name, &func))
-		LLVMDeleteFunction(func);
-	LLVMTypeRef args[] = { LLVMFloatType(), LLVMFloatType(), LLVMFloatType(), LLVMFloatType() };
-	func = LLVMAddFunction(jit->module, name, LLVMFunctionType(LLVMFloatType(), args, 4, 0));
-	LLVMSetFunctionCallConv(func, LLVMCCallConv);
+	if (LLVMFindFunction(jit->engine, name, &func)) {
+		LLVMTypeRef args[] = { LLVMFloatType(), LLVMFloatType(), LLVMFloatType(), LLVMFloatType() };
+		func = LLVMAddFunction(jit->module, name, LLVMFunctionType(LLVMFloatType(), args, 4, 0));
+		LLVMSetFunctionCallConv(func, LLVMCCallConv);
+	}
 	LLVMValueRef x = LLVMGetParam(func, 0);
 	LLVMSetValueName(x, "x");
 	LLVMValueRef y = LLVMGetParam(func, 1);
