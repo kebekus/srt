@@ -91,12 +91,12 @@ static struct parser_node *reduce(struct parser_node *node)
 			if (zero(node->left) || one(node->left))
 				return node->left;
 			if (num(node->left))
-				return apply(node->left, node->right, func_pow);
+				return apply(node->left, node, func_pow);
 			node->left = reduce(node->left);
 			if (zero(node->left) || one(node->left))
 				return node->left;
 			if (num(node->left))
-				return apply(node->left, node->right, func_pow);
+				return apply(node->left, node, func_pow);
 			return node;
 		case token_mul:
 			if (zero(node->left) || zero(node->right))
