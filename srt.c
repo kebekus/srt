@@ -12,8 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "vector.h"
 #include "matrix.h"
 #include "ray.h"
-#include "aabb.h"
-#include "voxel.h"
+#include "sphere.h"
 #include "camera.h"
 #include "utils.h"
 #include "tests.h"
@@ -221,7 +220,7 @@ void handle_stats(SDL_Surface *screen)
 
 void draw(SDL_Surface *screen, struct camera camera)
 {
-	struct aabb aabb = { v4sf_set3(-1.5, -1.5, -1.5), v4sf_set3(1.5, 1.5, 1.5) };
+	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
@@ -235,7 +234,7 @@ void draw(SDL_Surface *screen, struct camera camera)
 			struct ray ray = init_ray(camera.origin, dir);
 			float l[2];
 			uint32_t color = 0;
-			if (aabb_ray(l, aabb, ray) && l[1] > 0) {
+			if (sphere_ray(l, sphere, ray) && l[1] > 0) {
 				l[0] = fmaxf(l[0], 0);
 				if (snap && mouse_y == j && mouse_x == i) {
 					snap = 0;
