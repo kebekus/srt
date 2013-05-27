@@ -58,7 +58,6 @@ int jit_curve(char *str)
 		return 0;
 	}
 	for (int j = 0; j < 3; j++) {
-		deriv_tree[j] = parser_alloc_tree(8192);
 		if (!parser_deriv(deriv_tree[j], curve_tree, token_x + j) || !parser_reduce(deriv_tree[j])) {
 			fprintf(stderr, "%s\n", get_err_str());
 			return 0;
