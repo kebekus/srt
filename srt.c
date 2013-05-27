@@ -31,6 +31,8 @@ int snap = 0;
 v4sf (*value)(float l[2], struct ray ray);
 float (*curve)(v4sf v);
 
+char *curve_str = "";
+
 int jit_curve(char *str)
 {
 	static struct parser_jit *jit;
@@ -72,7 +74,46 @@ int jit_curve(char *str)
 	parser_jit_opt(jit);
 	value = parser_jit_func(jit, "value");
 	curve = parser_jit_func(jit, "curve");
+
+	curve_str = str;
 	return 1;
+}
+
+void draw_string(char *string, SDL_Surface *screen, int x0, int y0, int x1, int y1, uint32_t fg, uint32_t bg)
+{
+#include "ascii.h"
+	const int font_w = 10;
+	const int font_h = 20;
+	uint32_t *fbp = (uint32_t *)screen->pixels;
+	int w = screen->w;
+	int h = fminf(screen->h, y1);
+	int yoff = 0;
+	int xoff = 0;
+	for (int i = 0; string[i]; i++) {
+		if ('\n' == string[i]) {
+			yoff += font_h;
+			xoff = 0;
+			continue;
+		}
+		if (string[i] < 32 || 126 < string[i]) continue;
+		int c = (string[i] - 32) * font_w * font_h;
+		for (int j = 0; j < font_h; j++) {
+			for (int k = 0; k < font_w; k++) {
+				int bit = c + font_w * j + k;
+				uint32_t mask = 1 << (bit & 31);
+				int index = bit >> 5;
+				int x = k + xoff + x0;
+				int y = j + yoff + y0;
+				if (w <= x || h <= y) continue;
+				fbp[w * y + x] = (mask & ascii[index]) ? fg : bg;
+			}
+		}
+		xoff += font_w;
+		if (x1 <= (xoff + x0 + font_w)) {
+			yoff += font_h;
+			xoff = 0;
+		}
+	}
 }
 
 void handle_events(SDL_Surface *screen, struct camera *camera)
@@ -252,6 +293,7 @@ void draw(SDL_Surface *screen, struct camera camera)
 			fb[w * j + i] = color;
 		}
 	}
+	draw_string(curve_str, screen, 10, (3 * h) / 4, w - 10, h - 10, 0x00bebebe, 0);
 }
 
 int main(int argc, char **argv)
