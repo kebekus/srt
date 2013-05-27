@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
 //	jit_curve("(2*x^2 + y^2 + z^2 - 1)^3 - x^2*z^3/10 - y^2*z^3");
-	jit_curve("4*((1*(1+2.2360679775)/2)^2*x^2-1*y^2)*((1*(1+2.2360679775)/2)^2*y^2-1*z^2)*((1*(1+2.2360679775)/2)^2*z^2-1*x^2)-1*(1+2*(1*(1+2.2360679775)/2))*(x^2+y^2+z^2-1*1)^2");
+	jit_curve("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
 
 	for (;;) {
 		draw(screen, camera);

@@ -15,15 +15,15 @@ float deriv_z(float x, float y, float z, float a);
 
 float curve(v4sf v)
 {
-	return curve_xyza(v[0], v[1], v[2], 0);
+	return curve_xyza(v[0], v[1], v[2], 1);
 }
 
 v4sf gradient(v4sf v)
 {
 	return v4sf_set3(
-		deriv_x(v[0], v[1], v[2], 0),
-		deriv_y(v[0], v[1], v[2], 0),
-		deriv_z(v[0], v[1], v[2], 0)
+		deriv_x(v[0], v[1], v[2], 1),
+		deriv_y(v[0], v[1], v[2], 1),
+		deriv_z(v[0], v[1], v[2], 1)
 	);
 }
 
