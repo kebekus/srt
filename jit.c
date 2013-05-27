@@ -28,6 +28,7 @@ static void reset_jit(struct jit *jit)
 		abort();
 	}
 	LLVMDisposeMessage(error);
+	LLVMDisposeModule(jit->module);
 	error = 0;
 	if (jit->bc) {
 		if (LLVMParseBitcode(jit->bc, &jit->module, &error)) {
