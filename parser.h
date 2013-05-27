@@ -14,7 +14,7 @@ enum {
 	token_neg,
 	token_num,
 	token_pow,
-	token_null,
+	token_sqrt,
 	token_paran,
 };
 

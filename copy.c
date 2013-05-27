@@ -25,6 +25,8 @@ struct parser_node *parser_copy_branch(struct parser_tree *dst, struct parser_no
 			return parser_new_node(dst, parser_copy_branch(dst, src->left), token_sub, parser_copy_branch(dst, src->right));
 		case token_neg:
 			return parser_new_node(dst, 0, token_neg, parser_copy_branch(dst, src->right));
+		case token_sqrt:
+			return parser_new_node(dst, 0, token_sqrt, parser_copy_branch(dst, src->right));
 		case token_err:
 			return 0;
 		default:

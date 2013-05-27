@@ -33,6 +33,12 @@ float func_neg(float left, float right)
 	return -right;
 }
 
+float func_sqrt(float left, float right)
+{
+	(void)left;
+	return sqrtf(right);
+}
+
 float parser_eval_branch(struct parser_node *node, float x, float y, float z, float a)
 {
 	switch (node->token) {
@@ -58,6 +64,8 @@ float parser_eval_branch(struct parser_node *node, float x, float y, float z, fl
 			return func_sub(parser_eval_branch(node->left, x, y, z, a), parser_eval_branch(node->right, x, y, z, a));
 		case token_neg:
 			return func_neg(0, parser_eval_branch(node->right, x, y, z, a));
+		case token_sqrt:
+			return func_sqrt(0, parser_eval_branch(node->right, x, y, z, a));
 		default:
 			return 0;
 	}

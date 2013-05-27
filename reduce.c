@@ -186,6 +186,13 @@ static struct parser_node *reduce(struct parser_node *node)
 			if (num(node->right))
 				return apply(node->right, node->right, func_neg);
 			return node;
+		case token_sqrt:
+			if (num(node->right))
+				return apply(node->right, node->right, func_sqrt);
+			node->right = reduce(node->right);
+			if (num(node->right))
+				return apply(node->right, node->right, func_sqrt);
+			return node;
 		case token_err:
 			return 0;
 		default:

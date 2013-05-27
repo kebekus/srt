@@ -85,6 +85,8 @@ int parser_token_prio(int token)
 	switch (token) {
 		case token_paran:
 			return -1;
+		case token_sqrt:
+			return 4;
 		case token_pow:
 			return 3;
 		case token_div:
@@ -132,6 +134,17 @@ static struct parser_node *handle_div(struct parser_tree *tree, struct parser_no
 	return parser_new_node(tree, left, token_div, right);
 }
 
+static struct parser_node *handle_sqrt(struct parser_tree *tree, struct parser_node *right)
+{
+	if (token_num != right->token)
+		right = parser_reduce_branch(right);
+	if (token_num != right->token)
+		return node_set_err_str("argument does not reduce to number");
+	if (0 > right->value)
+		return node_set_err_str("argument is negative");
+	return parser_new_node(tree, 0, token_sqrt, right);
+}
+
 static struct parser_node *handle_node(struct parser_tree *tree, struct parser_node *left, int token, struct parser_node *right)
 {
 	if (!token)
@@ -140,6 +153,8 @@ static struct parser_node *handle_node(struct parser_tree *tree, struct parser_n
 		return handle_pow(left, right);
 	if (token_div == token)
 		return handle_div(tree, left, right);
+	if (token_sqrt == token)
+		return handle_sqrt(tree, right);
 	return parser_new_node(tree, left, token, right);
 }
 
@@ -159,6 +174,15 @@ static struct parser_node *handle_num(struct parser_tree *tree, int *pos, char *
 	(*pos)--;
 	tmp[i] = 0;
 	return parser_new_num(tree, atof(tmp));
+}
+
+static int cmp_word(char *word, int *pos, char *str, int len)
+{
+	int word_len = strlen(word);
+	if ((*pos + word_len) > len || strncmp(word, str + *pos, word_len))
+		return set_err_str("unknown");
+	*pos += word_len - 1;
+	return 1;
 }
 
 #define ELEMENTS (128)
@@ -230,11 +254,11 @@ static int operand(struct parser_node **left, int op, struct parser_node **right
 	return 1;
 }
 
-static int operator(struct parser_tree *tree, struct parser_node **left, int *op, struct parser_node **right, int token)
+static int binary_operator(struct parser_tree *tree, struct parser_node **left, int *op, struct parser_node **right, int token)
 {
 	if (!token)
 		return 0;
-	if ((*left && !*op) || token_neg == token) {
+	if (*left && !*op) {
 		*op = token;
 	} else if (*op && *right) {
 		if (parser_token_prio(*op) >= parser_token_prio(token)) {
@@ -259,6 +283,25 @@ static int operator(struct parser_tree *tree, struct parser_node **left, int *op
 			return 0;
 	}
 	return 1;
+}
+
+static int unary_operator(struct parser_node **left, int *op, struct parser_node **right, int token)
+{
+	if (!token)
+		return 0;
+	if (!*left && !*op) {
+		*op = token;
+		return 1;
+	} else if (*op && !*right) {
+		if (!push(element(*left, *op)))
+			return 0;
+		*left = 0;
+		*op = token;
+		*right = 0;
+		return 1;
+	} else {
+		return set_err_str("syntax error");
+	}
 }
 
 static int opening_paran(struct parser_node **left, int *op, struct parser_node **right)
@@ -350,28 +393,32 @@ int parser_parse(struct parser_tree *tree, char *str)
 				if (!operand(&left, op, &right, parser_new_var(tree, token_a)))
 					return set_err_pos(pos);
 				break;
+			case 's':
+				if (!cmp_word("sqrt", &pos, str, len) || !unary_operator(&left, &op, &right, token_sqrt))
+					return set_err_pos(pos);
+				break;
 			case '^':
-				if (!operator(tree, &left, &op, &right, token_pow))
+				if (!binary_operator(tree, &left, &op, &right, token_pow))
 					return set_err_pos(pos);
 				break;
 			case '*':
-				if (!operator(tree, &left, &op, &right, token_mul))
+				if (!binary_operator(tree, &left, &op, &right, token_mul))
 					return set_err_pos(pos);
 				break;
 			case '/':
-				if (!operator(tree, &left, &op, &right, token_div))
+				if (!binary_operator(tree, &left, &op, &right, token_div))
 					return set_err_pos(pos);
 				break;
 			case '+':
-				if (!operator(tree, &left, &op, &right, token_add))
+				if (!binary_operator(tree, &left, &op, &right, token_add))
 					return set_err_pos(pos);
 				break;
 			case '-':
-				if (left) {
-					if (!operator(tree, &left, &op, &right, token_sub))
+				if (left || op) {
+					if (!binary_operator(tree, &left, &op, &right, token_sub))
 						return set_err_pos(pos);
 				} else {
-					if (!operator(tree, &left, &op, &right, token_neg))
+					if (!unary_operator(&left, &op, &right, token_neg))
 						return set_err_pos(pos);
 				}
 				break;
