@@ -86,6 +86,8 @@ int parser_token_prio(int token)
 		case token_paran:
 			return -1;
 		case token_sqrt:
+		case token_sin:
+		case token_cos:
 			return 4;
 		case token_pow:
 			return 3;
@@ -145,6 +147,24 @@ static struct parser_node *handle_sqrt(struct parser_tree *tree, struct parser_n
 	return parser_new_node(tree, 0, token_sqrt, right);
 }
 
+static struct parser_node *handle_sin(struct parser_tree *tree, struct parser_node *right)
+{
+	if (token_num != right->token)
+		right = parser_reduce_branch(right);
+	if (token_num != right->token)
+		return node_set_err_str("argument does not reduce to number");
+	return parser_new_node(tree, 0, token_sin, right);
+}
+
+static struct parser_node *handle_cos(struct parser_tree *tree, struct parser_node *right)
+{
+	if (token_num != right->token)
+		right = parser_reduce_branch(right);
+	if (token_num != right->token)
+		return node_set_err_str("argument does not reduce to number");
+	return parser_new_node(tree, 0, token_cos, right);
+}
+
 static struct parser_node *handle_node(struct parser_tree *tree, struct parser_node *left, int token, struct parser_node *right)
 {
 	if (!token)
@@ -155,6 +175,10 @@ static struct parser_node *handle_node(struct parser_tree *tree, struct parser_n
 		return handle_div(tree, left, right);
 	if (token_sqrt == token)
 		return handle_sqrt(tree, right);
+	if (token_sin == token)
+		return handle_sin(tree, right);
+	if (token_cos == token)
+		return handle_cos(tree, right);
 	return parser_new_node(tree, left, token, right);
 }
 
@@ -393,8 +417,23 @@ int parser_parse(struct parser_tree *tree, char *str)
 				if (!operand(&left, op, &right, parser_new_var(tree, token_a)))
 					return set_err_pos(pos);
 				break;
+			case 'c':
+				if (!cmp_word("cos", &pos, str, len) || !unary_operator(&left, &op, &right, token_cos))
+					return set_err_pos(pos);
+				break;
 			case 's':
-				if (!cmp_word("sqrt", &pos, str, len) || !unary_operator(&left, &op, &right, token_sqrt))
+				if (cmp_word("sqrt", &pos, str, len)) {
+					if (!unary_operator(&left, &op, &right, token_sqrt))
+						return set_err_pos(pos);
+				} else if (cmp_word("sin", &pos, str, len)) {
+					if (!unary_operator(&left, &op, &right, token_sin))
+						return set_err_pos(pos);
+				} else {
+					return set_err_pos(pos);
+				}
+				break;
+			case 'P':
+				if (!cmp_word("PI", &pos, str, len) || !operand(&left, op, &right, parser_new_num(tree, 3.14159265358979323846)))
 					return set_err_pos(pos);
 				break;
 			case '^':

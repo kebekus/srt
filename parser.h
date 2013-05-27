@@ -15,6 +15,8 @@ enum {
 	token_num,
 	token_pow,
 	token_sqrt,
+	token_sin,
+	token_cos,
 	token_paran,
 };
 
