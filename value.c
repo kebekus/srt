@@ -13,36 +13,36 @@ float deriv_x(float x, float y, float z, float a);
 float deriv_y(float x, float y, float z, float a);
 float deriv_z(float x, float y, float z, float a);
 
-float curve(v4sf v)
+float curve(v4sf v, float A)
 {
-	return curve_xyza(v[0], v[1], v[2], 1);
+	return curve_xyza(v[0], v[1], v[2], A);
 }
 
-v4sf gradient(v4sf v)
+v4sf gradient(v4sf v, float A)
 {
 	return v4sf_set3(
-		deriv_x(v[0], v[1], v[2], 1),
-		deriv_y(v[0], v[1], v[2], 1),
-		deriv_z(v[0], v[1], v[2], 1)
+		deriv_x(v[0], v[1], v[2], A),
+		deriv_y(v[0], v[1], v[2], A),
+		deriv_z(v[0], v[1], v[2], A)
 	);
 }
 
 #define coarse (0.1)
 #define fine (0.01)
 
-v4sf value(float l[2], struct ray ray)
+v4sf value(float l[2], struct ray ray, float A)
 {
 
-	float a = curve(ray.o + v4sf_set1(l[0]) * ray.d);
+	float a = curve(ray.o + v4sf_set1(l[0]) * ray.d, A);
 	v4sf p = ray.o + v4sf_set1(l[0]) * ray.d;
-	float n = - curve(p) / v4sf_dot3(ray.d, gradient(p));
+	float n = - curve(p, A) / v4sf_dot3(ray.d, gradient(p, A));
 	while (l[0] < l[1]) {
 		float x1 = l[0] + coarse;
-		float sign = a * curve(ray.o + v4sf_set1(x1) * ray.d);
+		float sign = a * curve(ray.o + v4sf_set1(x1) * ray.d, A);
 		if (sign <= 0) {
 			while (l[0] < x1) {
 				float x01 = l[0] + fine;
-				float sign = a * curve(ray.o + v4sf_set1(x01) * ray.d);
+				float sign = a * curve(ray.o + v4sf_set1(x01) * ray.d, A);
 				if (sign <= 0) {
 					l[1] = x01;
 					goto end;
@@ -53,11 +53,11 @@ v4sf value(float l[2], struct ray ray)
 			break;
 		}
 		v4sf p1 = ray.o + v4sf_set1(x1) * ray.d;
-		float n1 = - curve(p1) / v4sf_dot3(ray.d, gradient(p1));
+		float n1 = - curve(p1, A) / v4sf_dot3(ray.d, gradient(p1, A));
 		if ((0 < n && n < 0.1) || (-0.1 < n1 && n1 < 0)) {
 			while (l[0] < x1) {
 				float x01 = l[0] + fine;
-				float sign = a * curve(ray.o + v4sf_set1(x01) * ray.d);
+				float sign = a * curve(ray.o + v4sf_set1(x01) * ray.d, A);
 				if (sign <= 0) {
 					l[1] = x01;
 					goto end;
@@ -75,24 +75,24 @@ end:
 	for (int i = 0; i < 10; i++) {
 		n = 0.5 * (l[0] + l[1]);
 		p = ray.o + v4sf_set1(n) * ray.d;
-		float sign = a * curve(p);
+		float sign = a * curve(p, A);
 		if (sign > 0)
 			l[0] = n;
 		else
 			l[1] = n;
 	}
 	for (int i = 0; i < 3; i++) {
-		n -= curve(p) / v4sf_dot3(ray.d, gradient(p));
+		n -= curve(p, A) / v4sf_dot3(ray.d, gradient(p, A));
 		if (n < l[0] || l[1] < n)
 			n = 0.5 * (l[0] + l[1]);
 		p = ray.o + v4sf_set1(n) * ray.d;
-		float sign = a * curve(p);
+		float sign = a * curve(p, A);
 		if (sign > 0)
 			l[0] = n;
 		else
 			l[1] = n;
 	}
-	float tmp = v4sf_dot3(ray.d, v4sf_normal3(gradient(p)));
+	float tmp = v4sf_dot3(ray.d, v4sf_normal3(gradient(p, A)));
 	if (tmp < 0)
 		return v4sf_set3(0, -tmp, 0);
 	else

@@ -28,8 +28,8 @@ int mouse_x = 0;
 int mouse_y = 0;
 int snap = 0;
 
-v4sf (*value)(float l[2], struct ray ray);
-float (*curve)(v4sf v);
+v4sf (*value)(float l[2], struct ray ray, float A);
+float (*curve)(v4sf v, float A);
 
 char *curve_str = "";
 
@@ -116,7 +116,7 @@ void draw_string(char *string, SDL_Surface *screen, int x0, int y0, int x1, int 
 	}
 }
 
-void handle_events(SDL_Surface *screen, struct camera *camera)
+void handle_events(SDL_Surface *screen, struct camera *camera, float *A)
 {
 	static int focus = 1;
 	static int button_left = 0;
@@ -129,6 +129,12 @@ void handle_events(SDL_Surface *screen, struct camera *camera)
 				break;
 			case SDL_KEYDOWN:
 				switch (event.key.keysym.sym) {
+					case SDLK_EQUALS:
+						*A = (*A + 0.01) < 1 ? (*A + 0.01) : 1;
+						break;
+					case SDLK_MINUS:
+						*A = (*A - 0.01) > 0 ? (*A - 0.01) : 0;
+						break;
 					case SDLK_w:
 						camera->origin += v4sf_set1(0.2) * camera->dir;
 						break;
@@ -261,7 +267,7 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-void draw(SDL_Surface *screen, struct camera camera)
+void draw(SDL_Surface *screen, struct camera camera, float A)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
 	uint32_t *fb = screen->pixels;
@@ -283,12 +289,12 @@ void draw(SDL_Surface *screen, struct camera camera)
 					snap = 0;
 					FILE *file = fopen("plot.dat", "w");
 					for (float x = l[0]; x < l[1]; x += 0.1)
-						fprintf(file, "%g %g NaN\n", x, curve(ray.o + v4sf_set1(x) * ray.d));
+						fprintf(file, "%g %g NaN\n", x, curve(ray.o + v4sf_set1(x) * ray.d, A));
 					for (float x = l[0]; x < l[1]; x += 0.001)
-						fprintf(file, "%g NaN %g\n", x, curve(ray.o + v4sf_set1(x) * ray.d));
+						fprintf(file, "%g NaN %g\n", x, curve(ray.o + v4sf_set1(x) * ray.d, A));
 					fclose(file);
 				}
-				color = argb(value(l, ray));
+				color = argb(value(l, ray, A));
 			}
 			fb[w * j + i] = color;
 		}
@@ -311,12 +317,13 @@ int main(int argc, char **argv)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	struct camera camera = init_camera();
 	jit_curve("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
+	float A = 1.0;
 
 	for (;;) {
-		draw(screen, camera);
+		draw(screen, camera, A);
 		SDL_Flip(screen);
 		SDL_Delay(10);
-		handle_events(screen, &camera);
+		handle_events(screen, &camera, &A);
 		handle_stats(screen);
 	}
 	return 0;
