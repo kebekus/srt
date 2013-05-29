@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "camera.h"
 #include "utils.h"
 #include "tests.h"
+#include "edit.h"
 
 #include "parser.h"
 #include "deriv.h"
@@ -31,9 +32,7 @@ int snap = 0;
 v4sf (*value)(float l[2], struct ray ray, float A);
 float (*curve)(v4sf v, float A);
 
-char *curve_str = "";
-
-int jit_curve(char *str)
+int jit_curve(struct edit *edit)
 {
 	static struct parser_jit *jit;
 	static struct parser_tree *curve_tree;
@@ -48,8 +47,8 @@ int jit_curve(char *str)
 		init = 1;
 	}
 
-	if (!parser_parse(curve_tree, str)) {
-		fprintf(stderr, "\n%s\n", str);
+	if (!parser_parse(curve_tree, edit->str)) {
+		fprintf(stderr, "\n%s\n", edit->str);
 		for (int i = 0; i < get_err_pos(); i++)
 			fprintf(stderr, " ");
 		fprintf(stderr, "~ %s\n\n", get_err_str());
@@ -75,54 +74,18 @@ int jit_curve(char *str)
 	value = parser_jit_func(jit, "value");
 	curve = parser_jit_func(jit, "curve");
 
-	curve_str = str;
 	return 1;
 }
 
-void draw_string(char *string, SDL_Surface *screen, int x0, int y0, int x1, int y1, uint32_t fg, uint32_t bg)
-{
-#include "ascii.h"
-	const int font_w = 10;
-	const int font_h = 20;
-	uint32_t *fbp = (uint32_t *)screen->pixels;
-	int w = screen->w;
-	int h = fminf(screen->h, y1);
-	int yoff = 0;
-	int xoff = 0;
-	for (int i = 0; string[i]; i++) {
-		if ('\n' == string[i]) {
-			yoff += font_h;
-			xoff = 0;
-			continue;
-		}
-		if (string[i] < 32 || 126 < string[i]) continue;
-		int c = (string[i] - 32) * font_w * font_h;
-		for (int j = 0; j < font_h; j++) {
-			for (int k = 0; k < font_w; k++) {
-				int bit = c + font_w * j + k;
-				uint32_t mask = 1 << (bit & 31);
-				int index = bit >> 5;
-				int x = k + xoff + x0;
-				int y = j + yoff + y0;
-				if (w <= x || h <= y) continue;
-				fbp[w * y + x] = (mask & ascii[index]) ? fg : bg;
-			}
-		}
-		xoff += font_w;
-		if (x1 <= (xoff + x0 + font_w)) {
-			yoff += font_h;
-			xoff = 0;
-		}
-	}
-}
-
-void handle_events(SDL_Surface *screen, struct camera *camera, float *A)
+void handle_events(SDL_Surface *screen, struct camera *camera, float *A, struct edit *edit)
 {
 	static int focus = 1;
 	static int button_left = 0;
 	static int button_right = 0;
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
+		if (handle_edit(event, edit))
+			continue;
 		switch (event.type) {
 			case SDL_ACTIVEEVENT:
 				focus = event.active.gain;
@@ -156,31 +119,38 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *A)
 					case SDLK_r:
 						*camera = init_camera();
 						break;
-					case SDLK_1:
-						jit_curve("(2*x^2 + y^2 + z^2 - 1)^3 - x^2*z^3/10 - y^2*z^3");
+					case SDLK_F1:
+						reset_edit(edit, "(2*x^2 + y^2 + z^2 - 1)^3 - x^2*z^3/10 - y^2*z^3");
+						jit_curve(edit);
 						break;
-					case SDLK_2:
-						jit_curve("x^2 + 4 * y^2 + z^2 - 1");
+					case SDLK_F2:
+						reset_edit(edit, "x^2 + 4 * y^2 + z^2 - 1");
+						jit_curve(edit);
 						break;
-					case SDLK_3:
-						jit_curve("(x^2 + y^2 + z^2 + 0.2)^2 - (x^2 + y^2)");
+					case SDLK_F3:
+						reset_edit(edit, "(x^2 + y^2 + z^2 + 0.2)^2 - (x^2 + y^2)");
+						jit_curve(edit);
 						break;
-					case SDLK_4:
-						jit_curve("x*y*z");
+					case SDLK_F4:
+						reset_edit(edit, "x*y*z");
+						jit_curve(edit);
 						break;
-					case SDLK_5:
-						jit_curve("x^2 + y^2 + z - 1");
+					case SDLK_F5:
+						reset_edit(edit, "x^2 + y^2 + z - 1");
+						jit_curve(edit);
 						break;
-					case SDLK_6:
-						jit_curve("x^2 + y^2 - 1");
+					case SDLK_F6:
+						reset_edit(edit, "x^2 + y^2 - 1");
+						jit_curve(edit);
 						break;
-					case SDLK_7:
-						jit_curve("x^2 + y^2 - z^2");
+					case SDLK_F7:
+						reset_edit(edit, "x^2 + y^2 - z^2");
+						jit_curve(edit);
 						break;
-					case SDLK_8:
-						jit_curve("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
+					case SDLK_F8:
+						reset_edit(edit, "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
+						jit_curve(edit);
 						break;
-					case SDLK_q:
 					case SDLK_ESCAPE:
 						exit(0);
 						break;
@@ -299,7 +269,6 @@ void draw(SDL_Surface *screen, struct camera camera, float A)
 			fb[w * j + i] = color;
 		}
 	}
-	draw_string(curve_str, screen, 10, (3 * h) / 4, w - 10, h - 10, 0x00bebebe, 0);
 }
 
 int main(int argc, char **argv)
@@ -315,15 +284,25 @@ int main(int argc, char **argv)
 		exit(1);
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	SDL_EnableUNICODE(1);
+
+	struct edit *edit = alloc_edit(10240, "");
+	edit->x0 = 10;
+	edit->y0 = (3 * screen->h) / 4;
+	edit->x1 = screen->w - 10;
+	edit->y1 = screen->h - 10;
+
 	struct camera camera = init_camera();
-	jit_curve("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
+	reset_edit(edit, "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
+	jit_curve(edit);
 	float A = 1.0;
 
 	for (;;) {
 		draw(screen, camera, A);
+		draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
 		SDL_Delay(10);
-		handle_events(screen, &camera, &A);
+		handle_events(screen, &camera, &A, edit);
 		handle_stats(screen);
 	}
 	return 0;
