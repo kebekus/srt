@@ -77,14 +77,14 @@ int jit_curve(struct edit *edit)
 	return 1;
 }
 
-void handle_events(SDL_Surface *screen, struct camera *camera, float *A, struct edit *edit)
+void handle_events(SDL_Surface *screen, struct camera *camera, float *A, struct edit *edit, int *edit_mode)
 {
 	static int focus = 1;
 	static int button_left = 0;
 	static int button_right = 0;
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
-		if (handle_edit(event, edit))
+		if (*edit_mode && handle_edit(event, edit))
 			continue;
 		switch (event.type) {
 			case SDL_ACTIVEEVENT:
@@ -92,6 +92,20 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *A, struct 
 				break;
 			case SDL_KEYDOWN:
 				switch (event.key.keysym.sym) {
+					case SDLK_e:
+						*edit_mode = 1;
+						break;
+					case SDLK_RETURN:
+						if (*edit_mode && jit_curve(edit))
+							*edit_mode = 0;
+						break;
+					case SDLK_ESCAPE:
+						if (*edit_mode) {
+							*edit_mode = 0;
+							break;
+						}
+						exit(0);
+						break;
 					case SDLK_EQUALS:
 						*A = (*A + 0.01) < 1 ? (*A + 0.01) : 1;
 						break;
@@ -119,39 +133,39 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *A, struct 
 					case SDLK_r:
 						*camera = init_camera();
 						break;
-					case SDLK_F1:
+					case SDLK_1:
 						reset_edit(edit, "(2*x^2 + y^2 + z^2 - 1)^3 - x^2*z^3/10 - y^2*z^3");
 						jit_curve(edit);
 						break;
-					case SDLK_F2:
+					case SDLK_2:
 						reset_edit(edit, "x^2 + 4 * y^2 + z^2 - 1");
 						jit_curve(edit);
 						break;
-					case SDLK_F3:
+					case SDLK_3:
 						reset_edit(edit, "(x^2 + y^2 + z^2 + 0.2)^2 - (x^2 + y^2)");
 						jit_curve(edit);
 						break;
-					case SDLK_F4:
+					case SDLK_4:
 						reset_edit(edit, "x*y*z");
 						jit_curve(edit);
 						break;
-					case SDLK_F5:
+					case SDLK_5:
 						reset_edit(edit, "x^2 + y^2 + z - 1");
 						jit_curve(edit);
 						break;
-					case SDLK_F6:
+					case SDLK_6:
 						reset_edit(edit, "x^2 + y^2 - 1");
 						jit_curve(edit);
 						break;
-					case SDLK_F7:
+					case SDLK_7:
 						reset_edit(edit, "x^2 + y^2 - z^2");
 						jit_curve(edit);
 						break;
-					case SDLK_F8:
+					case SDLK_8:
 						reset_edit(edit, "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
 						jit_curve(edit);
 						break;
-					case SDLK_ESCAPE:
+					case SDLK_q:
 						exit(0);
 						break;
 					default:
@@ -297,12 +311,14 @@ int main(int argc, char **argv)
 	jit_curve(edit);
 	float A = 1.0;
 
+	int edit_mode = 0;
 	for (;;) {
 		draw(screen, camera, A);
-		draw_edit(edit, screen, 0x00bebebe, 0);
+		if (edit_mode)
+			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
 		SDL_Delay(10);
-		handle_events(screen, &camera, &A, edit);
+		handle_events(screen, &camera, &A, edit, &edit_mode);
 		handle_stats(screen);
 	}
 	return 0;
