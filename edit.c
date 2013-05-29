@@ -42,23 +42,29 @@ void free_edit(struct edit *edit)
 	free(edit);
 }
 
-void draw_char(char chr, uint32_t *fbp, int w, int h, int x0, int y0, uint32_t fg, uint32_t bg, int invert)
+void draw_char(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg, int xoff, int yoff, char chr, int invert)
 {
 #include "ascii.h"
 	const int font_w = 10;
 	const int font_h = 20;
+	uint32_t *fbp = screen->pixels;
+	int w = screen->w;
+	int x0 = edit->x0;
+	int y0 = edit->y0;
+	int x1 = min(screen->w, edit->x1);
+	int y1 = min(screen->h, edit->y1);
 	if (chr < 32 || 126 < chr)
 		chr = ' ';
 	int c = (chr - 32) * font_w * font_h;
-	if (w < (x0 + font_w) || h < (y0 + font_h))
+	if (x1 < (x0 + xoff + font_w) || y1 < (y0 + yoff + font_h))
 		return;
 	for (int j = 0; j < font_h; j++) {
 		for (int k = 0; k < font_w; k++) {
 			int bit = c + font_w * j + k;
 			uint32_t mask = 1 << (bit & 31);
 			int index = bit >> 5;
-			int x = k + x0;
-			int y = j + y0;
+			int x = k + x0 + xoff;
+			int y = j + y0 + yoff;
 			fbp[w * y + x] = !(mask & ascii[index]) != !invert ? fg : bg;
 		}
 	}
@@ -68,13 +74,10 @@ void draw_edit(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg)
 {
 	const int font_w = 10;
 	const int font_h = 20;
-	uint32_t *fbp = (uint32_t *)screen->pixels;
-	int w = screen->w;
-	int h = min(screen->h, edit->y1);
-	int yoff = 0;
 	int xoff = 0;
+	int yoff = 0;
 	for (int i = 0; edit->str[i]; i++) {
-		draw_char(edit->str[i], fbp, w, h, xoff + edit->x0, yoff + edit->y0, fg, bg, i == edit->cursor);
+		draw_char(edit, screen, fg, bg, xoff, yoff, edit->str[i], i == edit->cursor);
 		xoff += font_w;
 		if (edit->x1 < (xoff + edit->x0 + font_w)) {
 			yoff += font_h;
@@ -82,7 +85,7 @@ void draw_edit(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg)
 		}
 	}
 	if (!edit->str[edit->cursor])
-		draw_char(' ', fbp, w, h, xoff + edit->x0, yoff + edit->y0, fg, bg, 1);
+		draw_char(edit, screen, fg, bg, xoff, yoff, ' ', 1);
 }
 
 int handle_cursor(struct edit *edit, int x, int y)
