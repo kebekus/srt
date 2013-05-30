@@ -13,6 +13,7 @@ struct edit {
 	char *str;
 	int len;
 	int cursor;
+	int rows, cols;
 	int x0, y0;
 	int x1, y1;
 };
@@ -20,6 +21,7 @@ struct edit {
 struct edit *alloc_edit(int len, char *str);
 void reset_edit(struct edit *edit, char *str);
 void free_edit(struct edit *edit);
+void resize_edit(struct edit *edit, int x0, int y0, int x1, int y1);
 void draw_edit(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg);
 int handle_edit(SDL_Event event, struct edit *edit);
 #endif

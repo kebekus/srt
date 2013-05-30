@@ -301,10 +301,7 @@ int main(int argc, char **argv)
 	SDL_EnableUNICODE(1);
 
 	struct edit *edit = alloc_edit(10240, "");
-	edit->x0 = 10;
-	edit->y0 = (3 * screen->h) / 4;
-	edit->x1 = screen->w - 10;
-	edit->y1 = screen->h - 10;
+	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
 
 	struct camera camera = init_camera();
 	reset_edit(edit, "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");

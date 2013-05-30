@@ -9,16 +9,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdlib.h>
 #include <string.h>
 #include "edit.h"
-
-int max(int a, int b)
-{
-	return a > b ? a : b;
-}
-
-int min(int a, int b)
-{
-	return a < b ? a : b;
-}
+#include "ascii.h"
+const int font_w = 10;
+const int font_h = 20;
 
 void reset_edit(struct edit *edit, char *str)
 {
@@ -42,29 +35,32 @@ void free_edit(struct edit *edit)
 	free(edit);
 }
 
-void draw_char(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg, int xoff, int yoff, char chr, int invert)
+void resize_edit(struct edit *edit, int x0, int y0, int x1, int y1)
 {
-#include "ascii.h"
-	const int font_w = 10;
-	const int font_h = 20;
+	edit->x0 = x0;
+	edit->y0 = y0;
+	edit->x1 = x1;
+	edit->y1 = y1;
+	edit->cols = (x1 - x0) / font_w;
+	edit->rows = (y1 - y0) / font_h;
+}
+
+void draw_char(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg, int row, int col, char chr, int invert)
+{
 	uint32_t *fbp = screen->pixels;
 	int w = screen->w;
-	int x0 = edit->x0;
-	int y0 = edit->y0;
-	int x1 = min(screen->w, edit->x1);
-	int y1 = min(screen->h, edit->y1);
+	if (row >= edit->rows || col >= edit->cols)
+		return;
 	if (chr < 32 || 126 < chr)
 		chr = ' ';
 	int c = (chr - 32) * font_w * font_h;
-	if (x1 < (x0 + xoff + font_w) || y1 < (y0 + yoff + font_h))
-		return;
 	for (int j = 0; j < font_h; j++) {
 		for (int k = 0; k < font_w; k++) {
 			int bit = c + font_w * j + k;
 			uint32_t mask = 1 << (bit & 31);
 			int index = bit >> 5;
-			int x = k + x0 + xoff;
-			int y = j + y0 + yoff;
+			int x = k + edit->x0 + font_w * col;
+			int y = j + edit->y0 + font_h * row;
 			fbp[w * y + x] = !(mask & ascii[index]) != !invert ? fg : bg;
 		}
 	}
@@ -72,33 +68,28 @@ void draw_char(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg,
 
 void draw_edit(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg)
 {
-	const int font_w = 10;
-	const int font_h = 20;
-	int xoff = 0;
-	int yoff = 0;
+	int row = 0;
+	int col = 0;
 	for (int i = 0; edit->str[i]; i++) {
-		draw_char(edit, screen, fg, bg, xoff, yoff, edit->str[i], i == edit->cursor);
-		xoff += font_w;
-		if (edit->x1 < (xoff + edit->x0 + font_w)) {
-			yoff += font_h;
-			xoff = 0;
+		draw_char(edit, screen, fg, bg, row, col++, edit->str[i], i == edit->cursor);
+		if (col >= edit->cols) {
+			row++;
+			col = 0;
 		}
 	}
 	if (!edit->str[edit->cursor])
-		draw_char(edit, screen, fg, bg, xoff, yoff, ' ', 1);
+		draw_char(edit, screen, fg, bg, row, col, ' ', 1);
 }
 
 int handle_cursor(struct edit *edit, int x, int y)
 {
-	const int font_w = 10;
-	const int font_h = 20;
 	int x0 = edit->x0;
 	int y0 = edit->y0;
-	int x1 = (edit->x1 / font_w) * font_w;
-	int y1 = edit->y1;
+	int x1 = edit->x0 + edit->cols * font_w;
+	int y1 = edit->y0 + edit->rows * font_h;
 	if (x < x0 || x1 <= x || y < y0 || y1 <= y)
 		return 0;
-	int cursor = ((y - y0) / font_h) * ((x1 - x0) / font_w) + (x - x0) / font_w;
+	int cursor = ((y - y0) / font_h) * edit->cols + (x - x0) / font_w;
 	if (cursor < 0 || (int)strlen(edit->str) < cursor)
 		return 0;
 	edit->cursor = cursor;
@@ -140,6 +131,12 @@ int handle_edit(SDL_Event event, struct edit *edit)
 			return 0;
 		case SDL_KEYDOWN:
 			switch (event.key.keysym.sym) {
+				case SDLK_HOME:
+					edit->cursor = 0;
+					return 1;
+				case SDLK_END:
+					edit->cursor = strlen(edit->str);
+					return 1;
 				case SDLK_LEFT:
 					edit->cursor -= 0 < edit->cursor ? 1 : 0;
 					return 1;
