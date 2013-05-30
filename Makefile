@@ -29,5 +29,5 @@ value_bc.h: value.bc Makefile
 	clang -o $@ $< -c -std=c99 -W -Wall -Wextra -O3
 
 clean:
-	rm -f srt *.o
+	rm -f srt *.o *_bc.h *.bc
 
