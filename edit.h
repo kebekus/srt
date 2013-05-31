@@ -26,4 +26,5 @@ void free_edit(struct edit *edit);
 void resize_edit(struct edit *edit, int x0, int y0, int x1, int y1);
 void draw_edit(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg);
 int handle_edit(SDL_Event event, struct edit *edit);
+void edit_msg(struct edit *edit, char *msg, int pos);
 #endif

@@ -19,6 +19,17 @@ void reset_edit(struct edit *edit, char *str)
 	edit->cursor = strlen(str);
 }
 
+void edit_msg(struct edit *edit, char *msg, int pos)
+{
+	if (!msg || !*msg) {
+		edit->msg_str[0] = 0;
+		edit->msg_pos = 0;
+		return;
+	}
+	strcpy(edit->msg_str[0], msg);
+	edit->msg_pos = pos;
+}
+
 struct edit *alloc_edit(int len, char *str)
 {
 	struct edit *edit = malloc(sizeof(struct edit));
