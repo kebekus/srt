@@ -85,8 +85,8 @@ int draw_msg(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg, i
 		return 0;
 	draw_char(edit, screen, fg, bg, row + 1, col, '~', 0);
 	int offset = 2;
-	int msg_len = strlen(edit->msg_str);
-	if ((msg_len + 2 + col) > edit->cols)
+	int msg_len = strlen(edit->msg_str) + 2;
+	if ((msg_len + col) > edit->cols && (msg_len <= col || (2 * col) >= edit->cols))
 		offset = - (strlen(edit->msg_str) + 1);
 	for (int m = 0; edit->msg_str[m]; m++)
 		draw_char(edit, screen, fg, bg, row + 1, col + offset + m, edit->msg_str[m], 0);
