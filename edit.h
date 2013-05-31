@@ -11,6 +11,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 struct edit {
 	char *str;
+	char msg_str[64];
+	int msg_pos;
 	int len;
 	int cursor;
 	int rows, cols;

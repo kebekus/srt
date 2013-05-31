@@ -26,6 +26,8 @@ struct edit *alloc_edit(int len, char *str)
 	strcpy(edit->str, str);
 	edit->len = len;
 	edit->cursor = strlen(str);
+	edit->msg_str[0] = 0;
+	edit->msg_pos = 0;
 	return edit;
 }
 
@@ -49,7 +51,7 @@ void draw_char(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg,
 {
 	uint32_t *fbp = screen->pixels;
 	int w = screen->w;
-	if (row >= edit->rows || col >= edit->cols)
+	if (row < 0 || row >= edit->rows || col < 0 || col >= edit->cols)
 		return;
 	if (chr < 32 || 126 < chr)
 		chr = ' ';
@@ -66,19 +68,37 @@ void draw_char(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg,
 	}
 }
 
+int draw_msg(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg, int row, int col)
+{
+	if (!edit->msg_str[0])
+		return 0;
+	draw_char(edit, screen, fg, bg, row + 1, col, '~', 0);
+	int offset = 2;
+	int msg_len = strlen(edit->msg_str);
+	if ((msg_len + 2 + col) > edit->cols)
+		offset = - (strlen(edit->msg_str) + 1);
+	for (int m = 0; edit->msg_str[m]; m++)
+		draw_char(edit, screen, fg, bg, row + 1, col + offset + m, edit->msg_str[m], 0);
+	return 1;
+}
+
 void draw_edit(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg)
 {
 	int row = 0;
 	int col = 0;
-	for (int i = 0; edit->str[i]; i++) {
+	int msg = 0;
+	int len = strlen(edit->str);
+	for (int i = 0; i <= len; i++) {
+		if (i == edit->msg_pos && draw_msg(edit, screen, fg, bg, row, col))
+			msg = 1;
 		draw_char(edit, screen, fg, bg, row, col++, edit->str[i], i == edit->cursor);
 		if (col >= edit->cols) {
 			row++;
+			row += msg;
+			msg = 0;
 			col = 0;
 		}
 	}
-	if (!edit->str[edit->cursor])
-		draw_char(edit, screen, fg, bg, row, col, ' ', 1);
 }
 
 int handle_cursor(struct edit *edit, int x, int y)
@@ -89,7 +109,16 @@ int handle_cursor(struct edit *edit, int x, int y)
 	int y1 = edit->y0 + edit->rows * font_h;
 	if (x < x0 || x1 <= x || y < y0 || y1 <= y)
 		return 0;
-	int cursor = ((y - y0) / font_h) * edit->cols + (x - x0) / font_w;
+	int row = (y - y0) / font_h;
+	int col = (x - x0) / font_w;
+	if (edit->msg_str[0]) {
+		int msg_row = edit->msg_pos / edit->cols + 1;
+		if (row == msg_row)
+			return 0;
+		if (row > msg_row)
+			row--;
+	}
+	int cursor = row * edit->cols + col;
 	if (cursor < 0 || (int)strlen(edit->str) < cursor)
 		return 0;
 	edit->cursor = cursor;
