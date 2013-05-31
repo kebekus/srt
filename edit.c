@@ -26,7 +26,7 @@ void edit_msg(struct edit *edit, char *msg, int pos)
 		edit->msg_pos = 0;
 		return;
 	}
-	strcpy(edit->msg_str[0], msg);
+	strcpy(edit->msg_str, msg);
 	edit->msg_pos = pos;
 }
 
