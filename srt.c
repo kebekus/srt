@@ -48,10 +48,7 @@ int jit_curve(struct edit *edit)
 	}
 
 	if (!parser_parse(curve_tree, edit->str)) {
-		fprintf(stderr, "\n%s\n", edit->str);
-		for (int i = 0; i < get_err_pos(); i++)
-			fprintf(stderr, " ");
-		fprintf(stderr, "~ %s\n\n", get_err_str());
+		edit_msg(edit, get_err_str(), get_err_pos());
 		return 0;
 	}
 	if (!parser_reduce(curve_tree)) {
@@ -73,6 +70,8 @@ int jit_curve(struct edit *edit)
 	parser_jit_opt(jit);
 	value = parser_jit_func(jit, "value");
 	curve = parser_jit_func(jit, "curve");
+
+	edit_msg(edit, 0, 0);
 
 	return 1;
 }
