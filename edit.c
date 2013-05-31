@@ -147,6 +147,7 @@ int handle_chars(SDL_keysym keysym, struct edit *edit)
 		memmove(edit->str + edit->cursor + 1, edit->str + edit->cursor, edit->len - edit->cursor - 1);
 		edit->str[edit->cursor] = chr;
 		edit->cursor++;
+		edit_msg(edit, 0, 0);
 		return 1;
 	}
 	return 0;
@@ -187,11 +188,14 @@ int handle_edit(SDL_Event event, struct edit *edit)
 					if (edit->cursor > 0) {
 						memmove(edit->str + edit->cursor - 1, edit->str + edit->cursor, edit->len - edit->cursor);
 						edit->cursor--;
+						edit_msg(edit, 0, 0);
 					}
 					return 1;
 				case SDLK_DELETE:
-					if (edit->str[edit->cursor])
+					if (edit->str[edit->cursor]) {
 						memmove(edit->str + edit->cursor, edit->str + edit->cursor + 1, edit->len - edit->cursor);
+						edit_msg(edit, 0, 0);
+					}
 					return 1;
 				default:
 					return handle_chars(event.key.keysym, edit);
