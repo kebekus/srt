@@ -143,7 +143,7 @@ int handle_chars(SDL_keysym keysym, struct edit *edit)
 	char chr = keysym.unicode & 0x7F;
 	if (!chr)
 		return 0;
-	if (('0' <= chr && chr <= '9') || ('a' <= chr && chr <= 'z') || strchr(".+-*/^() ", chr)) {
+	if (('0' <= chr && chr <= '9') || ('a' <= chr && chr <= 'z') || ('A' <= chr && chr <= 'Z') || strchr(".+-*/^() ", chr)) {
 		memmove(edit->str + edit->cursor + 1, edit->str + edit->cursor, edit->len - edit->cursor - 1);
 		edit->str[edit->cursor] = chr;
 		edit->cursor++;
