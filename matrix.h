@@ -19,6 +19,135 @@ typedef struct {
 	v4sf v3;
 } m4sf;
 
+typedef struct {
+	v4sf x;
+	v4sf y;
+	v4sf z;
+} m34sf;
+
+typedef struct {
+	v4si x;
+	v4si y;
+	v4si z;
+} m34si;
+
+typedef struct {
+	v4su x;
+	v4su y;
+	v4su z;
+} m34su;
+
+static inline m34sf m34sf_splat(v4sf v)
+{
+	return (m34sf) {
+		v4sf_splat0(v),
+		v4sf_splat1(v),
+		v4sf_splat2(v)
+	};
+}
+
+static inline m34sf m34sf_rcp(m34sf m)
+{
+	return (m34sf) {
+		v4sf_set1(1) / m.x,
+		v4sf_set1(1) / m.y,
+		v4sf_set1(1) / m.z
+	};
+}
+
+static inline m34su m34sf_ge(m34sf l, v4sf r)
+{
+	return (m34su) {
+		v4sf_ge(l.x, v4sf_splat0(r)),
+		v4sf_ge(l.y, v4sf_splat1(r)),
+		v4sf_ge(l.z, v4sf_splat2(r))
+	};
+}
+
+static inline m34sf m34sf_add(m34sf l, m34sf r)
+{
+	return (m34sf) {
+		l.x + r.x,
+		l.y + r.y,
+		l.z + r.z
+	};
+}
+
+static inline m34sf m34sf_addv(m34sf l, v4sf r)
+{
+	return (m34sf) {
+		l.x + v4sf_splat0(r),
+		l.y + v4sf_splat1(r),
+		l.z + v4sf_splat2(r)
+	};
+}
+
+static inline m34sf m34sf_subv(m34sf l, v4sf r)
+{
+	return (m34sf) {
+		l.x - v4sf_splat0(r),
+		l.y - v4sf_splat1(r),
+		l.z - v4sf_splat2(r)
+	};
+}
+
+static inline m34sf m34sf_vsub(v4sf l, m34sf r)
+{
+	return (m34sf) {
+		v4sf_splat0(l) - r.x,
+		v4sf_splat1(l) - r.y,
+		v4sf_splat2(l) - r.z
+	};
+}
+
+static inline v4sf m34sf_dot(m34sf l, m34sf r)
+{
+	return l.x * r.x + l.y * r.y + l.z * r.z;
+}
+
+static inline m34sf m34sf_vmul(m34sf l, v4sf r)
+{
+	return (m34sf) {
+		l.x * r,
+		l.y * r,
+		l.z * r
+	};
+}
+
+static inline m34sf m34sf_normal(m34sf m)
+{
+	return m34sf_vmul(m, v4sf_rcp(v4sf_sqrt(m34sf_dot(m, m))));
+}
+
+static inline m34sf m34sf_set(v4sf v0, v4sf v1, v4sf v2, v4sf v3)
+{
+	return (m34sf) {
+		{ v0[0], v1[0], v2[0], v3[0] },
+		{ v0[1], v1[1], v2[1], v3[1] },
+		{ v0[2], v1[2], v2[2], v3[2] }
+	};
+}
+
+static inline v4sf m34sf_get0(m34sf m)
+{
+	return (v4sf) { m.x[0], m.y[0], m.z[0], 0 };
+}
+
+static inline v4sf m34sf_get1(m34sf m)
+{
+	return (v4sf) { m.x[1], m.y[1], m.z[1], 0 };
+}
+
+static inline v4sf m34sf_get2(m34sf m)
+{
+	return (v4sf) { m.x[2], m.y[2], m.z[2], 0 };
+}
+
+static inline v4sf m34sf_get3(m34sf m)
+{
+	return (v4sf) { m.x[3], m.y[3], m.z[3], 0 };
+}
+
 static inline m4sf m4sf_identity()
 {
 	return (m4sf) {

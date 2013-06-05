@@ -29,8 +29,8 @@ int mouse_x = 0;
 int mouse_y = 0;
 int snap = 0;
 
-v4sf (*value)(float l[2], struct ray ray, float A);
-float (*curve)(v4sf v, float A);
+m34sf (*value)(v4sf l[2], struct ray ray, float A);
+//float (*curve)(v4sf v, float A);
 
 int jit_curve(struct edit *edit)
 {
@@ -69,7 +69,7 @@ int jit_curve(struct edit *edit)
 
 	parser_jit_opt(jit);
 	value = parser_jit_func(jit, "value");
-	curve = parser_jit_func(jit, "curve");
+//	curve = parser_jit_func(jit, "curve");
 
 	edit_msg(edit, 0, 0);
 
@@ -256,18 +256,27 @@ void draw(SDL_Surface *screen, struct camera camera, float A)
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
-	v4sf dU = v4sf_set1(2) * camera.right / v4sf_set1(w);
-	v4sf dV = - v4sf_set1(2) * camera.up / v4sf_set1(h);
-	v4sf V = camera.up;
-	for (int j = 0; j < h; j++, V += dV) {
-		v4sf U = - camera.right;
-		for (int i = 0; i < w; i++, U += dU) {
-			v4sf dir = v4sf_normal3(U + V + camera.dir);
-			struct ray ray = init_ray(camera.origin, dir);
-			float l[2];
-			uint32_t color = 0;
-			if (sphere_ray(l, sphere, ray) && l[1] > 0) {
-				l[0] = fmaxf(l[0], 0);
+	float dw = 2.0f / (float)w;
+	float dh = -2.0f / (float)h;
+	v4sf dU = v4sf_set1(dw) * camera.right;
+	v4sf dV = v4sf_set1(dh) * camera.up;
+	v4sf d2U = v4sf_set1(2) * dU;
+	v4sf d2V = v4sf_set1(2) * dV;
+	m34sf zU = m34sf_set(v4sf_set1(0), dU, v4sf_set1(0), dU);
+	m34sf zV = m34sf_set(v4sf_set1(0), v4sf_set1(0), dV, dV);
+	m34sf V = m34sf_addv(zV, camera.up);
+	for (int j = 0; j < h; j += 2, V = m34sf_addv(V, d2V)) {
+		m34sf U = m34sf_subv(zU, camera.right);
+		for (int i = 0; i < w; i += 2, U = m34sf_addv(U, d2U)) {
+			m34sf dir = m34sf_normal(m34sf_addv(m34sf_add(U, V), camera.dir));
+			struct ray ray = init_ray(m34sf_splat(camera.origin), dir);
+			v4sf l[2];
+			uint32_t color[4] = { 0, 0, 0, 0 };
+			v4su t = sphere_ray(l, sphere, ray);
+			t &= v4sf_gt(l[1], v4sf_set1(0));
+			if (!v4su_all_zeros(t)) {
+				l[0] = v4sf_max(l[0], v4sf_set1(0));
+#if 0
 				if (snap && mouse_y == j && mouse_x == i) {
 					snap = 0;
 					FILE *file = fopen("plot.dat", "w");
@@ -277,9 +286,17 @@ void draw(SDL_Surface *screen, struct camera camera, float A)
 						fprintf(file, "%g NaN %g\n", x, curve(ray.o + v4sf_set1(x) * ray.d, A));
 					fclose(file);
 				}
-				color = argb(value(l, ray, A));
+#endif
+				m34sf tmp = value(l, ray, A);
+				color[0] = t[0] & argb(m34sf_get0(tmp));
+				color[1] = t[1] & argb(m34sf_get1(tmp));
+				color[2] = t[2] & argb(m34sf_get2(tmp));
+				color[3] = t[3] & argb(m34sf_get3(tmp));
 			}
-			fb[w * j + i] = color;
+			fb[w * (j+0) + (i+0)] = color[0];
+			fb[w * (j+0) + (i+1)] = color[1];
+			fb[w * (j+1) + (i+0)] = color[2];
+			fb[w * (j+1) + (i+1)] = color[3];
 		}
 	}
 }

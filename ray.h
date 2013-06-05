@@ -8,22 +8,22 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #ifndef RAY_H
 #define RAY_H
-#include "vector.h"
+#include "matrix.h"
 
 struct ray
 {
-	v4sf o, d;
-	v4sf inv_d;
-	v4su sign;
+	m34sf o, d;
+	m34sf inv_d;
+	m34su sign;
 };
 
-static inline struct ray init_ray(v4sf o, v4sf d)
+static inline struct ray init_ray(m34sf o, m34sf d)
 {
 	struct ray ray;
 	ray.o = o;
 	ray.d = d;
-	ray.inv_d = v4sf_set1(1) / d;
-	ray.sign = v4sf_ge(d, v4sf_set1(0));
+	ray.inv_d = m34sf_rcp(d);
+	ray.sign = m34sf_ge(d, v4sf_set1(0));
 	return ray;
 }
 

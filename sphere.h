@@ -17,16 +17,16 @@ struct sphere
 	float r;
 };
 
-static inline int sphere_ray(float l[2], struct sphere sphere, struct ray ray)
+static inline v4su sphere_ray(v4sf l[2], struct sphere sphere, struct ray ray)
 {
-	v4sf dst = sphere.c - ray.o;
-	float b = v4sf_dot3(dst, ray.d);
-	float c = v4sf_dot3(dst, dst) - sphere.r * sphere.r;
-	float d = b * b - c;
-	float q = sqrtf(d);
+	m34sf dst = m34sf_vsub(sphere.c, ray.o);
+	v4sf b = m34sf_dot(dst, ray.d);
+	v4sf c = m34sf_dot(dst, dst) - v4sf_set1(sphere.r * sphere.r);
+	v4sf d = b * b - c;
+	v4sf q = v4sf_sqrt(d);
 	l[0] = b - q;
 	l[1] = b + q;
-	return l[0] < l[1];
+	return v4sf_lt(l[0], l[1]);
 }
 #endif
 

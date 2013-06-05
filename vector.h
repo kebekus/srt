@@ -133,6 +133,16 @@ static inline v4su v4si_gt(v4si a, v4si b)
 	return (v4su)_mm_cmpgt_epi32((__m128i)a, (__m128i)b);
 }
 
+static inline int v4su_all_ones(v4si a)
+{
+	return _mm_testc_si128(a, _mm_cmpeq_epi32(a, a));
+}
+
+static inline int v4su_all_zeros(v4si a)
+{
+	return _mm_testz_si128(a, a);
+}
+
 static inline v4sf v4sf_min(v4sf a, v4sf b)
 {
 	return _mm_min_ps(a, b);
@@ -215,6 +225,16 @@ static inline float v4sf_dot3(v4sf a, v4sf b)
 {
 	v4sf c = a * b;
 	return c[0] + c[1] + c[2];
+}
+
+static inline v4sf v4sf_sqrt(v4sf a)
+{
+	return (v4sf)_mm_sqrt_ps(a);
+}
+
+static inline v4sf v4sf_rcp(v4sf a)
+{
+	return (v4sf)_mm_rcp_ps(a);
 }
 
 static inline v4sf v4sf_normal3(v4sf a)
