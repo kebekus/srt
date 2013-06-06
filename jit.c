@@ -98,6 +98,7 @@ struct parser_jit *parser_alloc_jit(char *bc, int len)
 static LLVMValueRef splat(LLVMBuilderRef builder, LLVMValueRef elem)
 {
 #if 1
+	(void)builder;
 	LLVMValueRef elems[4] = { elem, elem, elem, elem };
 	return LLVMConstVector(elems, 4);
 #else
