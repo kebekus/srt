@@ -8,23 +8,33 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "ray.h"
 
-float curve_xyza(float x, float y, float z, float a);
-float deriv_x(float x, float y, float z, float a);
-float deriv_y(float x, float y, float z, float a);
-float deriv_z(float x, float y, float z, float a);
+v4sf curve_xyza(v4sf x, v4sf y, v4sf z, float a);
+v4sf deriv_x(v4sf x, v4sf y, v4sf z, float a);
+v4sf deriv_y(v4sf x, v4sf y, v4sf z, float a);
+v4sf deriv_z(v4sf x, v4sf y, v4sf z, float a);
 
-float curve(v4sf v, float A)
+v4sf curve(m34sf m, float A)
 {
-	return curve_xyza(v[0], v[1], v[2], A);
+	return curve_xyza(m.x, m.y, m.z, A);
 }
 
-v4sf gradient(v4sf v, float A)
+m34sf gradient(m34sf m, float A)
 {
-	return v4sf_set3(
-		deriv_x(v[0], v[1], v[2], A),
-		deriv_y(v[0], v[1], v[2], A),
-		deriv_z(v[0], v[1], v[2], A)
-	);
+	return (m34sf) {
+		deriv_x(m.x, m.y, m.z, A),
+		deriv_y(m.x, m.y, m.z, A),
+		deriv_z(m.x, m.y, m.z, A)
+	};
+}
+
+float curve_sisd(v4sf v, float A)
+{
+	return curve(m34sf_set(v, v, v, v), A)[0];
+}
+
+v4sf gradient_sisd(v4sf v, float A)
+{
+	return m34sf_get0(gradient(m34sf_set(v, v, v, v), A));
 }
 
 #define coarse (0.1)
@@ -33,16 +43,16 @@ v4sf gradient(v4sf v, float A)
 v4sf value_sisd(float l[2], v4sf ray_d, v4sf ray_o, float A)
 {
 
-	float a = curve(ray_o + v4sf_set1(l[0]) * ray_d, A);
+	float a = curve_sisd(ray_o + v4sf_set1(l[0]) * ray_d, A);
 	v4sf p = ray_o + v4sf_set1(l[0]) * ray_d;
-	float n = - curve(p, A) / v4sf_dot3(ray_d, gradient(p, A));
+	float n = - curve_sisd(p, A) / v4sf_dot3(ray_d, gradient_sisd(p, A));
 	while (l[0] < l[1]) {
 		float x1 = l[0] + coarse;
-		float sign = a * curve(ray_o + v4sf_set1(x1) * ray_d, A);
+		float sign = a * curve_sisd(ray_o + v4sf_set1(x1) * ray_d, A);
 		if (sign <= 0) {
 			while (l[0] < x1) {
 				float x01 = l[0] + fine;
-				float sign = a * curve(ray_o + v4sf_set1(x01) * ray_d, A);
+				float sign = a * curve_sisd(ray_o + v4sf_set1(x01) * ray_d, A);
 				if (sign <= 0) {
 					l[1] = x01;
 					goto end;
@@ -53,11 +63,11 @@ v4sf value_sisd(float l[2], v4sf ray_d, v4sf ray_o, float A)
 			break;
 		}
 		v4sf p1 = ray_o + v4sf_set1(x1) * ray_d;
-		float n1 = - curve(p1, A) / v4sf_dot3(ray_d, gradient(p1, A));
+		float n1 = - curve_sisd(p1, A) / v4sf_dot3(ray_d, gradient_sisd(p1, A));
 		if ((0 < n && n < 0.1) || (-0.1 < n1 && n1 < 0)) {
 			while (l[0] < x1) {
 				float x01 = l[0] + fine;
-				float sign = a * curve(ray_o + v4sf_set1(x01) * ray_d, A);
+				float sign = a * curve_sisd(ray_o + v4sf_set1(x01) * ray_d, A);
 				if (sign <= 0) {
 					l[1] = x01;
 					goto end;
@@ -75,24 +85,24 @@ end:
 	for (int i = 0; i < 10; i++) {
 		n = 0.5 * (l[0] + l[1]);
 		p = ray_o + v4sf_set1(n) * ray_d;
-		float sign = a * curve(p, A);
+		float sign = a * curve_sisd(p, A);
 		if (sign > 0)
 			l[0] = n;
 		else
 			l[1] = n;
 	}
 	for (int i = 0; i < 3; i++) {
-		n -= curve(p, A) / v4sf_dot3(ray_d, gradient(p, A));
+		n -= curve_sisd(p, A) / v4sf_dot3(ray_d, gradient_sisd(p, A));
 		if (n < l[0] || l[1] < n)
 			n = 0.5 * (l[0] + l[1]);
 		p = ray_o + v4sf_set1(n) * ray_d;
-		float sign = a * curve(p, A);
+		float sign = a * curve_sisd(p, A);
 		if (sign > 0)
 			l[0] = n;
 		else
 			l[1] = n;
 	}
-	float tmp = v4sf_dot3(ray_d, v4sf_normal3(gradient(p, A)));
+	float tmp = v4sf_dot3(ray_d, v4sf_normal3(gradient_sisd(p, A)));
 	if (tmp < 0)
 		return v4sf_set3(0, -tmp, 0);
 	else

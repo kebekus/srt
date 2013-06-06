@@ -95,10 +95,21 @@ struct parser_jit *parser_alloc_jit(char *bc, int len)
 	return parser_jit;
 }
 
+static LLVMValueRef splat(LLVMBuilderRef builder, LLVMValueRef elem)
+{
+	LLVMValueRef zero = LLVMConstInt(LLVMInt32Type(), 0, 0);
+	LLVMValueRef zeros[4] = { zero, zero, zero, zero };
+	LLVMValueRef mask = LLVMConstVector(zeros, 4);
+	LLVMValueRef vector = LLVMGetUndef(LLVMVectorType(LLVMFloatType(), 4));
+	vector = LLVMBuildInsertElement(builder, vector, elem, zero, "");
+	vector = LLVMBuildShuffleVector(builder, vector, vector, mask, "");
+	return vector;
+}
+
 static LLVMValueRef emit_pow(LLVMBuilderRef builder, LLVMValueRef base, int exp)
 {
 	if (0 == exp)
-		return LLVMConstReal(LLVMFloatType(), 1);
+		return splat(builder, LLVMConstReal(LLVMFloatType(), 1));
 	else if (1 == exp)
 		return base;
 	else if (exp & 1)
@@ -119,7 +130,7 @@ static LLVMValueRef emit(LLVMBuilderRef builder, struct parser_node *node, LLVMV
 		case token_a:
 			return a;
 		case token_num:
-			return LLVMConstReal(LLVMFloatType(), node->value);
+			return splat(builder, LLVMConstReal(LLVMFloatType(), node->value));
 		case token_pow:
 			return emit_pow(builder, emit(builder, node->left, x, y, z, a), node->value);
 		case token_mul:
@@ -142,8 +153,13 @@ void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, c
 	struct jit *jit = parser_jit->data;
 	LLVMValueRef func;
 	if (LLVMFindFunction(jit->engine, name, &func)) {
-		LLVMTypeRef args[] = { LLVMFloatType(), LLVMFloatType(), LLVMFloatType(), LLVMFloatType() };
-		func = LLVMAddFunction(jit->module, name, LLVMFunctionType(LLVMFloatType(), args, 4, 0));
+		LLVMTypeRef args[] = {
+			LLVMVectorType(LLVMFloatType(), 4),
+			LLVMVectorType(LLVMFloatType(), 4),
+			LLVMVectorType(LLVMFloatType(), 4),
+			LLVMFloatType()
+		};
+		func = LLVMAddFunction(jit->module, name, LLVMFunctionType(LLVMVectorType(LLVMFloatType(), 4), args, 4, 0));
 		LLVMSetFunctionCallConv(func, LLVMCCallConv);
 	}
 	LLVMValueRef x = LLVMGetParam(func, 0);
@@ -156,7 +172,7 @@ void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, c
 	LLVMSetValueName(a, "a");
 	LLVMBasicBlockRef entry = LLVMAppendBasicBlock(func, "entry");
 	LLVMPositionBuilderAtEnd(jit->builder, entry);
-	LLVMBuildRet(jit->builder, emit(jit->builder, tree->root, x, y, z, a));
+	LLVMBuildRet(jit->builder, emit(jit->builder, tree->root, x, y, z, splat(jit->builder, a)));
 }
 
 void parser_jit_opt(struct parser_jit *parser_jit)
