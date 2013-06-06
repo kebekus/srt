@@ -97,13 +97,17 @@ struct parser_jit *parser_alloc_jit(char *bc, int len)
 
 static LLVMValueRef splat(LLVMBuilderRef builder, LLVMValueRef elem)
 {
+#if 1
+	LLVMValueRef elems[4] = { elem, elem, elem, elem };
+	return LLVMConstVector(elems, 4);
+#else
 	LLVMValueRef zero = LLVMConstInt(LLVMInt32Type(), 0, 0);
 	LLVMValueRef zeros[4] = { zero, zero, zero, zero };
 	LLVMValueRef mask = LLVMConstVector(zeros, 4);
 	LLVMValueRef vector = LLVMGetUndef(LLVMVectorType(LLVMFloatType(), 4));
 	vector = LLVMBuildInsertElement(builder, vector, elem, zero, "");
-	vector = LLVMBuildShuffleVector(builder, vector, vector, mask, "");
-	return vector;
+	return LLVMBuildShuffleVector(builder, vector, vector, mask, "");
+#endif
 }
 
 static LLVMValueRef emit_pow(LLVMBuilderRef builder, LLVMValueRef base, int exp)
