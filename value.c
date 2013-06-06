@@ -27,22 +27,30 @@ m34sf gradient(m34sf m, float A)
 	};
 }
 
-float curve_sisd(v4sf v, float A)
-{
-	return curve(m34sf_set(v, v, v, v), A)[0];
-}
-
-v4sf gradient_sisd(v4sf v, float A)
-{
-	return m34sf_get0(gradient(m34sf_set(v, v, v, v), A));
-}
-
 #define coarse (0.1)
 #define fine (0.01)
 
-v4sf value_sisd(float l[2], v4sf ray_d, v4sf ray_o, float A)
+m34sf value(v4sf l[2], struct ray ray, float A)
 {
+	m34sf p = m34sf_add(ray.o, m34sf_vmul(ray.d, l[0]));
+	v4sf n = - curve(p, A) / m34sf_dot(ray.d, gradient(p, A));
+	for (int i = 0; i < 20; i++) {
+		n -= curve(p, A) / m34sf_dot(ray.d, gradient(p, A));
+		p = m34sf_add(ray.o, m34sf_vmul(ray.d, n));
+	}
+	v4sf diff = m34sf_dot(ray.d, m34sf_normal(gradient(p, A)));
+	v4su face = v4sf_gt(diff, v4sf_set1(0));
 
+	m34sf p0 = m34sf_add(ray.o, m34sf_vmul(ray.d, n + v4sf_set1(-fine)));
+	m34sf p1 = m34sf_add(ray.o, m34sf_vmul(ray.d, n + v4sf_set1(fine)));
+	v4su sign_test = v4sf_gt(v4sf_set1(0), curve(p0, A) * curve(p1, A));
+	v4su int_test = v4sf_ge(n, l[0]) & v4sf_gt(l[1], n);
+	v4su test = sign_test & int_test;
+
+	m34sf color = { test & face & (v4su)diff, test & (~face) & (v4su)(-diff), v4sf_set1(0) };
+	return color;
+//	return m34sf_set(v4sf_set1(0), v4sf_set1(0), v4sf_set1(0), v4sf_set1(0));
+#if 0
 	float a = curve_sisd(ray_o + v4sf_set1(l[0]) * ray_d, A);
 	v4sf p = ray_o + v4sf_set1(l[0]) * ray_d;
 	float n = - curve_sisd(p, A) / v4sf_dot3(ray_d, gradient_sisd(p, A));
@@ -107,28 +115,6 @@ end:
 		return v4sf_set3(0, -tmp, 0);
 	else
 		return v4sf_set3(tmp, 0, 0);
-}
-
-m34sf value(v4sf l[2], struct ray ray, float A)
-{
-	float l0[2] = { l[0][0], l[1][0] };
-	float l1[2] = { l[0][1], l[1][1] };
-	float l2[2] = { l[0][2], l[1][2] };
-	float l3[2] = { l[0][3], l[1][3] };
-	v4sf ray_d0 = m34sf_get0(ray.d);
-	v4sf ray_d1 = m34sf_get1(ray.d);
-	v4sf ray_d2 = m34sf_get2(ray.d);
-	v4sf ray_d3 = m34sf_get3(ray.d);
-	v4sf ray_o0 = m34sf_get0(ray.o);
-	v4sf ray_o1 = m34sf_get1(ray.o);
-	v4sf ray_o2 = m34sf_get2(ray.o);
-	v4sf ray_o3 = m34sf_get3(ray.o);
-	v4sf v0 = value_sisd(l0, ray_d0, ray_o0, A);
-	v4sf v1 = value_sisd(l1, ray_d1, ray_o1, A);
-	v4sf v2 = value_sisd(l2, ray_d2, ray_o2, A);
-	v4sf v3 = value_sisd(l3, ray_d3, ray_o3, A);
-	l[0] = v4sf_set(l0[0], l1[0], l2[0], l3[0]);
-	l[1] = v4sf_set(l0[1], l1[1], l2[1], l3[1]);
-	return m34sf_set(v0, v1, v2, v3);
+#endif
 }
 
