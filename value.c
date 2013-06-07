@@ -13,43 +13,56 @@ v4sf deriv_x(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_y(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_z(v4sf x, v4sf y, v4sf z, float a);
 
-v4sf curve(m34sf m, float A)
+v4sf curve(m34sf m, float a)
 {
-	return curve_xyza(m.x, m.y, m.z, A);
+	return curve_xyza(m.x, m.y, m.z, a);
 }
 
-m34sf gradient(m34sf m, float A)
+m34sf gradient(m34sf m, float a)
 {
 	return (m34sf) {
-		deriv_x(m.x, m.y, m.z, A),
-		deriv_y(m.x, m.y, m.z, A),
-		deriv_z(m.x, m.y, m.z, A)
+		deriv_x(m.x, m.y, m.z, a),
+		deriv_y(m.x, m.y, m.z, a),
+		deriv_z(m.x, m.y, m.z, a)
 	};
+}
+
+v4su sign_change(v4sf a, v4sf b)
+{
+	v4su mask = -v4sf_set1(0);
+	return v4si_eq(mask, mask & ((v4su)a ^ (v4su)b));
+}
+
+v4sf newton(v4sf n, struct ray ray, float a)
+{
+	for (int i = 0; i < 20; i++) {
+		m34sf p = m34sf_fma(ray.o, ray.d, n);
+		n -= curve(p, a) / m34sf_dot(ray.d, gradient(p, a));
+	}
+	return n;
 }
 
 #define coarse (0.1)
 #define fine (0.01)
 
-m34sf value(v4sf l[2], struct ray ray, float A)
+m34sf value(v4sf l[2], struct ray ray, float a)
 {
-	m34sf p = m34sf_add(ray.o, m34sf_vmul(ray.d, l[0]));
-	v4sf n = - curve(p, A) / m34sf_dot(ray.d, gradient(p, A));
-	for (int i = 0; i < 20; i++) {
-		n -= curve(p, A) / m34sf_dot(ray.d, gradient(p, A));
-		p = m34sf_add(ray.o, m34sf_vmul(ray.d, n));
-	}
-	v4sf diff = m34sf_dot(ray.d, m34sf_normal(gradient(p, A)));
-	v4su face = v4sf_gt(diff, v4sf_set1(0));
-
-	m34sf p0 = m34sf_add(ray.o, m34sf_vmul(ray.d, n + v4sf_set1(-fine)));
-	m34sf p1 = m34sf_add(ray.o, m34sf_vmul(ray.d, n + v4sf_set1(fine)));
-	v4su sign_test = v4sf_gt(v4sf_set1(0), curve(p0, A) * curve(p1, A));
-	v4su int_test = v4sf_ge(n, l[0]) & v4sf_gt(l[1], n);
+	v4sf n = newton(l[0], ray, a);
+	m34sf p = m34sf_fma(ray.o, ray.d, n);
+	v4sf v = curve(p, a);
+	m34sf p0 = m34sf_fma(ray.o, ray.d, n + v4sf_set1(-0.0001));
+	m34sf p1 = m34sf_fma(ray.o, ray.d, n + v4sf_set1(0.0001));
+	v4sf v0 = curve(p0, a);
+	v4sf v1 = curve(p1, a);
+	v4su sign_test = sign_change(v, v0) | sign_change(v, v1);
+	v4su int_test = v4sf_le(l[0], n) & v4sf_lt(n, l[1]);
 	v4su test = sign_test & int_test;
-
-	m34sf color = { test & face & (v4su)diff, test & (~face) & (v4su)(-diff), v4sf_set1(0) };
-	return color;
-//	return m34sf_set(v4sf_set1(0), v4sf_set1(0), v4sf_set1(0), v4sf_set1(0));
+	v4sf diff = m34sf_dot(ray.d, m34sf_normal(gradient(p, a)));
+	v4su face = v4sf_gt(diff, v4sf_set1(0));
+	v4sf r = test & face & (v4su)diff;
+	v4sf g = test & ~face & (v4su)(-diff);
+	v4sf b = v4sf_set1(0);
+	return (m34sf) { r, g, b };
 #if 0
 	float a = curve_sisd(ray_o + v4sf_set1(l[0]) * ray_d, A);
 	v4sf p = ray_o + v4sf_set1(l[0]) * ray_d;
