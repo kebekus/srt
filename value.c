@@ -42,11 +42,19 @@ v4sf newton(v4sf n, struct ray ray, float a)
 	return n;
 }
 
-#define coarse (0.1)
-#define fine (0.01)
-
 m34sf value(v4sf l[2], struct ray ray, float a)
 {
+	if (1) {
+		m34sf p = m34sf_fma(ray.o, ray.d, l[0]);
+		v4sf v = curve(p, a);
+		v4su change = v4su_set1(0);
+		while (v4su_all_zeros(change | v4sf_ge(l[0], l[1]))) {
+			v4sf x = l[0] + (v4sf)(~change & (v4su)v4sf_set1(0.1));
+			m34sf p0 = m34sf_fma(ray.o, ray.d, x);
+			change |= sign_change(v, curve(p0, a));
+			l[0] = v4sf_select(change, l[0], x);
+		}
+	}
 	v4sf n = newton(l[0], ray, a);
 	m34sf p = m34sf_fma(ray.o, ray.d, n);
 	v4sf v = curve(p, a);
@@ -63,7 +71,14 @@ m34sf value(v4sf l[2], struct ray ray, float a)
 	v4sf g = test & ~face & (v4su)(-diff);
 	v4sf b = v4sf_set1(0);
 	return (m34sf) { r, g, b };
+}
+
 #if 0
+#define coarse (0.1)
+#define fine (0.01)
+
+m34sf value(v4sf l[2], struct ray ray, float a)
+{
 	float a = curve_sisd(ray_o + v4sf_set1(l[0]) * ray_d, A);
 	v4sf p = ray_o + v4sf_set1(l[0]) * ray_d;
 	float n = - curve_sisd(p, A) / v4sf_dot3(ray_d, gradient_sisd(p, A));
@@ -128,6 +143,6 @@ end:
 		return v4sf_set3(0, -tmp, 0);
 	else
 		return v4sf_set3(tmp, 0, 0);
-#endif
 }
+#endif
 
