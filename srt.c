@@ -25,12 +25,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "jit.h"
 #include "value_bc.h"
 
-int mouse_x = 0;
-int mouse_y = 0;
-int snap = 0;
-
-m34sf (*value)(v4sf l[2], struct ray ray, float A);
-//float (*curve)(v4sf v, float A);
+m34sf (*value)(v4sf l[2], struct ray ray, float a);
+v4sf (*curve)(m34sf v, float a);
 
 int jit_curve(struct edit *edit)
 {
@@ -69,14 +65,32 @@ int jit_curve(struct edit *edit)
 
 	parser_jit_opt(jit);
 	value = parser_jit_func(jit, "value");
-//	curve = parser_jit_func(jit, "curve");
+	curve = parser_jit_func(jit, "curve");
 
 	edit_msg(edit, 0, 0);
 
 	return 1;
 }
 
-void handle_events(SDL_Surface *screen, struct camera *camera, float *A, struct edit *edit, int *edit_mode)
+void snapshot(SDL_Surface *screen, struct camera camera, float a, int i, int j)
+{
+	int w = screen->w;
+	int h = screen->h;
+	float dw = 2.0f / (float)w;
+	float dh = -2.0f / (float)h;
+	v4sf U = v4sf_set1(i * dw) * camera.right - camera.right;
+	v4sf V = v4sf_set1(j * dh) * camera.up + camera.up;
+	v4sf dir = v4sf_normal3(U + V + camera.dir);
+	struct ray ray = init_ray(m34sf_splat(camera.origin), m34sf_splat(dir));
+	FILE *file = fopen("plot.dat", "w");
+	for (float x = 0; x < 10; x += 0.1)
+		fprintf(file, "%g %g NaN\n", x, curve(m34sf_fma(ray.o, ray.d, v4sf_set1(x)), a)[0]);
+	for (float x = 0; x < 10; x += 0.001)
+		fprintf(file, "%g NaN %g\n", x, curve(m34sf_fma(ray.o, ray.d, v4sf_set1(x)), a)[0]);
+	fclose(file);
+}
+
+void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct edit *edit, int *edit_mode)
 {
 	static int focus = 1;
 	static int button_left = 0;
@@ -106,10 +120,10 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *A, struct 
 						exit(0);
 						break;
 					case SDLK_EQUALS:
-						*A = (*A + 0.01) < 1 ? (*A + 0.01) : 1;
+						*a = (*a + 0.01) < 1 ? (*a + 0.01) : 1;
 						break;
 					case SDLK_MINUS:
-						*A = (*A - 0.01) > 0 ? (*A - 0.01) : 0;
+						*a = (*a - 0.01) > 0 ? (*a - 0.01) : 0;
 						break;
 					case SDLK_w:
 						camera->origin += v4sf_set1(0.2) * camera->dir;
@@ -189,9 +203,7 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *A, struct 
 						button_left = 0;
 						break;
 					case SDL_BUTTON_MIDDLE:
-						mouse_x = event.button.x;
-						mouse_y = event.button.y;
-						snap = 1;
+						snapshot(screen, *camera, *a, event.button.x, event.button.y);
 						break;
 					case SDL_BUTTON_RIGHT:
 						button_right = 0;
@@ -250,7 +262,7 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-void draw(SDL_Surface *screen, struct camera camera, float A)
+void draw(SDL_Surface *screen, struct camera camera, float a)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
 	uint32_t *fb = screen->pixels;
@@ -276,18 +288,7 @@ void draw(SDL_Surface *screen, struct camera camera, float A)
 			t &= v4sf_gt(l[1], v4sf_set1(0));
 			if (!v4su_all_zeros(t)) {
 				l[0] = v4sf_max(l[0], v4sf_set1(0));
-#if 0
-				if (snap && mouse_y == j && mouse_x == i) {
-					snap = 0;
-					FILE *file = fopen("plot.dat", "w");
-					for (float x = l[0]; x < l[1]; x += 0.1)
-						fprintf(file, "%g %g NaN\n", x, curve(ray.o + v4sf_set1(x) * ray.d, A));
-					for (float x = l[0]; x < l[1]; x += 0.001)
-						fprintf(file, "%g NaN %g\n", x, curve(ray.o + v4sf_set1(x) * ray.d, A));
-					fclose(file);
-				}
-#endif
-				m34sf tmp = value(l, ray, A);
+				m34sf tmp = value(l, ray, a);
 				color[0] = t[0] & argb(m34sf_get0(tmp));
 				color[1] = t[1] & argb(m34sf_get1(tmp));
 				color[2] = t[2] & argb(m34sf_get2(tmp));
@@ -322,16 +323,16 @@ int main(int argc, char **argv)
 	struct camera camera = init_camera();
 	reset_edit(edit, "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
 	jit_curve(edit);
-	float A = 1.0;
+	float a = 1.0;
 
 	int edit_mode = 0;
 	for (;;) {
-		draw(screen, camera, A);
+		draw(screen, camera, a);
 		if (edit_mode)
 			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
 		SDL_Delay(10);
-		handle_events(screen, &camera, &A, edit, &edit_mode);
+		handle_events(screen, &camera, &a, edit, &edit_mode);
 		handle_stats(screen);
 	}
 	return 0;
