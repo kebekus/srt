@@ -2,6 +2,9 @@
 CC = clang
 CXX = clang++
 
+#CC = $(shell ls /usr/bin/gcc-*.*.* | tail -n1)
+#CXX = $(shell ls /usr/bin/g++-*.*.* | tail -n1)
+
 all: srt
 
 test: srt
