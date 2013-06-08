@@ -272,15 +272,20 @@ void draw(SDL_Surface *screen, struct camera camera, float a)
 	float dh = -2.0f / (float)h;
 	v4sf dU = v4sf_set1(dw) * camera.right;
 	v4sf dV = v4sf_set1(dh) * camera.up;
-	v4sf d2U = v4sf_set1(2) * dU;
-	v4sf d2V = v4sf_set1(2) * dV;
 	m34sf zU = m34sf_set(v4sf_set1(0), dU, v4sf_set1(0), dU);
 	m34sf zV = m34sf_set(v4sf_set1(0), v4sf_set1(0), dV, dV);
+	m34sf U = m34sf_subv(zU, camera.right);
 	m34sf V = m34sf_addv(zV, camera.up);
-	for (int j = 0; j < h; j += 2, V = m34sf_addv(V, d2V)) {
-		m34sf U = m34sf_subv(zU, camera.right);
-		for (int i = 0; i < w; i += 2, U = m34sf_addv(U, d2U)) {
-			m34sf dir = m34sf_normal(m34sf_addv(m34sf_add(U, V), camera.dir));
+	m34sf UV = m34sf_add(U, V);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int j = 0; j < h; j += 2) {
+		v4sf jdV = v4sf_set1(j) * dV;
+		for (int i = 0; i < w; i += 2) {
+			v4sf idU = v4sf_set1(i) * dU;
+			m34sf scr = m34sf_addv(UV, jdV + idU);
+			m34sf dir = m34sf_normal(m34sf_addv(scr, camera.dir));
 			struct ray ray = init_ray(m34sf_splat(camera.origin), dir);
 			v4sf l[2];
 			uint32_t color[4] = { 0, 0, 0, 0 };
@@ -308,7 +313,7 @@ int main(int argc, char **argv)
 	atexit(SDL_Quit);
 	// matrix_tests();
 	SDL_Init(SDL_INIT_VIDEO);
-	SDL_Surface *screen = SDL_SetVideoMode(512, 512, 32, SDL_DOUBLEBUF);
+	SDL_Surface *screen = SDL_SetVideoMode(1024, 1024, 32, SDL_DOUBLEBUF);
 	if (!screen)
 		exit(1);
 	if (screen->format->BytesPerPixel != 4)
