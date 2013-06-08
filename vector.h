@@ -135,12 +135,12 @@ static inline v4su v4si_gt(v4si a, v4si b)
 
 static inline int v4su_all_ones(v4su a)
 {
-	return _mm_testc_si128(a, _mm_cmpeq_epi32(a, a));
+	return _mm_testc_si128((__m128i)a, _mm_cmpeq_epi32((__m128i)a, (__m128i)a));
 }
 
 static inline int v4su_all_zeros(v4su a)
 {
-	return _mm_testz_si128(a, a);
+	return _mm_testz_si128((__m128i)a, (__m128i)a);
 }
 
 static inline v4sf v4sf_min(v4sf a, v4sf b)
