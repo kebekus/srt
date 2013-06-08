@@ -7,7 +7,8 @@
 
 struct parser_node *node_set_err_str(char *what)
 {
-	return (struct parser_node *)set_err_str(what);
+	set_err_str(what);
+	return 0;
 }
 
 struct parser_tree *parser_alloc_tree(int size)

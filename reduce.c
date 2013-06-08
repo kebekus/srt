@@ -210,7 +210,8 @@ static struct parser_node *reduce(struct parser_node *node)
 		case token_err:
 			return 0;
 		default:
-			return (struct parser_node *)set_err_str("unknown token");
+			set_err_str("unknown token");
+			return 0;
 	}
 }
 

@@ -73,7 +73,8 @@ static struct parser_node *deriv(struct parser_tree *dst, struct parser_node *sr
 		case token_err:
 			return 0;
 		default:
-			return (struct parser_node *)set_err_str("unknown token");
+			set_err_str("unknown token");
+			return 0;
 	}
 }
 
