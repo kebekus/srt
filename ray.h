@@ -17,6 +17,11 @@ struct ray
 	m34su sign;
 };
 
+static inline m34sf ray_point(v4sf l, struct ray ray)
+{
+	return m34sf_fma(ray.o, ray.d, l);
+}
+
 static inline struct ray init_ray(m34sf o, m34sf d)
 {
 	struct ray ray;

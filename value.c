@@ -36,7 +36,7 @@ v4su sign_change(v4sf a, v4sf b)
 v4sf newton(v4sf n, struct ray ray, float a)
 {
 	for (int i = 0; i < 20; i++) {
-		m34sf p = m34sf_fma(ray.o, ray.d, n);
+		m34sf p = ray_point(n, ray);
 		n -= curve(p, a) / m34sf_dot(ray.d, gradient(p, a));
 	}
 	return n;
@@ -44,10 +44,10 @@ v4sf newton(v4sf n, struct ray ray, float a)
 
 v4su sign_test(v4sf n, struct ray ray, float a)
 {
-	m34sf p = m34sf_fma(ray.o, ray.d, n);
+	m34sf p = ray_point(n, ray);
 	v4sf v = curve(p, a);
-	m34sf p0 = m34sf_fma(ray.o, ray.d, n + v4sf_set1(-0.0001));
-	m34sf p1 = m34sf_fma(ray.o, ray.d, n + v4sf_set1(0.0001));
+	m34sf p0 = ray_point(n + v4sf_set1(-0.0001), ray);
+	m34sf p1 = ray_point(n + v4sf_set1(0.0001), ray);
 	v4sf v0 = curve(p0, a);
 	v4sf v1 = curve(p1, a);
 	return sign_change(v, v0) | sign_change(v, v1);
@@ -60,7 +60,7 @@ v4su int_test(v4sf n, v4sf l[2])
 
 m34sf color(v4sf n, v4su test, struct ray ray, float a)
 {
-	m34sf p = m34sf_fma(ray.o, ray.d, n);
+	m34sf p = ray_point(n, ray);
 	v4sf diff = m34sf_dot(ray.d, m34sf_normal(gradient(p, a)));
 	v4su face = v4sf_gt(diff, v4sf_set1(0));
 	v4sf r = test & face & (v4su)diff;
@@ -72,12 +72,12 @@ m34sf color(v4sf n, v4su test, struct ray ray, float a)
 m34sf value(v4sf l[2], struct ray ray, float a)
 {
 	if (1) {
-		m34sf p = m34sf_fma(ray.o, ray.d, l[0]);
+		m34sf p = ray_point(l[0], ray);
 		v4sf v = curve(p, a);
 		v4su change = v4su_set1(0);
 		while (v4su_all_zeros(change | v4sf_ge(l[0], l[1]))) {
 			v4sf x = l[0] + (v4sf)(~change & (v4su)v4sf_set1(0.1));
-			m34sf p0 = m34sf_fma(ray.o, ray.d, x);
+			m34sf p0 = ray_point(x, ray);
 			change |= sign_change(v, curve(p0, a));
 			l[0] = v4sf_select(change, l[0], x);
 		}
