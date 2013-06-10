@@ -55,7 +55,7 @@ v4su sign_test(v4sf n, struct ray ray, float a)
 
 v4su int_test(v4sf n, v4sf l[2])
 {
-	return v4sf_le(l[0], n) & v4sf_lt(n, l[1]);
+	return v4sf_lt(l[0], l[1]) & v4sf_le(l[0], n) & v4sf_lt(n, l[1]);
 }
 
 m34sf color(v4sf n, v4su test, struct ray ray, float a)
