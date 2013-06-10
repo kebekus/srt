@@ -49,9 +49,9 @@ static inline m34sf m34sf_splat(v4sf v)
 static inline m34sf m34sf_rcp(m34sf m)
 {
 	return (m34sf) {
-		v4sf_set1(1) / m.x,
-		v4sf_set1(1) / m.y,
-		v4sf_set1(1) / m.z
+		v4sf_rcp(m.x),
+		v4sf_rcp(m.y),
+		v4sf_rcp(m.z)
 	};
 }
 
