@@ -123,6 +123,15 @@ static inline m34sf m34sf_vmul(m34sf l, v4sf r)
 	};
 }
 
+static inline m34sf m34sf_mul(m34sf l, m34sf r)
+{
+	return (m34sf) {
+		l.x * r.x,
+		l.y * r.y,
+		l.z * r.z
+	};
+}
+
 static inline m34sf m34sf_normal(m34sf m)
 {
 	return m34sf_vmul(m, v4sf_rcp(v4sf_sqrt(m34sf_dot(m, m))));
