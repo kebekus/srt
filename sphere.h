@@ -8,7 +8,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #ifndef SPHERE_H
 #define SPHERE_H
-#include "vector.h"
 #include "ray.h"
 
 struct sphere
