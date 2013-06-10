@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "matrix.h"
 #include "ray.h"
 #include "sphere.h"
+#include "aabb.h"
 #include "camera.h"
 #include "utils.h"
 #include "tests.h"
@@ -90,7 +91,7 @@ void snapshot(SDL_Surface *screen, struct camera camera, float a, int i, int j)
 	fclose(file);
 }
 
-void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct edit *edit, int *edit_mode)
+void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct edit *edit, int *edit_mode, int *use_aabb)
 {
 	static int focus = 1;
 	static int button_left = 0;
@@ -145,6 +146,9 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct 
 						break;
 					case SDLK_r:
 						*camera = init_camera();
+						break;
+					case SDLK_b:
+						*use_aabb ^= 1;
 						break;
 					case SDLK_1:
 						reset_edit(edit, "(2*x^2 + y^2 + z^2 - 1)^3 - x^2*z^3/10 - y^2*z^3");
@@ -262,9 +266,10 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-void draw(SDL_Surface *screen, struct camera camera, float a)
+void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
+	struct aabb aabb = { v4sf_set3(-3, -3, -3), v4sf_set3(3, 3, 3) };
 	uint32_t *fb = screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
@@ -289,7 +294,11 @@ void draw(SDL_Surface *screen, struct camera camera, float a)
 			struct ray ray = init_ray(m34sf_splat(camera.origin), dir);
 			v4sf l[2];
 			uint32_t color[4] = { 0, 0, 0, 0 };
-			v4su t = sphere_ray(l, sphere, ray);
+			v4su t;
+			if (use_aabb)
+				t = aabb_ray(l, aabb, ray);
+			else
+				t = sphere_ray(l, sphere, ray);
 			t &= v4sf_gt(l[1], v4sf_set1(0));
 			if (!v4su_all_zeros(t)) {
 				l[0] = v4sf_max(l[0], v4sf_set1(0));
@@ -331,13 +340,14 @@ int main(int argc, char **argv)
 	float a = 1.0;
 
 	int edit_mode = 0;
+	int use_aabb = 0;
 	for (;;) {
-		draw(screen, camera, a);
+		draw(screen, camera, a, use_aabb);
 		if (edit_mode)
 			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
 		SDL_Delay(10);
-		handle_events(screen, &camera, &a, edit, &edit_mode);
+		handle_events(screen, &camera, &a, edit, &edit_mode, &use_aabb);
 		handle_stats(screen);
 	}
 	return 0;
