@@ -155,11 +155,11 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct 
 						jit_curve(edit);
 						break;
 					case SDLK_2:
-						reset_edit(edit, "x^2 + 4 * y^2 + z^2 - 1");
+						reset_edit(edit, "x^2 + 4 * y^2 + z^2 - 8");
 						jit_curve(edit);
 						break;
 					case SDLK_3:
-						reset_edit(edit, "(x^2 + y^2 + z^2 + 0.2)^2 - (x^2 + y^2)");
+						reset_edit(edit, "(x^2 + y^2 + z^2 + 2)^2 - 12*(x^2 + y^2)");
 						jit_curve(edit);
 						break;
 					case SDLK_4:
