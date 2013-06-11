@@ -248,6 +248,11 @@ static inline v4sf v4sf_clamp(v4sf a, v4sf b, v4sf c)
 	return (v4sf)_mm_min_ps(_mm_max_ps(a, b), c);
 }
 
+static inline v4sf v4sf_and(v4su a, v4sf b)
+{
+	return (v4sf)_mm_and_ps((__m128)a, (__m128)b);
+}
+
 static inline v4sf v4sf_select(v4su a, v4sf b, v4sf c)
 {
 //	return (v4sf)_mm_xor_si128(_mm_and_si128((__m128i)a, _mm_xor_si128((__m128i)b, (__m128i)c)), (__m128i)c);
