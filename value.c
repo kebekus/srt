@@ -46,7 +46,7 @@ v4sf bisect(v4sf l[2], struct ray ray, float a)
 		l0 = v4sf_select(test, l0, x);
 		l1 = v4sf_select(test, x, l1);
 	}
-	return l0;
+	return v4sf_set1(0.5) * (l0 + l1);
 }
 
 v4sf newton(v4sf n, struct ray ray, float a)
