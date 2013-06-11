@@ -294,19 +294,21 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 			struct ray ray = init_ray(m34sf_splat(camera.origin), dir);
 			v4sf l[2];
 			uint32_t color[4] = { 0, 0, 0, 0 };
-			v4su t;
+			v4su test;
 			if (use_aabb)
-				t = aabb_ray(l, aabb, ray);
+				test = aabb_ray(l, aabb, ray);
 			else
-				t = sphere_ray(l, sphere, ray);
-			t &= v4sf_gt(l[1], v4sf_set1(0));
-			if (!v4su_all_zeros(t)) {
+				test = sphere_ray(l, sphere, ray);
+			test &= v4sf_gt(l[1], v4sf_set1(0));
+			if (!v4su_all_zeros(test)) {
 				l[0] = v4sf_max(l[0], v4sf_set1(0));
+				l[0] = v4sf_and(test, l[0]);
+				l[1] = v4sf_and(test, l[1]);
 				m34sf tmp = value(l, ray, a);
-				color[0] = t[0] & argb(m34sf_get0(tmp));
-				color[1] = t[1] & argb(m34sf_get1(tmp));
-				color[2] = t[2] & argb(m34sf_get2(tmp));
-				color[3] = t[3] & argb(m34sf_get3(tmp));
+				color[0] = test[0] & argb(m34sf_get0(tmp));
+				color[1] = test[1] & argb(m34sf_get1(tmp));
+				color[2] = test[2] & argb(m34sf_get2(tmp));
+				color[3] = test[3] & argb(m34sf_get3(tmp));
 			}
 			fb[w * (j+0) + (i+0)] = color[0];
 			fb[w * (j+0) + (i+1)] = color[1];
