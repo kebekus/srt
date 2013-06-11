@@ -69,21 +69,28 @@ m34sf color(v4sf n, v4su test, struct ray ray, float a)
 	return (m34sf) { r, g, b };
 }
 
+v4su localize(v4sf l[2], struct ray ray, float a)
+{
+	v4sf l0= l[0];
+	m34sf p0 = ray_point(l0, ray);
+	v4sf v0 = curve(p0, a);
+	v4su test = v4su_set1(0);
+	while (v4su_all_zeros(test | v4sf_ge(l0, l[1]))) {
+		v4sf x = l0 + v4sf_set1(0.1);
+		m34sf p1 = ray_point(x, ray);
+		test |= sign_change(v0, curve(p1, a));
+		l0 = v4sf_select(test, l0, x);
+	}
+	l[0] = v4sf_select(test, l0, l[0]);
+	l[1] = v4sf_select(test, l0+v4sf_set1(0.1), l[1]);
+	return test;
+}
+
 m34sf value(v4sf l[2], struct ray ray, float a)
 {
-	if (1) {
-		m34sf p = ray_point(l[0], ray);
-		v4sf v = curve(p, a);
-		v4su change = v4su_set1(0);
-		while (v4su_all_zeros(change | v4sf_ge(l[0], l[1]))) {
-			v4sf x = l[0] + (v4sf)(~change & (v4su)v4sf_set1(0.1));
-			m34sf p0 = ray_point(x, ray);
-			change |= sign_change(v, curve(p0, a));
-			l[0] = v4sf_select(change, l[0], x);
-		}
-	}
+	v4su test = localize(l, ray, a);
 	v4sf n = newton(l[0], ray, a);
-	v4su test = sign_test(n, ray, a) & int_test(n, l);
+	test &= sign_test(n, ray, a) & int_test(n, l);
 	return color(n, test, ray, a);
 }
 
