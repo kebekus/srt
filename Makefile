@@ -6,8 +6,11 @@ CXX = clang++
 #CXX = $(notdir $(shell ls /usr/bin/g++-*.*.* | tail -n1))
 #OPENMP = -fopenmp
 
+#OPT = -march=native -msse4.1 -ffast-math
+OPT = -march=native -mavx -ffast-math
+
 STD = -std=c99
-CFLAGS = -W -Wall -Wextra -O3 -march=native -ffast-math -fPIC
+CFLAGS = -W -Wall -Wextra -O3 -fPIC
 LIBS = -lm
 SDL_CFLAGS = $(shell sdl-config --cflags)
 SDL_LIBS = $(shell sdl-config --libs)
@@ -23,7 +26,7 @@ srt: srt.o parser.o deriv.o error.o eval.o reduce.o copy.o cbind.o jit.o edit.o
 	$(CC) -o $@ $^ $(OPENMP) $(LIBS) $(LLVM_LIBS) $(SDL_LIBS)
 
 srt.o: srt.c value_bc.h *.h Makefile
-	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(SDL_CFLAGS) $(OPENMP)
+	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT) $(SDL_CFLAGS) $(OPENMP)
 
 edit.o: edit.c edit.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(SDL_CFLAGS)
@@ -35,7 +38,7 @@ jit.o: jit.c jit.h parser.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(LLVM_CFLAGS)
 
 value.bc: value.c ray.h vector.h scalar.h Makefile
-	clang -o $@ $< -c $(STD) $(CFLAGS) -emit-llvm
+	clang -o $@ $< -c $(STD) $(CFLAGS) $(OPT) -emit-llvm
 
 value_bc.h: value.bc Makefile
 	xxd -i value.bc value_bc.h
