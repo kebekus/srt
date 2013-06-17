@@ -193,6 +193,15 @@ void parser_jit_opt(struct parser_jit *parser_jit)
 
 	LLVMRunPassManager(jit->pass, jit->module);
 //	LLVMDumpModule(jit->module);
+#if 0
+	error = 0;
+	if (LLVMPrintModuleToFile(jit->module, "module.bc", &error)) {
+		fprintf(stderr, "LLVMPrintModuleToFile:\n%s\n", error);
+		LLVMDisposeMessage(error);
+		abort();
+	}
+	LLVMDisposeMessage(error);
+#endif
 }
 
 void *parser_jit_func(struct parser_jit *parser_jit, char *name)
