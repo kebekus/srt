@@ -26,7 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "jit.h"
 #include "value_bc.h"
 
-m34sf (*value)(v4sf l[2], struct ray ray, float a);
+void (*stripe)(uint32_t *fb, int w, int j, v4sf dU, v4sf dV, m34sf UV, struct sphere sphere, struct aabb aabb, struct camera camera, float a, int use_aabb);
 v4sf (*curve)(m34sf v, float a);
 
 int jit_curve(struct edit *edit)
@@ -65,7 +65,7 @@ int jit_curve(struct edit *edit)
 	parser_jit_build(jit, deriv_tree[2], "deriv_z");
 
 	parser_jit_opt(jit);
-	value = parser_jit_func(jit, "value");
+	stripe = parser_jit_func(jit, "stripe");
 	curve = parser_jit_func(jit, "curve");
 
 	edit_msg(edit, 0, 0);
@@ -285,37 +285,8 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-	for (int j = 0; j < h; j += 2) {
-		v4sf jdV = v4sf_set1(j) * dV;
-		for (int i = 0; i < w; i += 2) {
-			v4sf idU = v4sf_set1(i) * dU;
-			m34sf scr = m34sf_addv(UV, jdV + idU);
-			m34sf dir = m34sf_normal(m34sf_addv(scr, camera.dir));
-			struct ray ray = init_ray(m34sf_splat(camera.origin), dir);
-			v4sf l[2];
-			uint32_t color[4] = { 0, 0, 0, 0 };
-			v4su test;
-			if (use_aabb)
-				test = aabb_ray(l, aabb, ray);
-			else
-				test = sphere_ray(l, sphere, ray);
-			test &= v4sf_gt(l[1], v4sf_set1(0));
-			if (!v4su_all_zeros(test)) {
-				l[0] = v4sf_max(l[0], v4sf_set1(0));
-				l[0] = v4sf_and(test, l[0]);
-				l[1] = v4sf_and(test, l[1]);
-				m34sf tmp = value(l, ray, a);
-				color[0] = test[0] & argb(m34sf_get0(tmp));
-				color[1] = test[1] & argb(m34sf_get1(tmp));
-				color[2] = test[2] & argb(m34sf_get2(tmp));
-				color[3] = test[3] & argb(m34sf_get3(tmp));
-			}
-			fb[w * (j+0) + (i+0)] = color[0];
-			fb[w * (j+0) + (i+1)] = color[1];
-			fb[w * (j+1) + (i+0)] = color[2];
-			fb[w * (j+1) + (i+1)] = color[3];
-		}
-	}
+	for (int j = 0; j < h; j += 2)
+		stripe(fb, w, j, dU, dV, UV, sphere, aabb, camera, a, use_aabb);
 }
 
 int main(int argc, char **argv)

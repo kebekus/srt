@@ -6,7 +6,11 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+#include "stdint.h"
 #include "ray.h"
+#include "sphere.h"
+#include "aabb.h"
+#include "camera.h"
 
 v4sf curve_xyza(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_x(v4sf x, v4sf y, v4sf z, float a);
@@ -143,6 +147,45 @@ m34sf value(v4sf l[2], struct ray ray, float a)
 	v4sf n = newton_forward(l[0], ray, a);
 	return color(n, sign_test(n, ray, a) & int_test(n, l), ray, a);
 //	return color(n, test, ray, a);
+}
+
+uint32_t argb(v4sf c)
+{
+	v4si rgb = v4sf_cvt(v4sf_clamp(v4sf_set1(255) * c, v4sf_set1(0), v4sf_set1(255)));
+	return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);
+}
+
+void stripe(uint32_t *fb, int w, int j, v4sf dU, v4sf dV, m34sf UV, struct sphere sphere, struct aabb aabb, struct camera camera, float a, int use_aabb)
+{
+	v4sf jdV = v4sf_set1(j) * dV;
+	for (int i = 0; i < w; i += 2) {
+		v4sf idU = v4sf_set1(i) * dU;
+		m34sf scr = m34sf_addv(UV, jdV + idU);
+		m34sf dir = m34sf_normal(m34sf_addv(scr, camera.dir));
+		struct ray ray = init_ray(m34sf_splat(camera.origin), dir);
+		v4sf l[2];
+		uint32_t color[4] = { 0, 0, 0, 0 };
+		v4su test;
+		if (use_aabb)
+			test = aabb_ray(l, aabb, ray);
+		else
+			test = sphere_ray(l, sphere, ray);
+		test &= v4sf_gt(l[1], v4sf_set1(0));
+		if (!v4su_all_zeros(test)) {
+			l[0] = v4sf_max(l[0], v4sf_set1(0));
+			l[0] = v4sf_and(test, l[0]);
+			l[1] = v4sf_and(test, l[1]);
+			m34sf tmp = value(l, ray, a);
+			color[0] = test[0] & argb(m34sf_get0(tmp));
+			color[1] = test[1] & argb(m34sf_get1(tmp));
+			color[2] = test[2] & argb(m34sf_get2(tmp));
+			color[3] = test[3] & argb(m34sf_get3(tmp));
+		}
+		fb[w * (j+0) + (i+0)] = color[0];
+		fb[w * (j+0) + (i+1)] = color[1];
+		fb[w * (j+1) + (i+0)] = color[2];
+		fb[w * (j+1) + (i+1)] = color[3];
+	}
 }
 
 #if 0
