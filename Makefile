@@ -4,14 +4,13 @@ CXX = clang++
 
 #CC = $(notdir $(shell ls /usr/bin/gcc-*.*.* | tail -n1))
 #CXX = $(notdir $(shell ls /usr/bin/g++-*.*.* | tail -n1))
-#OPENMP = -fopenmp
 
 #OPT = -march=native -msse4.1 -ffast-math
 OPT = -march=native -mavx -ffast-math
 
 STD = -std=c99
 CFLAGS = -W -Wall -Wextra -O3 -fPIC
-LIBS = -lm
+LIBS = -lm -lpthread
 SDL_CFLAGS = $(shell sdl-config --cflags)
 SDL_LIBS = $(shell sdl-config --libs)
 LLVM_CFLAGS = $(shell llvm-config --cflags)
@@ -23,10 +22,10 @@ test: srt
 	./srt
 
 srt: srt.o parser.o deriv.o error.o eval.o reduce.o copy.o cbind.o jit.o edit.o
-	$(CC) -o $@ $^ $(OPENMP) $(LIBS) $(LLVM_LIBS) $(SDL_LIBS)
+	$(CC) -o $@ $^ $(LIBS) $(LLVM_LIBS) $(SDL_LIBS)
 
 srt.o: srt.c value_bc.h *.h Makefile
-	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT) $(SDL_CFLAGS) $(OPENMP)
+	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT) $(SDL_CFLAGS)
 
 edit.o: edit.c edit.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(SDL_CFLAGS)

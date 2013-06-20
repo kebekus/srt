@@ -9,6 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <math.h>
 #include <stdlib.h>
 #include <SDL.h>
+#include <pthread.h>
 #include "vector.h"
 #include "matrix.h"
 #include "ray.h"
@@ -266,6 +267,38 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
+struct work {
+	uint32_t *fb;
+	int w;
+	int h;
+	v4sf dU;
+	v4sf dV;
+	m34sf UV;
+	struct sphere sphere;
+	struct aabb aabb;
+	struct camera camera;
+	float a;
+	int use_aabb;
+	int j;
+	int pause;
+} work;
+pthread_mutex_t mutex;
+pthread_cond_t cond;
+
+void *thread(void *data)
+{
+	struct work *work = data;
+	while (1) {
+		pthread_mutex_lock(&mutex);
+		while (work->pause || work->j >= work->h)
+			pthread_cond_wait(&cond, &mutex);
+		int j = work->j;
+		work->j += 2;
+		pthread_mutex_unlock(&mutex);
+		stripe(work->fb, work->w, j, work->dU, work->dV, work->UV, work->sphere, work->aabb, work->camera, work->a, work->use_aabb);
+	}
+}
+
 void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
@@ -282,11 +315,10 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 	m34sf U = m34sf_subv(zU, camera.right);
 	m34sf V = m34sf_addv(zV, camera.up);
 	m34sf UV = m34sf_add(U, V);
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-	for (int j = 0; j < h; j += 2)
-		stripe(fb, w, j, dU, dV, UV, sphere, aabb, camera, a, use_aabb);
+	pthread_mutex_lock(&mutex);
+	work = (struct work){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb, 0, 0 };
+	pthread_mutex_unlock(&mutex);
+	pthread_cond_broadcast(&cond);
 }
 
 int main(int argc, char **argv)
@@ -303,6 +335,14 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("SIMD Ray Tracing", "srt");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	SDL_EnableUNICODE(1);
+
+	int threads = 4;
+	pthread_t pthd[threads];
+	pthread_mutex_init(&mutex, 0);
+	pthread_cond_init(&cond, 0);
+	work.pause = 1;
+	for (int i = 0; i < threads; i++)
+		pthread_create(pthd + i, 0, thread, &work);
 
 	struct edit *edit = alloc_edit(10240, "");
 	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
