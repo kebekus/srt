@@ -338,7 +338,7 @@ int main(int argc, char **argv)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	SDL_EnableUNICODE(1);
 
-	int threads = 4;
+	int threads = 8;
 	pthread_t pthd[threads];
 	pthread_mutex_init(&mutex, 0);
 	pthread_cond_init(&cond, 0);
@@ -361,7 +361,6 @@ int main(int argc, char **argv)
 		if (edit_mode)
 			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
-		SDL_Delay(10);
 		handle_events(screen, &camera, &a, edit, &edit_mode, &use_aabb);
 		handle_stats(screen);
 	}
