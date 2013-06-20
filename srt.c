@@ -319,6 +319,8 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 	work = (struct work){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb, 0, 0 };
 	pthread_mutex_unlock(&mutex);
 	pthread_cond_broadcast(&cond);
+	while (work.j < work.h)
+		SDL_Delay(1);
 }
 
 int main(int argc, char **argv)
