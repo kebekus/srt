@@ -247,8 +247,9 @@ static inline v4sf v4sf_rcp(v4sf a)
 
 static inline v4sf v4sf_normal3(v4sf a)
 {
-	float f = 1.0f / sqrtf(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
-	return (v4sf){a[0] * f, a[1] * f, a[2] * f, 0};
+	v4sf tmp = a * a;
+	tmp = _mm_add_ss(tmp, _mm_add_ss(_mm_shuffle_ps(tmp, tmp, _MM_SHUFFLE(3,0,2,1)), _mm_shuffle_ps(tmp, tmp, _MM_SHUFFLE(3,1,0,2))));
+	return _mm_rcp_ss(_mm_sqrt_ss(tmp)) * a;
 }
 
 static inline v4sf v4sf_clamp(v4sf a, v4sf b, v4sf c)
