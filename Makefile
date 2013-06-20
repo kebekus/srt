@@ -5,8 +5,8 @@ CXX = clang++
 #CC = $(notdir $(shell ls /usr/bin/gcc-*.*.* | tail -n1))
 #CXX = $(notdir $(shell ls /usr/bin/g++-*.*.* | tail -n1))
 
-#OPT = -march=native -msse4.1 -ffast-math
-OPT = -march=native -mavx -ffast-math
+#OPT = -march=native -msse4.1
+OPT = -march=native -mavx
 
 STD = -std=c99
 CFLAGS = -W -Wall -Wextra -O3 -fPIC
