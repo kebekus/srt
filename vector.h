@@ -133,6 +133,12 @@ static inline v4su v4si_gt(v4si a, v4si b)
 	return (v4su)_mm_cmpgt_epi32((__m128i)a, (__m128i)b);
 }
 
+static inline v4sf v4sf_abs(v4sf a)
+{
+	v4su mask = v4su_set1(0x7fffffff);
+	return (v4sf)_mm_and_ps((__m128)mask, a);
+}
+
 static inline int v4su_all_ones(v4su a)
 {
 #ifdef __SSE4_1__
