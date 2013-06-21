@@ -136,35 +136,38 @@ m34sf color(v4sf n, v4su test, struct ray ray, float a)
 
 v4su localize(v4sf l[2], struct ray ray, float a)
 {
-	v4sf l0= l[0];
+	float coarse = 0.1;
+//	float fine = 0.01;
+	v4sf l0 = l[0];
+	v4sf l1 = l[1];
 	m34sf p0 = ray_point(l0, ray);
 	v4sf v0 = curve(p0, a);
 	v4su test = v4su_set1(0);
 	while (!v4su_all_ones(test | v4sf_ge(l0, l[1]))) {
-		v4sf x = l0 + v4sf_set1(0.1);
-		m34sf p1 = ray_point(x, ray);
+		l1 = l0 + v4sf_set1(coarse);
+		m34sf p1 = ray_point(l1, ray);
 		test |= sign_change(v0, curve(p1, a));
-		l0 = v4sf_select(test, l0, x);
+		l0 = v4sf_select(test, l0, l1);
 	}
 	l[0] = v4sf_select(test, l0, l[0]);
-	l[1] = v4sf_select(test, l0+v4sf_set1(0.1), l[1]);
+	l[1] = v4sf_select(test, l1, l[1]);
 	return test;
 }
 
 m34sf value(v4sf l[2], struct ray ray, float a)
 {
-//	v4su test = localize(l, ray, a);
+	v4su test = localize(l, ray, a);
 //	v4sf n = l[0];
 //	v4sf n = bisect(l, ray, a);
 //	v4sf n = newton(l[0], ray, a);
-//	v4sf n = newton(bisect(l, ray, a), ray, a);
+	v4sf n = newton(bisect(l, ray, a), ray, a);
 //	v4sf n = newton_bisect(l, ray, a);
-	v4sf n = newton_forward(l[0], ray, a);
+//	v4sf n = newton_forward(l[0], ray, a);
 //	return color(n, sign_test(n, ray, a) & int_test(n, l), ray, a);
 //	return color(n, zero_test(n, ray, a) & int_test(n, l), ray, a);
 //	return color(n, (sign_test(n, ray, a) | zero_test(n, ray, a)) & int_test(n, l), ray, a);
-	return color(n, (sign_test(n, ray, a) | epsilon_test(n, ray, a)) & int_test(n, l), ray, a);
-//	return color(n, test, ray, a);
+//	return color(n, (sign_test(n, ray, a) | epsilon_test(n, ray, a)) & int_test(n, l), ray, a);
+	return color(n, test, ray, a);
 }
 
 uint32_t argb(v4sf c)
