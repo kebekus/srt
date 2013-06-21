@@ -108,7 +108,7 @@ v4su epsilon_test(v4sf n, struct ray ray, float a)
 	float epsilon = 0.0000000001;
 	m34sf p = ray_point(n, ray);
 	v4sf v = curve(p, a);
-	return v4sf_lt(v4sf_set1(-epsilon), v) & v4sf_lt(v, v4sf_set1(epsilon));
+	return v4sf_lt(v4sf_abs(v), v4sf_set1(epsilon));
 }
 
 v4su zero_test(v4sf n, struct ray ray, float a)
