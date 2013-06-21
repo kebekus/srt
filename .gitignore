@@ -3,4 +3,5 @@ srt
 plot.dat
 *.o
 *.bc
+*.ll
 *_bc.h
