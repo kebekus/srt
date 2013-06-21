@@ -280,20 +280,28 @@ struct work {
 	float a;
 	int use_aabb;
 	int j;
-	int pause;
 } work;
 pthread_mutex_t mutex;
 pthread_cond_t cond;
+int pause;
+int busy;
 
 void *thread(void *data)
 {
 	struct work *work = data;
+	pthread_mutex_lock(&mutex);
+	busy++;
+	while (pause)
+		pthread_cond_wait(&cond, &mutex);
+	pthread_mutex_unlock(&mutex);
 	while (1) {
 		pthread_mutex_lock(&mutex);
-		while (work->pause || work->j >= work->h)
+		busy--;
+		while (work->j >= work->h)
 			pthread_cond_wait(&cond, &mutex);
 		int j = work->j;
 		work->j += 2;
+		busy++;
 		pthread_mutex_unlock(&mutex);
 		stripe(work->fb, work->w, j, work->dU, work->dV, work->UV, work->sphere, work->aabb, work->camera, work->a, work->use_aabb);
 	}
@@ -316,10 +324,11 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 	m34sf V = m34sf_addv(zV, camera.up);
 	m34sf UV = m34sf_add(U, V);
 	pthread_mutex_lock(&mutex);
-	work = (struct work){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb, 0, 0 };
-	pthread_mutex_unlock(&mutex);
+	work = (struct work){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb, 0, };
+	pause = 0;
 	pthread_cond_broadcast(&cond);
-	while (work.j < work.h)
+	pthread_mutex_unlock(&mutex);
+	while (busy || work.j < work.h)
 		SDL_Delay(1);
 }
 
@@ -342,7 +351,8 @@ int main(int argc, char **argv)
 	pthread_t pthd[threads];
 	pthread_mutex_init(&mutex, 0);
 	pthread_cond_init(&cond, 0);
-	work.pause = 1;
+	pause = 1;
+	busy = 0;
 	for (int i = 0; i < threads; i++)
 		pthread_create(pthd + i, 0, thread, &work);
 
