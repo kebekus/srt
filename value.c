@@ -136,8 +136,8 @@ m34sf color(v4sf n, v4su test, struct ray ray, float a)
 
 v4su localize(v4sf l[2], struct ray ray, float a)
 {
-	float coarse = 0.1;
-	float fine = 0.01;
+	float coarse = 0.05;
+	float fine = 0.001;
 	v4sf l0 = l[0];
 	v4sf l1 = l[1];
 	m34sf p0 = ray_point(l0, ray);
@@ -145,7 +145,7 @@ v4su localize(v4sf l[2], struct ray ray, float a)
 	v4su test = v4su_set1(0);
 	while (!v4su_all_ones(test | v4sf_ge(l0, l[1]))) {
 		v4sf x = v0 / m34sf_dot(ray.d, gradient(p0, a));
-		v4sf step = v4sf_select(v4sf_lt(v4sf_abs(x), v4sf_set1(coarse)), v4sf_set1(fine), v4sf_set1(coarse));
+		v4sf step = v4sf_clamp(v4sf_abs(x), v4sf_set1(fine), v4sf_set1(coarse));
 		l1 = l0 + step;
 		m34sf p1 = ray_point(l1, ray);
 		v4sf v1 = curve(p1, a);
