@@ -334,7 +334,9 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 
 int main(int argc, char **argv)
 {
-	(void)argc; (void)argv;
+	char *str = "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2";
+	if (argc == 2)
+		str = argv[1];
 	atexit(SDL_Quit);
 	// matrix_tests();
 	SDL_Init(SDL_INIT_VIDEO);
@@ -360,7 +362,7 @@ int main(int argc, char **argv)
 	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
 
 	struct camera camera = init_camera();
-	reset_edit(edit, "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
+	reset_edit(edit, str);
 	jit_curve(edit);
 	float a = 1.0;
 
