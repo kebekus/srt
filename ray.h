@@ -19,7 +19,7 @@ struct ray
 
 static inline m34sf ray_point(v4sf l, struct ray ray)
 {
-	return m34sf_fma(ray.o, ray.d, l);
+	return m34sf_fma(ray.d, l, ray.o);
 }
 
 static inline struct ray init_ray(m34sf o, m34sf d)

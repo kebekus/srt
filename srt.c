@@ -86,9 +86,9 @@ void snapshot(SDL_Surface *screen, struct camera camera, float a, int i, int j)
 	struct ray ray = init_ray(m34sf_splat(camera.origin), m34sf_splat(dir));
 	FILE *file = fopen("plot.dat", "w");
 	for (float x = 0; x < 10; x += 0.1)
-		fprintf(file, "%g %g NaN\n", x, curve(m34sf_fma(ray.o, ray.d, v4sf_set1(x)), a)[0]);
+		fprintf(file, "%g %g NaN\n", x, curve(ray_point(v4sf_set1(x), ray), a)[0]);
 	for (float x = 0; x < 10; x += 0.001)
-		fprintf(file, "%g NaN %g\n", x, curve(m34sf_fma(ray.o, ray.d, v4sf_set1(x)), a)[0]);
+		fprintf(file, "%g NaN %g\n", x, curve(ray_point(v4sf_set1(x), ray), a)[0]);
 	fclose(file);
 }
 

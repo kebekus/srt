@@ -82,12 +82,12 @@ static inline m34sf m34sf_addv(m34sf l, v4sf r)
 	};
 }
 
-static inline m34sf m34sf_fma(m34sf a, m34sf b, v4sf c)
+static inline m34sf m34sf_fma(m34sf a, v4sf b, m34sf c)
 {
 	return (m34sf) {
-		a.x + b.x * c,
-		a.y + b.y * c,
-		a.z + b.z * c
+		a.x * b + c.x,
+		a.y * b + c.y,
+		a.z * b + c.z
 	};
 }
 
