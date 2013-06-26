@@ -8,6 +8,47 @@ uploaded unfinished srt by popular demand.
 here some pictures from srt in action:
 https://sites.google.com/site/xdsopl/
 
+Usage:
+
+Keybindings:
+"1" - heart curve
+"2" - mnm
+"3" - torus
+"4" - cross
+"5" - paraboloid
+"6" - cylinder
+"7" - cone
+"8" - barth sextic
+"+" - increment "a" until 1
+"-" - decrement "a" until 0
+"e" - edit polynomial
+	ESC - abort edit
+	RETURN - apply polynomial
+	LEFT - move cursor left
+	RIGHT - move cursor right
+	HOME - jump to first char
+	END - jump to last char
+	DELETE - delete char under cursor
+	BACKSPACE - delete char before cursor
+	LEFT MOUSE BUTTON - jump to char under mouse pointer
+"wsadc" and SPACE - quake like movement of camera
+"r" - reset camera view
+"b" - toggle between sphere and aabb volume
+"q" or ESC - exit srt
+LEFT MOUSE BUTTON - move mouse to rotate camera view
+RIGHT MOUSE BUTTON - move mouse to rotate around curve
+MIDDLE MOUSE BUTTON - dump curve under mouse pointer to plot.dat for gnuplot
+
+Invoking examples:
+# ./srt
+# ./srt "x^2 + y^2 - z^2"
+
+Looking at plot.dat using gnuplot:
+# gnuplot
+gnuplot> plot "plot.dat" u 1:2 w p, "plot.dat" u 1:3 w l
+
+Example curves:
+
 cone:
 x^2 + y^2 - z^2
 
