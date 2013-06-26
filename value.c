@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "sphere.h"
 #include "aabb.h"
 #include "camera.h"
+#include "stripe_data.h"
 
 v4sf curve_xyza(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_x(v4sf x, v4sf y, v4sf z, float a);
@@ -181,8 +182,18 @@ uint32_t argb(v4sf c)
 	return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);
 }
 
-void stripe(uint32_t *fb, int w, int j, v4sf dU, v4sf dV, m34sf UV, struct sphere sphere, struct aabb aabb, struct camera camera, float a, int use_aabb)
+void stripe(struct stripe_data *sd, int j)
 {
+	uint32_t *fb = sd->fb;
+	int w = sd->w;
+	v4sf dU = sd->dU;
+	v4sf dV = sd->dV;
+	m34sf UV = sd->UV;
+	struct sphere sphere = sd->sphere;
+	struct aabb aabb = sd->aabb;
+	struct camera camera = sd->camera;
+	float a = sd->a;
+	int use_aabb = sd->use_aabb;
 	v4sf jdV = v4sf_set1(j) * dV;
 	for (int i = 0; i < w; i += 2) {
 		v4sf idU = v4sf_set1(i) * dU;

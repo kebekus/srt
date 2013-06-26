@@ -26,8 +26,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "reduce.h"
 #include "jit.h"
 #include "value_bc.h"
+#include "stripe_data.h"
 
-void (*stripe)(uint32_t *fb, int w, int j, v4sf dU, v4sf dV, m34sf UV, struct sphere sphere, struct aabb aabb, struct camera camera, float a, int use_aabb);
+void (*stripe)(struct stripe_data *sd, int j);
 v4sf (*curve)(m34sf v, float a);
 
 int jit_curve(struct edit *edit)
@@ -267,43 +268,35 @@ void handle_stats(SDL_Surface *screen)
 	}
 }
 
-struct work {
-	uint32_t *fb;
-	int w;
-	int h;
-	v4sf dU;
-	v4sf dV;
-	m34sf UV;
-	struct sphere sphere;
-	struct aabb aabb;
-	struct camera camera;
-	float a;
-	int use_aabb;
-	int j;
-} work;
-pthread_mutex_t mutex;
-pthread_cond_t cond;
-int pause;
-int busy;
+struct stripe_data stripe_data;
+struct thread_data {
+	struct stripe_data *stripe_data;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+	int pause;
+	int busy;
+	int stripe;
+	int height;
+} thread_data;
 
 void *thread(void *data)
 {
-	struct work *work = data;
-	pthread_mutex_lock(&mutex);
-	busy++;
-	while (pause)
-		pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+	struct thread_data *td = data;
+	pthread_mutex_lock(&td->mutex);
+	(td->busy)++;
+	while (td->pause)
+		pthread_cond_wait(&td->cond, &td->mutex);
+	pthread_mutex_unlock(&td->mutex);
 	while (1) {
-		pthread_mutex_lock(&mutex);
-		busy--;
-		while (work->j >= work->h)
-			pthread_cond_wait(&cond, &mutex);
-		int j = work->j;
-		work->j += 2;
-		busy++;
-		pthread_mutex_unlock(&mutex);
-		stripe(work->fb, work->w, j, work->dU, work->dV, work->UV, work->sphere, work->aabb, work->camera, work->a, work->use_aabb);
+		pthread_mutex_lock(&td->mutex);
+		(td->busy)--;
+		while (td->stripe >= td->height)
+			pthread_cond_wait(&td->cond, &td->mutex);
+		int j = td->stripe;
+		td->stripe += 2;
+		(td->busy)++;
+		pthread_mutex_unlock(&td->mutex);
+		stripe(td->stripe_data, j);
 	}
 }
 
@@ -323,12 +316,14 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 	m34sf U = m34sf_subv(zU, camera.right);
 	m34sf V = m34sf_addv(zV, camera.up);
 	m34sf UV = m34sf_add(U, V);
-	pthread_mutex_lock(&mutex);
-	work = (struct work){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb, 0, };
-	pause = 0;
-	pthread_cond_broadcast(&cond);
-	pthread_mutex_unlock(&mutex);
-	while (busy || work.j < work.h)
+	pthread_mutex_lock(&thread_data.mutex);
+	stripe_data = (struct stripe_data){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb };
+	thread_data.height = h;
+	thread_data.stripe = 0;
+	thread_data.pause = 0;
+	pthread_cond_broadcast(&thread_data.cond);
+	pthread_mutex_unlock(&thread_data.mutex);
+	while (thread_data.busy || thread_data.stripe < thread_data.height)
 		SDL_Delay(1);
 }
 
@@ -351,12 +346,13 @@ int main(int argc, char **argv)
 
 	int threads = 8;
 	pthread_t pthd[threads];
-	pthread_mutex_init(&mutex, 0);
-	pthread_cond_init(&cond, 0);
-	pause = 1;
-	busy = 0;
+	pthread_mutex_init(&thread_data.mutex, 0);
+	pthread_cond_init(&thread_data.cond, 0);
+	thread_data.pause = 1;
+	thread_data.busy = 0;
+	thread_data.stripe_data = &stripe_data;
 	for (int i = 0; i < threads; i++)
-		pthread_create(pthd + i, 0, thread, &work);
+		pthread_create(pthd + i, 0, thread, &thread_data);
 
 	struct edit *edit = alloc_edit(10240, "");
 	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
