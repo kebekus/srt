@@ -150,7 +150,7 @@ v4su localize(v4sf l[2], struct ray ray, float a)
 		l1 = l0 + step;
 		m34sf p1 = ray_point(l1, ray);
 		v4sf v1 = curve(p1, a);
-		test |= v4sf_lt(l0, l[1]) & sign_change(v0, v1);
+		test |= v4sf_lt(l1, l[1]) & sign_change(v0, v1);
 		l0 = v4sf_select(test, l0, l1);
 		v0 = v1;
 		p0 = p1;
