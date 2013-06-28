@@ -21,10 +21,13 @@ all: srt
 test: srt
 	./srt
 
-srt: srt.o parser.o deriv.o error.o eval.o reduce.o copy.o cbind.o jit.o edit.o
+srt: srt.o parser.o deriv.o error.o eval.o reduce.o copy.o cbind.o jit.o edit.o ppm.o
 	$(CC) -o $@ $^ $(LIBS) $(LLVM_LIBS) $(SDL_LIBS)
 
 srt.o: srt.c value_bc.h *.h Makefile
+	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT) $(SDL_CFLAGS)
+
+ppm.o: ppm.c ppm.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT) $(SDL_CFLAGS)
 
 edit.o: edit.c edit.h Makefile

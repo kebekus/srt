@@ -19,7 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "utils.h"
 #include "tests.h"
 #include "edit.h"
-
+#include "ppm.h"
 #include "parser.h"
 #include "deriv.h"
 #include "error.h"
@@ -148,6 +148,9 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct 
 						break;
 					case SDLK_r:
 						*camera = init_camera();
+						break;
+					case SDLK_p:
+						ppm_save("screenshot.ppm", screen);
 						break;
 					case SDLK_b:
 						*use_aabb ^= 1;
