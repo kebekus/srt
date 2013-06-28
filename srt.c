@@ -10,6 +10,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdlib.h>
 #include <SDL.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "vector.h"
 #include "matrix.h"
 #include "ray.h"
@@ -347,7 +348,8 @@ int main(int argc, char **argv)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	SDL_EnableUNICODE(1);
 
-	int threads = 8;
+	int threads = sysconf(_SC_NPROCESSORS_ONLN);
+	fprintf(stderr, "using %d threads\n", threads);
 	pthread_t pthd[threads];
 	pthread_mutex_init(&thread_data.mutex, 0);
 	pthread_cond_init(&thread_data.cond, 0);
