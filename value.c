@@ -34,7 +34,7 @@ m34sf gradient(m34sf m, float a)
 
 v4su sign_change(v4sf a, v4sf b)
 {
-	v4su mask = v4su_set1(0x80000000);
+	v4si mask = v4si_set1(0x80000000);
 	return v4si_eq(mask, mask & ((v4su)a ^ (v4su)b));
 }
 
