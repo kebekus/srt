@@ -6,3 +6,5 @@ plot.dat
 *.ll
 *_bc.h
 *.ppm
+module.c
+module.so

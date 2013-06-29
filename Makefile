@@ -1,9 +1,9 @@
 
-CC = clang
-CXX = clang++
+#CC = clang
+#CXX = clang++
 
-#CC = $(notdir $(shell ls /usr/bin/gcc-*.*.* | tail -n1))
-#CXX = $(notdir $(shell ls /usr/bin/g++-*.*.* | tail -n1))
+CC = $(notdir $(shell ls /usr/bin/gcc-*.*.* | tail -n1))
+CXX = $(notdir $(shell ls /usr/bin/g++-*.*.* | tail -n1))
 
 #OPT = -march=native -msse4.1
 #OPT = -march=native -mavx
@@ -11,44 +11,36 @@ OPT = -march=native
 
 STD = -std=c99
 CFLAGS = -W -Wall -Wextra -O3 -fPIC
-LIBS = -lm -lpthread
+LIBS = -lm -lpthread -ldl
 SDL_CFLAGS = $(shell sdl-config --cflags)
 SDL_LIBS = $(shell sdl-config --libs)
-LLVM_CFLAGS = $(shell llvm-config --cflags)
-LLVM_LIBS = $(shell llvm-config --libs --ldflags ipo jit native bitreader) -lstdc++
 
 all: srt
 
 test: srt
 	./srt
 
-srt: srt.o parser.o deriv.o error.o eval.o reduce.o copy.o cbind.o jit.o edit.o ppm.o
-	$(CC) -o $@ $^ $(LIBS) $(LLVM_LIBS) $(SDL_LIBS)
+srt: srt.o parser.o deriv.o error.o eval.o reduce.o copy.o gcc.o edit.o ppm.o
+	$(CC) -o $@ $^ $(LIBS) $(SDL_LIBS)
 
-srt.o: srt.c value_bc.h *.h Makefile
+srt.o: srt.c value.o *.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT) $(SDL_CFLAGS)
 
 ppm.o: ppm.c ppm.h Makefile
-	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT) $(SDL_CFLAGS)
+	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(SDL_CFLAGS)
 
 edit.o: edit.c edit.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(SDL_CFLAGS)
 
-cbind.o: cbind.cpp cbind.h Makefile
-	$(CXX) -o $@ $< -c $(CFLAGS) $(LLVM_CFLAGS)
+gcc.o: gcc.c jit.h parser.h Makefile
+	$(CC) -o $@ $< -c $(STD) $(CFLAGS) -DCC="\"$(CC)\"" -DCFLAGS="\"$(STD) $(CFLAGS) $(OPT)\""
 
-jit.o: jit.c jit.h parser.h Makefile
-	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(LLVM_CFLAGS)
-
-value.bc: value.c ray.h vector.h scalar.h Makefile
-	clang -o $@ $< -c $(STD) $(CFLAGS) $(OPT) -emit-llvm
-
-value_bc.h: value.bc Makefile
-	xxd -i value.bc value_bc.h
+value.o: value.c ray.h vector.h scalar.h Makefile
+	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT)
 
 %.o: %.c parser.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS)
 
 clean:
-	rm -f srt *.o *_bc.h *.bc
+	rm -f srt module.c module.so *.o *.so
 

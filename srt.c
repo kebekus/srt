@@ -26,8 +26,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "error.h"
 #include "reduce.h"
 #include "jit.h"
-#include "value_bc.h"
 #include "stripe_data.h"
+#if USE_LLVM
+#include "value_bc.h"
+#endif
 
 void (*stripe)(struct stripe_data *sd, int j);
 v4sf (*curve)(m34sf v, float a);
@@ -40,7 +42,11 @@ int jit_curve(struct edit *edit)
 
 	static int init = 0;
 	if (!init) {
+#if USE_LLVM
 		jit = parser_alloc_jit((char *)value_bc, value_bc_len);
+#else
+		jit = parser_alloc_jit("value.o", "module.c", "module.so");
+#endif
 		curve_tree = parser_alloc_tree(8192);
 		for (int j = 0; j < 3; j++)
 			deriv_tree[j] = parser_alloc_tree(8192);
@@ -67,7 +73,7 @@ int jit_curve(struct edit *edit)
 	parser_jit_build(jit, deriv_tree[1], "deriv_y");
 	parser_jit_build(jit, deriv_tree[2], "deriv_z");
 
-	parser_jit_opt(jit);
+	parser_jit_link(jit);
 	stripe = parser_jit_func(jit, "stripe");
 	curve = parser_jit_func(jit, "curve");
 

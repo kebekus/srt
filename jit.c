@@ -27,8 +27,9 @@ struct jit
 	LLVMMemoryBufferRef bc;
 };
 
-static void reset_jit(struct jit *jit)
+void parser_reset_jit(struct parser_jit *parser_jit)
 {
+	struct jit *jit = parser_jit->data;
 	char *error = 0;
 	if (LLVMRemoveModule(jit->engine, jit->module, &jit->module, &error)) {
 		fprintf(stderr, "LLVMRemoveModule:\n%s\n", error);
@@ -49,11 +50,6 @@ static void reset_jit(struct jit *jit)
 	}
 	LLVMDisposeMessage(error);
 	LLVMAddModule(jit->engine, jit->module);
-}
-
-void parser_reset_jit(struct parser_jit *parser_jit)
-{
-	reset_jit((struct jit *)parser_jit->data);
 }
 
 struct parser_jit *parser_alloc_jit(char *bc, int len)
@@ -182,7 +178,7 @@ void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, c
 	LLVMBuildRet(jit->builder, emit(jit->builder, tree->root, x, y, z, splat(jit->builder, a)));
 }
 
-void parser_jit_opt(struct parser_jit *parser_jit)
+void parser_jit_link(struct parser_jit *parser_jit)
 {
 	struct jit *jit = parser_jit->data;
 	char *error = 0;
