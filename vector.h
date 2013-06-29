@@ -206,19 +206,9 @@ static inline v4sf v4sf_hmin3(v4sf a)
 	return (v4sf)_mm_min_ps(_mm_min_ps(a, (__m128)_mm_shuffle_epi32((__m128i)a, _MM_SHUFFLE(3,0,2,1))), (__m128)_mm_shuffle_epi32((__m128i)a, _MM_SHUFFLE(3,1,0,2)));
 }
 
-static inline float v4sf_hmin3_float(v4sf a)
-{
-	return fminf(fminf(a[0], a[1]), a[2]);
-}
-
 static inline v4sf v4sf_hmax3(v4sf a)
 {
 	return (v4sf)_mm_max_ps(_mm_max_ps(a, (__m128)_mm_shuffle_epi32((__m128i)a, _MM_SHUFFLE(3,0,2,1))), (__m128)_mm_shuffle_epi32((__m128i)a, _MM_SHUFFLE(3,1,0,2)));
-}
-
-static inline float v4sf_hmax3_float(v4sf a)
-{
-	return fmaxf(fmaxf(a[0], a[1]), a[2]);
 }
 
 static inline v4sf v4sf_cross3(v4sf a, v4sf b)
