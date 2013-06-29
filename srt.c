@@ -342,7 +342,6 @@ int main(int argc, char **argv)
 	char *str = "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2";
 	if (argc == 2)
 		str = argv[1];
-	atexit(SDL_Quit);
 	// matrix_tests();
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Surface *screen = SDL_SetVideoMode(1024, 1024, 32, SDL_DOUBLEBUF);
