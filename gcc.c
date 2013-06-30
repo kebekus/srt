@@ -13,8 +13,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "jit.h"
 
 struct jit {
-	char *object;
-	char *code;
+	char *source;
+	char *include;
 	char *module;
 	void *handle;
 	FILE *file;
@@ -117,7 +117,7 @@ void parser_reset_jit(struct parser_jit *parser_jit)
 	struct jit *jit = parser_jit->data;
 	if (jit->file)
 		fclose(jit->file);
-	jit->file = fopen(jit->code, "w");
+	jit->file = fopen(jit->include, "w");
 	if (!jit->file)
 		exit(1);
 	fprintf(jit->file, "#include \"vector.h\"\n");
@@ -126,14 +126,14 @@ void parser_reset_jit(struct parser_jit *parser_jit)
 	jit->handle = 0;
 }
 
-struct parser_jit *parser_alloc_jit(char *object, char *code, char *module)
+struct parser_jit *parser_alloc_jit(char *source, char *include, char *module)
 {
 	struct jit *jit = malloc(sizeof(struct parser_jit));
-	jit->object = object;
-	jit->code = code;
+	jit->source = source;
+	jit->include = include;
 	jit->module = module;
 	jit->handle = 0;
-	jit->file = fopen(jit->code, "w");
+	jit->file = fopen(jit->include, "w");
 	if (!jit->file)
 		exit(1);
 	fprintf(jit->file, "#include \"vector.h\"\n");
@@ -148,7 +148,7 @@ void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, c
 	if (!jit->file)
 		exit(1);
 	counter = 0;
-	fprintf(jit->file, "v4sf %s(v4sf x, v4sf y, v4sf z, float a)\n{\n", name);
+	fprintf(jit->file, "extern inline v4sf %s(v4sf x, v4sf y, v4sf z, float a)\n{\n", name);
 	fprintf(jit->file, "\t(void)x; (void)y; (void)z; (void)a;\n");
 	fprintf(jit->file, "\treturn _%d;\n}\n", emit(jit->file, tree->root));
 }
@@ -162,7 +162,7 @@ void parser_jit_link(struct parser_jit *parser_jit)
 		exit(1);
 	jit->file = 0;
 	char str[256];
-	snprintf(str, 256, "%s -o %s %s %s -shared -fPIC %s", CC, jit->module, jit->code, jit->object, CFLAGS);
+	snprintf(str, 256, "%s -o %s %s -shared -fPIC -finline-functions -fkeep-inline-functions %s", CC, jit->module, jit->source, CFLAGS);
 //	fprintf(stderr, "executing: \"%s\"\n", str);
 	if (system(str))
 		exit(1);

@@ -13,17 +13,21 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "camera.h"
 #include "stripe_data.h"
 
+#if USE_LLVM
 v4sf curve_xyza(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_x(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_y(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_z(v4sf x, v4sf y, v4sf z, float a);
+#else
+#include "module.h"
+#endif
 
-v4sf curve(m34sf m, float a)
+extern inline v4sf curve(m34sf m, float a)
 {
 	return curve_xyza(m.x, m.y, m.z, a);
 }
 
-m34sf gradient(m34sf m, float a)
+extern inline m34sf gradient(m34sf m, float a)
 {
 	return (m34sf) {
 		deriv_x(m.x, m.y, m.z, a),
@@ -32,13 +36,13 @@ m34sf gradient(m34sf m, float a)
 	};
 }
 
-v4su sign_change(v4sf a, v4sf b)
+static inline v4su sign_change(v4sf a, v4sf b)
 {
 	v4si mask = v4si_set1(0x80000000);
 	return v4si_eq(mask, mask & ((v4su)a ^ (v4su)b));
 }
 
-v4sf bisect(v4sf l[2], struct ray ray, float a)
+static inline v4sf bisect(v4sf l[2], struct ray ray, float a)
 {
 	v4sf l0 = l[0];
 	v4sf l1 = l[1];
@@ -54,7 +58,7 @@ v4sf bisect(v4sf l[2], struct ray ray, float a)
 	return v4sf_set1(0.5) * (l0 + l1);
 }
 
-v4sf newton(v4sf n, struct ray ray, float a)
+static inline v4sf newton(v4sf n, struct ray ray, float a)
 {
 	for (int i = 0; i < 20; i++) {
 		m34sf p = ray_point(n, ray);
@@ -63,7 +67,7 @@ v4sf newton(v4sf n, struct ray ray, float a)
 	return n;
 }
 
-v4sf newton_forward(v4sf n, struct ray ray, float a)
+static inline v4sf newton_forward(v4sf n, struct ray ray, float a)
 {
 	for (int i = 0; i < 20; i++) {
 		m34sf p = ray_point(n, ray);
@@ -73,7 +77,7 @@ v4sf newton_forward(v4sf n, struct ray ray, float a)
 	return n;
 }
 
-v4sf newton_bisect(v4sf l[2], struct ray ray, float a)
+static inline v4sf newton_bisect(v4sf l[2], struct ray ray, float a)
 {
 	v4sf l0 = l[0];
 	v4sf l1 = l[1];
@@ -93,7 +97,7 @@ v4sf newton_bisect(v4sf l[2], struct ray ray, float a)
 	return v4sf_set1(0.5) * (l0 + l1);
 }
 
-v4su sign_test(v4sf n, struct ray ray, float a)
+static inline v4su sign_test(v4sf n, struct ray ray, float a)
 {
 	m34sf p = ray_point(n, ray);
 	v4sf v = curve(p, a);
@@ -104,7 +108,7 @@ v4su sign_test(v4sf n, struct ray ray, float a)
 	return sign_change(v, v0) | sign_change(v, v1);
 }
 
-v4su epsilon_test(v4sf n, struct ray ray, float a)
+static inline v4su epsilon_test(v4sf n, struct ray ray, float a)
 {
 	float epsilon = 0.0000000001;
 	m34sf p = ray_point(n, ray);
@@ -112,19 +116,19 @@ v4su epsilon_test(v4sf n, struct ray ray, float a)
 	return v4sf_lt(v4sf_abs(v), v4sf_set1(epsilon));
 }
 
-v4su zero_test(v4sf n, struct ray ray, float a)
+static inline v4su zero_test(v4sf n, struct ray ray, float a)
 {
 	m34sf p = ray_point(n, ray);
 	v4sf v = curve(p, a);
 	return v4sf_eq(v4sf_set1(0), v);
 }
 
-v4su int_test(v4sf n, v4sf l[2])
+static inline v4su int_test(v4sf n, v4sf l[2])
 {
 	return v4sf_lt(l[0], l[1]) & v4sf_le(l[0], n) & v4sf_lt(n, l[1]);
 }
 
-m34sf color(v4sf n, v4su test, struct ray ray, float a)
+static inline m34sf color(v4sf n, v4su test, struct ray ray, float a)
 {
 	m34sf p = ray_point(n, ray);
 	v4sf diff = m34sf_dot(ray.d, m34sf_normal(gradient(p, a)));
@@ -135,7 +139,7 @@ m34sf color(v4sf n, v4su test, struct ray ray, float a)
 	return (m34sf) { r, g, b };
 }
 
-v4su localize(v4sf l[2], struct ray ray, float a)
+static inline v4su localize(v4sf l[2], struct ray ray, float a)
 {
 	float coarse = 0.05;
 	float fine = 0.001;
@@ -160,7 +164,7 @@ v4su localize(v4sf l[2], struct ray ray, float a)
 	return test;
 }
 
-m34sf value(v4sf l[2], struct ray ray, float a)
+static inline m34sf value(v4sf l[2], struct ray ray, float a)
 {
 	v4su test = localize(l, ray, a);
 //	v4sf n = l[0];
@@ -176,7 +180,7 @@ m34sf value(v4sf l[2], struct ray ray, float a)
 	return color(n, test, ray, a);
 }
 
-uint32_t argb(v4sf c)
+static inline uint32_t argb(v4sf c)
 {
 	v4si rgb = v4sf_cvt(v4sf_clamp(v4sf_set1(255) * c, v4sf_set1(0), v4sf_set1(255)));
 	return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);

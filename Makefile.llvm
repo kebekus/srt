@@ -50,5 +50,5 @@ value_bc.h: value.bc Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS)
 
 clean:
-	rm -f srt *.o *_bc.h *.bc
+	rm -f srt *.o *_bc.h *.bc *.so module.h
 

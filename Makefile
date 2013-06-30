@@ -23,7 +23,7 @@ test: srt
 srt: srt.o parser.o deriv.o error.o eval.o reduce.o copy.o gcc.o edit.o ppm.o
 	$(CC) -o $@ $^ $(LIBS) $(SDL_LIBS)
 
-srt.o: srt.c value.o *.h Makefile
+srt.o: srt.c *.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT) $(SDL_CFLAGS)
 
 ppm.o: ppm.c ppm.h Makefile
@@ -35,12 +35,9 @@ edit.o: edit.c edit.h Makefile
 gcc.o: gcc.c jit.h parser.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS) -DCC="\"$(CC)\"" -DCFLAGS="\"$(STD) $(CFLAGS) $(OPT)\""
 
-value.o: value.c ray.h vector.h scalar.h Makefile
-	$(CC) -o $@ $< -c $(STD) $(CFLAGS) $(OPT)
-
 %.o: %.c parser.h Makefile
 	$(CC) -o $@ $< -c $(STD) $(CFLAGS)
 
 clean:
-	rm -f srt module.c module.so *.o *.so
+	rm -f srt *.o *_bc.h *.bc *.so module.h
 

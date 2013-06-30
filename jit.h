@@ -15,7 +15,7 @@ struct parser_jit {
 #if USE_LLVM
 struct parser_jit *parser_alloc_jit(char *bc, int len);
 #else
-struct parser_jit *parser_alloc_jit(char *object, char *code, char *module);
+struct parser_jit *parser_alloc_jit(char *source, char *include, char *module);
 #endif
 void parser_reset_jit(struct parser_jit *parser_jit);
 void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, char *name);
