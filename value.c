@@ -186,7 +186,7 @@ static inline uint32_t argb(v4sf c)
 	return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);
 }
 
-void stripe(struct stripe_data *sd, int j)
+int64_t stripe(struct stripe_data *sd, int j)
 {
 	uint32_t *fb = sd->fb;
 	int w = sd->w;
@@ -199,6 +199,7 @@ void stripe(struct stripe_data *sd, int j)
 	float a = sd->a;
 	int use_aabb = sd->use_aabb;
 	v4sf jdV = v4sf_set1(j) * dV;
+	int64_t pixels = 0;
 	for (int i = 0; i < w; i += 2) {
 		v4sf idU = v4sf_set1(i) * dU;
 		m34sf scr = m34sf_addv(UV, jdV + idU);
@@ -213,6 +214,7 @@ void stripe(struct stripe_data *sd, int j)
 			test = sphere_ray(l, sphere, ray);
 		test &= v4sf_gt(l[1], v4sf_set1(0));
 		if (!v4su_all_zeros(test)) {
+			pixels += 4;
 			l[0] = v4sf_max(l[0], v4sf_set1(0));
 			l[0] = v4sf_and(test, l[0]);
 			l[1] = v4sf_and(test, l[1]);
@@ -227,5 +229,6 @@ void stripe(struct stripe_data *sd, int j)
 		fb[w * (j+1) + (i+0)] = color[2];
 		fb[w * (j+1) + (i+1)] = color[3];
 	}
+	return pixels;
 }
 

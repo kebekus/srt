@@ -31,7 +31,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "value_bc.h"
 #endif
 
-void (*stripe)(struct stripe_data *sd, int j);
+int64_t (*stripe)(struct stripe_data *sd, int j);
 v4sf (*curve)(m34sf v, float a);
 
 int jit_curve(struct edit *edit)
@@ -258,22 +258,20 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct 
 
 }
 
-void handle_stats(SDL_Surface *screen)
+void handle_stats(int64_t *pixels)
 {
-	static int64_t pixels;
 	static int64_t last;
 	static int frames;
 	int64_t ticks = SDL_GetTicks();
-	pixels += screen->w * screen->h;
 	frames++;
 	if (abs(ticks - last) > 1000) {
 		char tmp[100];
-		float mpps = 0.001 * (float)(pixels / (ticks - last));
+		float mpps = 0.001 * (float)(*pixels / (ticks - last));
 		int fps = (1000 * frames) / (ticks - last);
 		snprintf(tmp, 100, "SIMD Ray Tracing - %g mp/s, %d f/s", mpps, fps);
 		SDL_WM_SetCaption(tmp, "srt");
 		last = ticks;
-		pixels = 0;
+		*pixels = 0;
 		frames = 0;
 	}
 }
@@ -287,6 +285,7 @@ struct thread_data {
 	int busy;
 	int stripe;
 	int height;
+	int64_t pixels;
 } thread_data;
 
 void *thread(void *data)
@@ -297,6 +296,7 @@ void *thread(void *data)
 	while (td->pause)
 		pthread_cond_wait(&td->cond, &td->mutex);
 	pthread_mutex_unlock(&td->mutex);
+	int64_t pixels = 0;
 	while (1) {
 		pthread_mutex_lock(&td->mutex);
 		(td->busy)--;
@@ -305,8 +305,9 @@ void *thread(void *data)
 		int j = td->stripe;
 		td->stripe += 2;
 		(td->busy)++;
+		td->pixels += pixels;
 		pthread_mutex_unlock(&td->mutex);
-		stripe(td->stripe_data, j);
+		pixels = stripe(td->stripe_data, j);
 	}
 }
 
@@ -360,6 +361,7 @@ int main(int argc, char **argv)
 	pthread_cond_init(&thread_data.cond, 0);
 	thread_data.pause = 1;
 	thread_data.busy = 0;
+	thread_data.pixels = 0;
 	thread_data.stripe_data = &stripe_data;
 	for (int i = 0; i < threads; i++)
 		pthread_create(pthd + i, 0, thread, &thread_data);
@@ -380,7 +382,7 @@ int main(int argc, char **argv)
 			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
 		handle_events(screen, &camera, &a, edit, &edit_mode, &use_aabb);
-		handle_stats(screen);
+		handle_stats(&thread_data.pixels);
 	}
 	return 0;
 }
