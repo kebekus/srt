@@ -299,13 +299,13 @@ void *thread(void *data)
 	int64_t pixels = 0;
 	while (1) {
 		pthread_mutex_lock(&td->mutex);
+		td->pixels += pixels;
 		(td->busy)--;
 		while (td->stripe >= td->height)
 			pthread_cond_wait(&td->cond, &td->mutex);
 		int j = td->stripe;
 		td->stripe += 2;
 		(td->busy)++;
-		td->pixels += pixels;
 		pthread_mutex_unlock(&td->mutex);
 		pixels = stripe(td->stripe_data, j);
 	}
