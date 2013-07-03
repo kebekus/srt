@@ -151,7 +151,7 @@ static inline v4su localize(v4sf l[2], struct ray ray, float a)
 	while (!v4su_all_ones(test | v4sf_ge(l0, l[1]))) {
 		v4sf x = v0 / m34sf_dot(ray.d, gradient(p0, a));
 		v4sf step = v4sf_clamp(v4sf_abs(x), v4sf_set1(fine), v4sf_set1(coarse));
-		l1 = l0 + step;
+		l1 = v4sf_select(test, l1, l0 + step);
 		m34sf p1 = ray_point(l1, ray);
 		v4sf v1 = curve(p1, a);
 		test |= v4sf_lt(l1, l[1]) & sign_change(v0, v1);
