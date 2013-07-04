@@ -11,7 +11,7 @@ OPT = -march=native
 
 STD = -std=c99
 CFLAGS = -W -Wall -Wextra -O3 -fPIC
-LIBS = -lm -lpthread -ldl
+LIBS = -lm -lpthread -ldl -Wl,-rpath=.
 SDL_CFLAGS = $(shell sdl-config --cflags)
 SDL_LIBS = $(shell sdl-config --libs)
 
