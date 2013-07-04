@@ -2,12 +2,12 @@
 #CC = clang
 #CXX = clang++
 
-CC = $(notdir $(shell ls /usr/bin/gcc-*.*.* | tail -n1))
-CXX = $(notdir $(shell ls /usr/bin/g++-*.*.* | tail -n1))
+#CC = $(notdir $(shell ls /usr/bin/gcc-*.*.* | tail -n1))
+#CXX = $(notdir $(shell ls /usr/bin/g++-*.*.* | tail -n1))
 
 #OPT = -march=native -msse4.1
 #OPT = -march=native -mavx
-OPT = -march=native
+#OPT = -march=native
 
 STD = -std=c99
 CFLAGS = -W -Wall -Wextra -O3 -fPIC
