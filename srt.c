@@ -45,7 +45,7 @@ int jit_curve(struct edit *edit)
 #if USE_LLVM
 		jit = parser_alloc_jit((char *)value_bc, value_bc_len);
 #else
-		jit = parser_alloc_jit("value.c", "module.h", "module.so");
+		jit = parser_alloc_jit("value.c", "module.h", "./module.so");
 #endif
 		curve_tree = parser_alloc_tree(8192);
 		for (int j = 0; j < 3; j++)
