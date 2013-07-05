@@ -327,15 +327,16 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 	m34sf U = m34sf_subv(zU, camera.right);
 	m34sf V = m34sf_addv(zV, camera.up);
 	m34sf UV = m34sf_add(U, V);
-	pthread_mutex_lock(&thread_data.mutex);
 	stripe_data = (struct stripe_data){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb };
 	thread_data.height = h;
 	thread_data.stripe = 0;
 	thread_data.pause = 0;
 	pthread_cond_broadcast(&thread_data.cond);
-	pthread_mutex_unlock(&thread_data.mutex);
-	while (thread_data.busy || thread_data.stripe < thread_data.height)
+	while (thread_data.busy || thread_data.stripe < thread_data.height) {
+		pthread_mutex_unlock(&thread_data.mutex);
 		SDL_Delay(1);
+		pthread_mutex_lock(&thread_data.mutex);
+	}
 }
 
 int main(int argc, char **argv)
@@ -358,6 +359,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "using %d threads\n", threads);
 	pthread_t pthd[threads];
 	pthread_mutex_init(&thread_data.mutex, 0);
+	pthread_mutex_lock(&thread_data.mutex);
 	pthread_cond_init(&thread_data.cond, 0);
 	thread_data.pause = 1;
 	thread_data.busy = 0;
