@@ -128,7 +128,7 @@ void parser_reset_jit(struct parser_jit *parser_jit)
 
 struct parser_jit *parser_alloc_jit(char *source, char *include, char *module)
 {
-	struct jit *jit = malloc(sizeof(struct parser_jit));
+	struct jit *jit = malloc(sizeof(struct jit));
 	jit->source = source;
 	jit->include = include;
 	jit->module = module;
