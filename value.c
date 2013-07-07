@@ -7,6 +7,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 #include "stdint.h"
+#include "ia.h"
 #include "ray.h"
 #include "sphere.h"
 #include "aabb.h"
@@ -42,10 +43,10 @@ static inline v4su sign_change(v4sf a, v4sf b)
 	return v4si_eq(mask, mask & ((v4su)a ^ (v4su)b));
 }
 
-static inline v4sf bisect(v4sf l[2], struct ray ray, float a)
+static inline v4sf bisect(i4sf l, struct ray ray, float a)
 {
-	v4sf l0 = l[0];
-	v4sf l1 = l[1];
+	v4sf l0 = l.min;
+	v4sf l1 = l.max;
 	m34sf p0 = ray_point(l0, ray);
 	v4sf v0 = curve(p0, a);
 	for (int i = 0; i < 20; i++) {
@@ -77,10 +78,10 @@ static inline v4sf newton_forward(v4sf n, struct ray ray, float a)
 	return n;
 }
 
-static inline v4sf newton_bisect(v4sf l[2], struct ray ray, float a)
+static inline v4sf newton_bisect(i4sf l, struct ray ray, float a)
 {
-	v4sf l0 = l[0];
-	v4sf l1 = l[1];
+	v4sf l0 = l.min;
+	v4sf l1 = l.max;
 	m34sf p0 = ray_point(l0, ray);
 	v4sf v0 = curve(p0, a);
 	for (int i = 0; i < 20; i++) {
@@ -123,9 +124,9 @@ static inline v4su zero_test(v4sf n, struct ray ray, float a)
 	return v4sf_eq(v4sf_set1(0), v);
 }
 
-static inline v4su int_test(v4sf n, v4sf l[2])
+static inline v4su int_test(v4sf n, i4sf l)
 {
-	return v4sf_lt(l[0], l[1]) & v4sf_le(l[0], n) & v4sf_lt(n, l[1]);
+	return v4sf_lt(l.min, l.max) & v4sf_le(l.min, n) & v4sf_lt(n, l.max);
 }
 
 static inline m34sf color(v4sf n, v4su test, struct ray ray, float a)
@@ -139,40 +140,40 @@ static inline m34sf color(v4sf n, v4su test, struct ray ray, float a)
 	return (m34sf) { r, g, b };
 }
 
-static inline v4su localize(v4sf l[2], struct ray ray, float a)
+static inline v4su localize(i4sf *l, struct ray ray, float a)
 {
 	float coarse = 0.05;
 	float fine = 0.001;
-	v4sf l0 = l[0];
-	v4sf l1 = l[1];
+	v4sf l0 = l->min;
+	v4sf l1 = l->max;
 	m34sf p0 = ray_point(l0, ray);
 	v4sf v0 = curve(p0, a);
 	v4su test = v4su_set1(0);
-	while (!v4su_all_ones(test | v4sf_ge(l0, l[1]))) {
+	while (!v4su_all_ones(test | v4sf_ge(l0, l->max))) {
 		v4sf x = v0 / m34sf_dot(ray.d, gradient(p0, a));
 		v4sf step = v4sf_clamp(v4sf_abs(x), v4sf_set1(fine), v4sf_set1(coarse));
 		l1 = v4sf_select(test, l1, l0 + step);
 		m34sf p1 = ray_point(l1, ray);
 		v4sf v1 = curve(p1, a);
-		test |= v4sf_lt(l1, l[1]) & sign_change(v0, v1);
+		test |= v4sf_lt(l1, l->max) & sign_change(v0, v1);
 		l0 = v4sf_select(test, l0, l1);
 		v0 = v1;
 		p0 = p1;
 	}
-	l[0] = v4sf_select(test, l0, l[0]);
-	l[1] = v4sf_select(test, l1, l[1]);
+	l->min = v4sf_select(test, l0, l->min);
+	l->max = v4sf_select(test, l1, l->max);
 	return test;
 }
 
-static inline m34sf value(v4sf l[2], struct ray ray, float a)
+static inline m34sf value(i4sf l, struct ray ray, float a)
 {
-	v4su test = localize(l, ray, a);
-//	v4sf n = l[0];
+	v4su test = localize(&l, ray, a);
+//	v4sf n = l.min;
 //	v4sf n = bisect(l, ray, a);
-//	v4sf n = newton(l[0], ray, a);
+//	v4sf n = newton(l.min, ray, a);
 	v4sf n = newton(bisect(l, ray, a), ray, a);
 //	v4sf n = newton_bisect(l, ray, a);
-//	v4sf n = newton_forward(l[0], ray, a);
+//	v4sf n = newton_forward(l.min, ray, a);
 //	return color(n, sign_test(n, ray, a) & int_test(n, l), ray, a);
 //	return color(n, zero_test(n, ray, a) & int_test(n, l), ray, a);
 //	return color(n, (sign_test(n, ray, a) | zero_test(n, ray, a)) & int_test(n, l), ray, a);
@@ -205,19 +206,19 @@ int64_t stripe(struct stripe_data *sd, int j)
 		m34sf scr = m34sf_addv(UV, jdV + idU);
 		m34sf dir = m34sf_normal(m34sf_addv(scr, camera.dir));
 		struct ray ray = init_ray(m34sf_splat(camera.origin), dir);
-		v4sf l[2];
+		i4sf l;
 		uint32_t color[4] = { 0, 0, 0, 0 };
 		v4su test;
 		if (use_aabb)
-			test = aabb_ray(l, aabb, ray);
+			test = aabb_ray(&l, aabb, ray);
 		else
-			test = sphere_ray(l, sphere, ray);
-		test &= v4sf_gt(l[1], v4sf_set1(0));
+			test = sphere_ray(&l, sphere, ray);
+		test &= v4sf_gt(l.max, v4sf_set1(0));
 		if (!v4su_all_zeros(test)) {
 			pixels += 4;
-			l[0] = v4sf_max(l[0], v4sf_set1(0));
-			l[0] = v4sf_and(test, l[0]);
-			l[1] = v4sf_and(test, l[1]);
+			l.min = v4sf_max(l.min, v4sf_set1(0));
+			l.min = v4sf_and(test, l.min);
+			l.max = v4sf_and(test, l.max);
 			m34sf tmp = value(l, ray, a);
 			color[0] = test[0] & argb(m34sf_get0(tmp));
 			color[1] = test[1] & argb(m34sf_get1(tmp));

@@ -9,18 +9,19 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef AABB_H
 #define AABB_H
 #include "ray.h"
+#include "ia.h"
 
 struct aabb
 {
 	v4sf c0, c1;
 };
 
-static inline v4su aabb_ray(v4sf l[2], struct aabb box, struct ray ray)
+static inline v4su aabb_ray(i4sf *l, struct aabb box, struct ray ray)
 {
 	m34sf a = m34sf_mul(m34sf_vsub(box.c0, ray.o), ray.inv_d);
 	m34sf b = m34sf_mul(m34sf_vsub(box.c1, ray.o), ray.inv_d);
-	l[0] = v4sf_max(v4sf_max(v4sf_min(a.x, b.x), v4sf_min(a.y, b.y)), v4sf_min(a.z, b.z));
-	l[1] = v4sf_min(v4sf_min(v4sf_max(a.x, b.x), v4sf_max(a.y, b.y)), v4sf_max(a.z, b.z));
-	return v4sf_lt(l[0], l[1]);
+	l->min = v4sf_max(v4sf_max(v4sf_min(a.x, b.x), v4sf_min(a.y, b.y)), v4sf_min(a.z, b.z));
+	l->max = v4sf_min(v4sf_min(v4sf_max(a.x, b.x), v4sf_max(a.y, b.y)), v4sf_max(a.z, b.z));
+	return v4sf_lt(l->min, l->max);
 }
 #endif
