@@ -123,7 +123,7 @@ static struct parser_node *handle_pow(struct parser_node *left, struct parser_no
 		right = parser_reduce_branch(right);
 	if (token_num != right->token)
 		return node_set_err_str("exponent does not reduce to number");
-	if (!integer(right->value))
+	if (token_num != left->token && !integer(right->value))
 		return node_set_err_str("exponent not integer");
 	if (right->value < 0)
 		return node_set_err_str("exponent is negative");
