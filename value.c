@@ -45,18 +45,17 @@ static inline v4su sign_change(v4sf a, v4sf b)
 
 static inline v4sf bisect(i4sf l, struct ray ray, float a)
 {
-	v4sf l0 = l.min;
-	v4sf l1 = l.max;
-	m34sf p0 = ray_point(l0, ray);
+	i4sf k = l;
+	m34sf p0 = ray_point(k.min, ray);
 	v4sf v0 = curve(p0, a);
 	for (int i = 0; i < 20; i++) {
-		v4sf x = v4sf_set1(0.5) * (l0 + l1);
+		v4sf x = v4sf_set1(0.5) * (k.min + k.max);
 		m34sf p1 = ray_point(x, ray);
 		v4su test = sign_change(v0, curve(p1, a));
-		l0 = v4sf_select(test, l0, x);
-		l1 = v4sf_select(test, x, l1);
+		k.min = v4sf_select(test, k.min, x);
+		k.max = v4sf_select(test, x, k.max);
 	}
-	return v4sf_set1(0.5) * (l0 + l1);
+	return v4sf_set1(0.5) * (k.min + k.max);
 }
 
 static inline v4sf newton(v4sf n, struct ray ray, float a)
@@ -80,22 +79,21 @@ static inline v4sf newton_forward(v4sf n, struct ray ray, float a)
 
 static inline v4sf newton_bisect(i4sf l, struct ray ray, float a)
 {
-	v4sf l0 = l.min;
-	v4sf l1 = l.max;
-	m34sf p0 = ray_point(l0, ray);
+	i4sf k = l;
+	m34sf p0 = ray_point(k.min, ray);
 	v4sf v0 = curve(p0, a);
 	for (int i = 0; i < 20; i++) {
-		v4sf x = v4sf_set1(0.5) * (l0 + l1);
+		v4sf x = v4sf_set1(0.5) * (k.min + k.max);
 		m34sf p1 = ray_point(x, ray);
 		v4sf n = x - curve(p1, a) / m34sf_dot(ray.d, gradient(p1, a));
-		v4su inside = v4sf_lt(l0, n) & v4sf_lt(n, l1);
+		v4su inside = v4sf_lt(k.min, n) & v4sf_lt(n, k.max);
 		v4sf nx = v4sf_select(inside, n, x);
 		m34sf p2 = ray_point(nx, ray);
 		v4su test = sign_change(v0, curve(p2, a));
-		l0 = v4sf_select(test, l0, nx);
-		l1 = v4sf_select(test, nx, l1);
+		k.min = v4sf_select(test, k.min, nx);
+		k.max = v4sf_select(test, nx, k.max);
 	}
-	return v4sf_set1(0.5) * (l0 + l1);
+	return v4sf_set1(0.5) * (k.min + k.max);
 }
 
 static inline v4su sign_test(v4sf n, struct ray ray, float a)
@@ -144,24 +142,23 @@ static inline v4su localize(i4sf *l, struct ray ray, float a)
 {
 	float coarse = 0.05;
 	float fine = 0.001;
-	v4sf l0 = l->min;
-	v4sf l1 = l->max;
-	m34sf p0 = ray_point(l0, ray);
+	i4sf k = *l;
+	m34sf p0 = ray_point(k.min, ray);
 	v4sf v0 = curve(p0, a);
 	v4su test = v4su_set1(0);
-	while (!v4su_all_ones(test | v4sf_ge(l0, l->max))) {
+	while (!v4su_all_ones(test | v4sf_ge(k.min, l->max))) {
 		v4sf x = v0 / m34sf_dot(ray.d, gradient(p0, a));
 		v4sf step = v4sf_clamp(v4sf_abs(x), v4sf_set1(fine), v4sf_set1(coarse));
-		l1 = v4sf_select(test, l1, l0 + step);
-		m34sf p1 = ray_point(l1, ray);
+		k.max = v4sf_select(test, k.max, k.min + step);
+		m34sf p1 = ray_point(k.max, ray);
 		v4sf v1 = curve(p1, a);
-		test |= v4sf_lt(l1, l->max) & sign_change(v0, v1);
-		l0 = v4sf_select(test, l0, l1);
+		test |= v4sf_lt(k.max, l->max) & sign_change(v0, v1);
+		k.min = v4sf_select(test, k.min, k.max);
 		v0 = v1;
 		p0 = p1;
 	}
-	l->min = v4sf_select(test, l0, l->min);
-	l->max = v4sf_select(test, l1, l->max);
+	l->min = v4sf_select(test, k.min, l->min);
+	l->max = v4sf_select(test, k.max, l->max);
 	return test;
 }
 
