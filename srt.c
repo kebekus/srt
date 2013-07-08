@@ -373,7 +373,13 @@ int main(int argc, char **argv)
 
 	struct camera camera = init_camera();
 	reset_edit(edit, str);
-	jit_curve(edit);
+	if (!jit_curve(edit)) {
+		fprintf(stderr, "\n%s\n", str);
+		for (int i = 0; i < get_err_pos(); i++)
+			fprintf(stderr, " ");
+		fprintf(stderr, "~ %s\n\n", get_err_str());
+		exit(1);
+	}
 	float a = 1.0;
 
 	int edit_mode = 0;
