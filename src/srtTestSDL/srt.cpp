@@ -293,7 +293,7 @@ struct thread_data {
 
 void *thread(void *data)
 {
-        struct thread_data *td = (struct thread_data *)data;
+	struct thread_data *td = (struct thread_data *)data;
 	pthread_mutex_lock(&td->mutex);
 	(td->busy)++;
 	while (td->pause)

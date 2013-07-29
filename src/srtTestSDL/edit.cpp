@@ -32,7 +32,7 @@ void edit_msg(struct edit *edit, const char *msg, int pos)
 
 struct edit *alloc_edit(int len, const char *str)
 {
-        struct edit *edit = (struct edit*)malloc(sizeof(struct edit));
+	struct edit *edit = (struct edit*)malloc(sizeof(struct edit));
 	edit->str = (char *)malloc(len);
 	strcpy(edit->str, str);
 	edit->len = len;
@@ -60,7 +60,7 @@ void resize_edit(struct edit *edit, int x0, int y0, int x1, int y1)
 
 void draw_char(struct edit *edit, SDL_Surface *screen, uint32_t fg, uint32_t bg, int row, int col, char chr, int invert)
 {
-        uint32_t *fbp = (uint32_t*)screen->pixels;
+	uint32_t *fbp = (uint32_t*)screen->pixels;
 	int w = screen->w;
 	if (row < 0 || row >= edit->rows || col < 0 || col >= edit->cols)
 		return;
