@@ -1,10 +1,8 @@
 .*.swp
-srt
-plot.dat
+*.dat
 *.o
 *.bc
 *.ll
 *_bc.h
 *.ppm
-module.h
-module.so
+build
