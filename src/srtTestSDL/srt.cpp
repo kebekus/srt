@@ -6,11 +6,16 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+
 #include <math.h>
 #include <stdlib.h>
 #include <SDL.h>
 #include <pthread.h>
 #include <unistd.h>
+
+#include "edit.h"
+#include "ppm.h"
+extern "C" {
 #include "vector.h"
 #include "matrix.h"
 #include "ray.h"
@@ -19,8 +24,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "camera.h"
 #include "utils.h"
 #include "tests.h"
-#include "edit.h"
-#include "ppm.h"
 #include "parser.h"
 #include "deriv.h"
 #include "error.h"
@@ -30,6 +33,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #if USE_LLVM
 #include "value_bc.h"
 #endif
+}
 
 int64_t (*stripe)(struct stripe_data *sd, int j);
 v4sf (*curve)(m34sf v, float a);
@@ -74,8 +78,8 @@ int jit_curve(struct edit *edit)
 	parser_jit_build(jit, deriv_tree[2], "deriv_z");
 
 	parser_jit_link(jit);
-	stripe = parser_jit_func(jit, "stripe");
-	curve = parser_jit_func(jit, "curve");
+	stripe = (int64_t (*)(struct stripe_data *, int))parser_jit_func(jit, "stripe");
+	curve = (v4sf (*)(m34sf, float))parser_jit_func(jit, "curve");
 
 	edit_msg(edit, 0, 0);
 
@@ -290,7 +294,7 @@ struct thread_data {
 
 void *thread(void *data)
 {
-	struct thread_data *td = data;
+        struct thread_data *td = (struct thread_data *)data;
 	pthread_mutex_lock(&td->mutex);
 	(td->busy)++;
 	while (td->pause)
@@ -315,7 +319,7 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
 	struct aabb aabb = { v4sf_set3(-3, -3, -3), v4sf_set3(3, 3, 3) };
-	uint32_t *fb = screen->pixels;
+	uint32_t *fb = (uint32_t *)screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
 	float dw = 2.0f / (float)w;
@@ -341,7 +345,7 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 
 int main(int argc, char **argv)
 {
-	char *str = "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2";
+	const char *str = "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2";
 	if (argc == 2)
 		str = argv[1];
 	// matrix_tests();

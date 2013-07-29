@@ -151,7 +151,7 @@ static LLVMValueRef emit(LLVMBuilderRef builder, struct parser_node *node, LLVMV
 	}
 }
 
-void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, char *name)
+void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, const char *name)
 {
 	struct jit *jit = parser_jit->data;
 	LLVMValueRef func;
@@ -202,7 +202,7 @@ void parser_jit_link(struct parser_jit *parser_jit)
 #endif
 }
 
-void *parser_jit_func(struct parser_jit *parser_jit, char *name)
+void *parser_jit_func(struct parser_jit *parser_jit, const char *name)
 {
 	struct jit *jit = parser_jit->data;
 	LLVMValueRef func;

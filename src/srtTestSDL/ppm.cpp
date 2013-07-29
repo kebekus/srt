@@ -9,7 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "stdio.h"
 #include "ppm.h"
 
-int ppm_save(char *name, SDL_Surface *surface)
+int ppm_save(const char *name, SDL_Surface *surface)
 {
 	if (!surface)
 		return 0;
@@ -25,7 +25,7 @@ int ppm_save(char *name, SDL_Surface *surface)
 		return 0;
 	}
 	int num = surface->w * surface->h;
-	uint32_t *fb = surface->pixels;
+	uint32_t *fb = (uint32_t *)surface->pixels;
 	int err = 0;
 	while (num-- &&
 		0 <= (err = fputc(255 & (*fb >> 16), file)) &&

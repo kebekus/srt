@@ -41,7 +41,7 @@ void v4si_print_once(v4si a)
 	}
 }
 
-void v4sf_print_name(v4sf a, char *name)
+void v4sf_print_name(v4sf a, const char *name)
 {
 	printf("%s = [%g %g %g %g];\n", name, a[0], a[1], a[2], a[3]);
 }
@@ -59,7 +59,7 @@ void m4sf_print(m4sf a)
 	printf("];\n");
 }
 
-void m4sf_print_name(m4sf a, char *name)
+void m4sf_print_name(m4sf a, const char *name)
 {
 	printf("%s = ", name);
 	m4sf_print(a);

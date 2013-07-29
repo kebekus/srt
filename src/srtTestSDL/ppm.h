@@ -11,7 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include <SDL.h>
 
-int ppm_save(char *name, SDL_Surface *surface);
+int ppm_save(const char *name, SDL_Surface *surface);
 
 #endif
 

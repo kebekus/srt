@@ -15,11 +15,11 @@ struct parser_jit {
 #if USE_LLVM
 struct parser_jit *parser_alloc_jit(char *bc, int len);
 #else
-struct parser_jit *parser_alloc_jit(char *source, char *include, char *module);
+struct parser_jit *parser_alloc_jit(char *source, char *include, const char *module);
 #endif
 void parser_reset_jit(struct parser_jit *parser_jit);
-void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, char *name);
-void *parser_jit_func(struct parser_jit *parser_jit, char *name);
+void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, const char *name);
+void *parser_jit_func(struct parser_jit *parser_jit, const char *name);
 void parser_jit_link(struct parser_jit *parser_jit);
 void parser_free_jit(struct parser_jit *parser_jit);
 #endif
