@@ -11,7 +11,7 @@ https://sites.google.com/site/xdsopl/
 srt is only meant to be a toy to play around with some ideas and see if it works.
 
 At the moment the "master" branch will give you an realtime SSE SIMD raytracer for algebraic surfaces.
-srt either compiles a "module.so" via system() call, which gets dlopen()'ed on the fly or it uses llvm (llvm-c) to JIT compile the entered polynomial to machine code to accelerate the finding of zero crossings for the raytracing process.
+srt uses llvm to JIT compile the entered polynomial to machine code to accelerate the finding of zero crossings for the raytracing process.
 It tries to find the zero crossings entirely non-algebraic so it could even work for non-polynomial curves in theory.
 The used method is not perfect but gives astonishing results.
 More details in "value.c" :)
@@ -22,13 +22,7 @@ Dependencies:
 
 SDL:
 http://www.libsdl.org/
-
-GCC (default Makefile):
-http://gcc.gnu.org/
-
-Optional:
-
-LLVM (using Makefile.llvm):
+LLVM
 http://llvm.org/
 CLANG:
 http://clang.llvm.org/
