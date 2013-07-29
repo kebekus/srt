@@ -280,17 +280,16 @@ void handle_stats(int64_t *pixels)
 	}
 }
 
-struct stripe_data stripe_data;
 struct thread_data {
 	struct stripe_data *stripe_data;
 	pthread_mutex_t mutex;
-	pthread_cond_t cond;
+	pthread_cond_t begin, done;
 	int pause;
 	int busy;
 	int stripe;
 	int height;
 	int64_t pixels;
-} thread_data;
+};
 
 void *thread(void *data)
 {
@@ -298,15 +297,17 @@ void *thread(void *data)
 	pthread_mutex_lock(&td->mutex);
 	(td->busy)++;
 	while (td->pause)
-		pthread_cond_wait(&td->cond, &td->mutex);
+		pthread_cond_wait(&td->begin, &td->mutex);
 	pthread_mutex_unlock(&td->mutex);
 	int64_t pixels = 0;
 	while (1) {
 		pthread_mutex_lock(&td->mutex);
 		td->pixels += pixels;
 		(td->busy)--;
+		if (td->stripe >= td->height)
+			pthread_cond_signal(&td->done);
 		while (td->stripe >= td->height)
-			pthread_cond_wait(&td->cond, &td->mutex);
+			pthread_cond_wait(&td->begin, &td->mutex);
 		int j = td->stripe;
 		td->stripe += 2;
 		(td->busy)++;
@@ -315,6 +316,8 @@ void *thread(void *data)
 	}
 }
 
+struct stripe_data stripe_data;
+struct thread_data thread_data;
 void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
@@ -335,12 +338,9 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 	thread_data.height = h;
 	thread_data.stripe = 0;
 	thread_data.pause = 0;
-	pthread_cond_broadcast(&thread_data.cond);
-	while (thread_data.busy || thread_data.stripe < thread_data.height) {
-		pthread_mutex_unlock(&thread_data.mutex);
-		SDL_Delay(1);
-		pthread_mutex_lock(&thread_data.mutex);
-	}
+	pthread_cond_broadcast(&thread_data.begin);
+	while (thread_data.busy || thread_data.stripe < thread_data.height)
+		pthread_cond_wait(&thread_data.done, &thread_data.mutex);
 }
 
 int main(int argc, char **argv)
@@ -364,7 +364,8 @@ int main(int argc, char **argv)
 	pthread_t pthd[threads];
 	pthread_mutex_init(&thread_data.mutex, 0);
 	pthread_mutex_lock(&thread_data.mutex);
-	pthread_cond_init(&thread_data.cond, 0);
+	pthread_cond_init(&thread_data.begin, 0);
+	pthread_cond_init(&thread_data.done, 0);
 	thread_data.pause = 1;
 	thread_data.busy = 0;
 	thread_data.pixels = 0;
