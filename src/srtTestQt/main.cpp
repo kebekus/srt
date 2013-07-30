@@ -8,9 +8,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 
 #include <math.h>
+#include <QCoreApplication>
+#include <QtCore>
+#include <QVector>
 #include <stdlib.h>
 #include <SDL.h>
-#include <pthread.h>
 #include <unistd.h>
 
 #include "edit.h"
@@ -31,7 +33,6 @@ extern "C" {
 #include "value_bc.h"
 }
 
-#include <QCoreApplication>
 
 
 int64_t (*stripe)(struct stripe_data *sd, int j);
@@ -277,40 +278,24 @@ void handle_stats(int64_t *pixels)
 
 struct thread_data {
 	struct stripe_data sd;
-	pthread_mutex_t mutex;
-	pthread_cond_t begin, done;
-	int pause;
-	int busy;
-	int stripe;
+        int stripe;
 	int height;
 	int64_t pixels;
 };
 
-void *thread(void *data)
-{
-	struct thread_data *td = (struct thread_data *)data;
-	pthread_mutex_lock(&td->mutex);
-	(td->busy)++;
-	while (td->pause)
-		pthread_cond_wait(&td->begin, &td->mutex);
-	pthread_mutex_unlock(&td->mutex);
-	int64_t pixels = 0;
-	while (1) {
-		pthread_mutex_lock(&td->mutex);
-		td->pixels += pixels;
-		(td->busy)--;
-		if (td->stripe >= td->height)
-			pthread_cond_signal(&td->done);
-		while (td->stripe >= td->height)
-			pthread_cond_wait(&td->begin, &td->mutex);
-		int j = td->stripe;
-		td->stripe += 2;
-		(td->busy)++;
-		pthread_mutex_unlock(&td->mutex);
-		pixels = stripe(&td->sd, j);
-	}
-}
+class task {
+public:
+  struct thread_data *td;
+  int fromLine;
+  int toLine;
+};
 
+void runTask(task &tsk)
+{
+  for(int strp=tsk.fromLine; strp < tsk.toLine; strp+=2)
+	stripe(&(tsk.td)->sd, strp);
+}
+  
 void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, float a, int use_aabb)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
@@ -330,16 +315,27 @@ void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, flo
 	td->sd = (struct stripe_data){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb };
 	td->height = h;
 	td->stripe = 0;
-	td->pause = 0;
-	pthread_cond_broadcast(&td->begin);
-	while (td->busy || td->stripe < td->height)
-		pthread_cond_wait(&td->done, &td->mutex);
+
+#warning inefficiency
+	// Set up a list of tasks. This is extremely inefficient, because we
+	// create and delete vectors all the time.
+	int numTasks = qMax(1 , QThread::idealThreadCount());
+	QVector<task> tskList(numTasks);
+	for(int i=0; i<numTasks; i++) { 
+	  tskList[i].td = td;
+	  tskList[i].fromLine = i*h/numTasks;
+	  tskList[i].toLine = (i+1)*h/numTasks;
+	}
+	
+	// Run tasks concurrently
+	QtConcurrent::blockingMap(tskList, runTask);
 }
+
 
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	app.setApplicationName("srt");
+	app.setApplicationName("srtTestQt");
 	app.setOrganizationName("Albert-Ludwigs-Universität Freiburg");
 	app.setOrganizationName("uni-freiburg.de");
 
@@ -356,19 +352,8 @@ int main(int argc, char **argv)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	SDL_EnableUNICODE(1);
 
-	int threads = sysconf(_SC_NPROCESSORS_ONLN);
-	fprintf(stderr, "using %d threads\n", threads);
-	pthread_t pthd[threads];
 	struct thread_data td;
-	pthread_mutex_init(&td.mutex, 0);
-	pthread_mutex_lock(&td.mutex);
-	pthread_cond_init(&td.begin, 0);
-	pthread_cond_init(&td.done, 0);
-	td.pause = 1;
-	td.busy = 0;
 	td.pixels = 0;
-	for (int i = 0; i < threads; i++)
-		pthread_create(pthd + i, 0, thread, &td);
 
 	struct edit *edit = alloc_edit(10240, "");
 	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
