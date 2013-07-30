@@ -284,16 +284,16 @@ struct thread_data {
 	int64_t pixels;
 };
 
-class task {
-public:
+struct task {
 	struct thread_data *td;
 	int fromLine;
 	int toLine;
+	int step;
 };
 
 void runTask(task &tsk)
 {
-	for(int strp=tsk.fromLine; strp < tsk.toLine; strp+=2)
+	for (int strp = tsk.fromLine; strp < tsk.toLine; strp += tsk.step)
 		stripe(&(tsk.td)->sd, strp);
 }
 
@@ -321,10 +321,11 @@ void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, flo
 	// Set up a list of tasks. This is extremely inefficient, because we
 	// create and delete vectors all the time.
 	QVector<task> tskList(numTasks);
-	for(int i=0; i<numTasks; i++) {
+	for (int i = 0; i < numTasks; i++) {
 		tskList[i].td = td;
-		tskList[i].fromLine = i*h/numTasks;
-		tskList[i].toLine = (i+1)*h/numTasks;
+		tskList[i].step = 2 * numTasks;
+		tskList[i].fromLine = 2 * i;
+		tskList[i].toLine = h;
 	}
 
 	// Run tasks concurrently
