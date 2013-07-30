@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
 
 #
-# SDL
+# External packages
 #
+
+# SDL
 Find_Package(SDL REQUIRED)
 
-#
 # CLANG
-#
 find_program(
   CLANG_EXECUTABLE NAMES clang DOC "Path to the clang front-end."
   )
@@ -15,9 +15,7 @@ if(NOT CLANG_EXECUTABLE)
   message(FATAL_ERROR "clang not found")
 endif()
 
-#
 # LLVM
-#
 find_program(
   LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "Path to llvm-config."
   )
@@ -37,9 +35,22 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
+# Qt
+FIND_PACKAGE(Qt4 REQUIRED)
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
 
+
+#
+# General compiler settings
+#
 add_definitions( -march=native -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
 
+
+#
+# Add subprojects
+#
 add_subdirectory(libsrt)
 add_subdirectory(srtTestSDL)
+add_subdirectory(srtTestQt)
