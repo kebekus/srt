@@ -12,11 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 struct parser_jit {
 	void *data;
 };
-#if USE_LLVM
 struct parser_jit *parser_alloc_jit(char *bc, int len);
-#else
-struct parser_jit *parser_alloc_jit(char *source, char *include, const char *module);
-#endif
 void parser_reset_jit(struct parser_jit *parser_jit);
 void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, const char *name);
 void *parser_jit_func(struct parser_jit *parser_jit, const char *name);

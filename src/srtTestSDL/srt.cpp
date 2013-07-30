@@ -28,9 +28,7 @@ extern "C" {
 #include "reduce.h"
 #include "jit.h"
 #include "stripe_data.h"
-#if USE_LLVM
 #include "value_bc.h"
-#endif
 }
 
 int64_t (*stripe)(struct stripe_data *sd, int j);
@@ -44,11 +42,7 @@ int jit_curve(struct edit *edit)
 
 	static int init = 0;
 	if (!init) {
-#if USE_LLVM
 		jit = parser_alloc_jit((char *)value_bc, value_bc_len);
-#else
-		jit = parser_alloc_jit("value.c", "module.h", "module.so");
-#endif
 		curve_tree = parser_alloc_tree(8192);
 		for (int j = 0; j < 3; j++)
 			deriv_tree[j] = parser_alloc_tree(8192);

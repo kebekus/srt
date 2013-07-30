@@ -38,7 +38,7 @@ execute_process(
   )
 
 
-add_definitions( -march=native -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DUSE_LLVM )
+add_definitions( -march=native -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
 
 add_subdirectory(libsrt)
