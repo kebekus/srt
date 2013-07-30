@@ -10,7 +10,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <math.h>
 #include <stdlib.h>
 #include <SDL.h>
-#include <pthread.h>
 #include <unistd.h>
 
 #include "edit.h"
@@ -274,8 +273,8 @@ void handle_stats(int64_t *pixels)
 
 struct thread_data {
 	struct stripe_data sd;
-	pthread_mutex_t mutex;
-	pthread_cond_t begin, done;
+	SDL_mutex *mutex;
+	SDL_cond *begin, *done;
 	int pause;
 	int busy;
 	int stripe;
@@ -283,27 +282,27 @@ struct thread_data {
 	int64_t pixels;
 };
 
-void *thread(void *data)
+int thread(void *data)
 {
 	struct thread_data *td = (struct thread_data *)data;
-	pthread_mutex_lock(&td->mutex);
+	SDL_mutexP(td->mutex);
 	(td->busy)++;
 	while (td->pause)
-		pthread_cond_wait(&td->begin, &td->mutex);
-	pthread_mutex_unlock(&td->mutex);
+		SDL_CondWait(td->begin, td->mutex);
+	SDL_mutexV(td->mutex);
 	int64_t pixels = 0;
 	while (1) {
-		pthread_mutex_lock(&td->mutex);
+		SDL_mutexP(td->mutex);
 		td->pixels += pixels;
 		(td->busy)--;
 		if (td->stripe >= td->height)
-			pthread_cond_signal(&td->done);
+			SDL_CondSignal(td->done);
 		while (td->stripe >= td->height)
-			pthread_cond_wait(&td->begin, &td->mutex);
+			SDL_CondWait(td->begin, td->mutex);
 		int j = td->stripe;
 		td->stripe += 2;
 		(td->busy)++;
-		pthread_mutex_unlock(&td->mutex);
+		SDL_mutexV(td->mutex);
 		pixels = stripe(&td->sd, j);
 	}
 }
@@ -328,9 +327,9 @@ void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, flo
 	td->height = h;
 	td->stripe = 0;
 	td->pause = 0;
-	pthread_cond_broadcast(&td->begin);
+	SDL_CondBroadcast(td->begin);
 	while (td->busy || td->stripe < td->height)
-		pthread_cond_wait(&td->done, &td->mutex);
+		SDL_CondWait(td->done, td->mutex);
 }
 
 int main(int argc, char **argv)
@@ -350,17 +349,17 @@ int main(int argc, char **argv)
 
 	int threads = sysconf(_SC_NPROCESSORS_ONLN);
 	fprintf(stderr, "using %d threads\n", threads);
-	pthread_t pthd[threads];
+	SDL_Thread *th[threads];
 	struct thread_data td;
-	pthread_mutex_init(&td.mutex, 0);
-	pthread_mutex_lock(&td.mutex);
-	pthread_cond_init(&td.begin, 0);
-	pthread_cond_init(&td.done, 0);
+	td.mutex = SDL_CreateMutex();
+	SDL_mutexP(td.mutex);
+	td.begin = SDL_CreateCond();
+	td.done = SDL_CreateCond();
 	td.pause = 1;
 	td.busy = 0;
 	td.pixels = 0;
 	for (int i = 0; i < threads; i++)
-		pthread_create(pthd + i, 0, thread, &td);
+		th[i] = SDL_CreateThread(thread, &td);
 
 	struct edit *edit = alloc_edit(10240, "");
 	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
