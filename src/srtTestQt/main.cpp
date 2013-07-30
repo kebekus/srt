@@ -278,24 +278,24 @@ void handle_stats(int64_t *pixels)
 
 struct thread_data {
 	struct stripe_data sd;
-        int stripe;
+	int stripe;
 	int height;
 	int64_t pixels;
 };
 
 class task {
 public:
-  struct thread_data *td;
-  int fromLine;
-  int toLine;
+	struct thread_data *td;
+	int fromLine;
+	int toLine;
 };
 
 void runTask(task &tsk)
 {
-  for(int strp=tsk.fromLine; strp < tsk.toLine; strp+=2)
-	stripe(&(tsk.td)->sd, strp);
+	for(int strp=tsk.fromLine; strp < tsk.toLine; strp+=2)
+		stripe(&(tsk.td)->sd, strp);
 }
-  
+
 void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, float a, int use_aabb)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
@@ -321,12 +321,12 @@ void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, flo
 	// create and delete vectors all the time.
 	int numTasks = qMax(1 , QThread::idealThreadCount());
 	QVector<task> tskList(numTasks);
-	for(int i=0; i<numTasks; i++) { 
-	  tskList[i].td = td;
-	  tskList[i].fromLine = i*h/numTasks;
-	  tskList[i].toLine = (i+1)*h/numTasks;
+	for(int i=0; i<numTasks; i++) {
+		tskList[i].td = td;
+		tskList[i].fromLine = i*h/numTasks;
+		tskList[i].toLine = (i+1)*h/numTasks;
 	}
-	
+
 	// Run tasks concurrently
 	QtConcurrent::blockingMap(tskList, runTask);
 }
