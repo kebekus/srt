@@ -177,7 +177,7 @@ static inline m34sf value(i4sf l, struct ray ray, float a)
 static inline uint32_t argb(v4sf c)
 {
 	v4si rgb = v4sf_cvt(v4sf_clamp(v4sf_set1(255) * c, v4sf_set1(0), v4sf_set1(255)));
-	return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);
+	return 0xff000000 | (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);
 }
 
 int64_t stripe(struct stripe_data *sd, int j)
