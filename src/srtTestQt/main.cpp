@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <QCoreApplication>
 #include <QtCore>
 #include <QVector>
+#include <iostream>
 #include <stdlib.h>
 #include <SDL.h>
 #include <unistd.h>
@@ -296,7 +297,7 @@ void runTask(task &tsk)
 		stripe(&(tsk.td)->sd, strp);
 }
 
-void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, float a, int use_aabb)
+void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, float a, int use_aabb, int numTasks)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
 	struct aabb aabb = { v4sf_set3(-3, -3, -3), v4sf_set3(3, 3, 3) };
@@ -319,7 +320,6 @@ void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, flo
 #warning inefficiency
 	// Set up a list of tasks. This is extremely inefficient, because we
 	// create and delete vectors all the time.
-	int numTasks = qMax(1 , QThread::idealThreadCount());
 	QVector<task> tskList(numTasks);
 	for(int i=0; i<numTasks; i++) {
 		tskList[i].td = td;
@@ -352,6 +352,8 @@ int main(int argc, char **argv)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	SDL_EnableUNICODE(1);
 
+	int numTasks = qMax(1 , QThread::idealThreadCount());
+	std::cerr << "num tasks: " << numTasks << std::endl;
 	struct thread_data td;
 	td.pixels = 0;
 
@@ -372,7 +374,7 @@ int main(int argc, char **argv)
 	int edit_mode = 0;
 	int use_aabb = 0;
 	for (;;) {
-		draw(screen, &td, camera, a, use_aabb);
+		draw(screen, &td, camera, a, use_aabb, numTasks);
 		if (edit_mode)
 			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
