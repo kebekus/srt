@@ -22,17 +22,13 @@ extern "C" {
 #include "sphere.h"
 #include "aabb.h"
 #include "camera.h"
-#include "utils.h"
-#include "tests.h"
 #include "parser.h"
 #include "deriv.h"
 #include "error.h"
 #include "reduce.h"
 #include "jit.h"
 #include "stripe_data.h"
-#if USE_LLVM
 #include "value_bc.h"
-#endif
 }
 
 #include <QCoreApplication>
@@ -49,11 +45,7 @@ int jit_curve(struct edit *edit)
 
 	static int init = 0;
 	if (!init) {
-#if USE_LLVM
 		jit = parser_alloc_jit((char *)value_bc, value_bc_len);
-#else
-		jit = parser_alloc_jit("value.c", "module.h", "module.so");
-#endif
 		curve_tree = parser_alloc_tree(8192);
 		for (int j = 0; j < 3; j++)
 			deriv_tree[j] = parser_alloc_tree(8192);
@@ -284,7 +276,7 @@ void handle_stats(int64_t *pixels)
 }
 
 struct thread_data {
-	struct stripe_data *stripe_data;
+	struct stripe_data sd;
 	pthread_mutex_t mutex;
 	pthread_cond_t begin, done;
 	int pause;
@@ -315,13 +307,11 @@ void *thread(void *data)
 		td->stripe += 2;
 		(td->busy)++;
 		pthread_mutex_unlock(&td->mutex);
-		pixels = stripe(td->stripe_data, j);
+		pixels = stripe(&td->sd, j);
 	}
 }
 
-struct stripe_data stripe_data;
-struct thread_data thread_data;
-void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
+void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, float a, int use_aabb)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
 	struct aabb aabb = { v4sf_set3(-3, -3, -3), v4sf_set3(3, 3, 3) };
@@ -337,13 +327,13 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb)
 	m34sf U = m34sf_subv(zU, camera.right);
 	m34sf V = m34sf_addv(zV, camera.up);
 	m34sf UV = m34sf_add(U, V);
-	stripe_data = (struct stripe_data){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb };
-	thread_data.height = h;
-	thread_data.stripe = 0;
-	thread_data.pause = 0;
-	pthread_cond_broadcast(&thread_data.begin);
-	while (thread_data.busy || thread_data.stripe < thread_data.height)
-		pthread_cond_wait(&thread_data.done, &thread_data.mutex);
+	td->sd = (struct stripe_data){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb };
+	td->height = h;
+	td->stripe = 0;
+	td->pause = 0;
+	pthread_cond_broadcast(&td->begin);
+	while (td->busy || td->stripe < td->height)
+		pthread_cond_wait(&td->done, &td->mutex);
 }
 
 int main(int argc, char **argv)
@@ -356,7 +346,6 @@ int main(int argc, char **argv)
 	const char *str = "4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2";
 	if (argc == 2)
 		str = argv[1];
-	// matrix_tests();
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_Surface *screen = SDL_SetVideoMode(1024, 1024, 32, SDL_DOUBLEBUF);
 	if (!screen)
@@ -370,16 +359,16 @@ int main(int argc, char **argv)
 	int threads = sysconf(_SC_NPROCESSORS_ONLN);
 	fprintf(stderr, "using %d threads\n", threads);
 	pthread_t pthd[threads];
-	pthread_mutex_init(&thread_data.mutex, 0);
-	pthread_mutex_lock(&thread_data.mutex);
-	pthread_cond_init(&thread_data.begin, 0);
-	pthread_cond_init(&thread_data.done, 0);
-	thread_data.pause = 1;
-	thread_data.busy = 0;
-	thread_data.pixels = 0;
-	thread_data.stripe_data = &stripe_data;
+	struct thread_data td;
+	pthread_mutex_init(&td.mutex, 0);
+	pthread_mutex_lock(&td.mutex);
+	pthread_cond_init(&td.begin, 0);
+	pthread_cond_init(&td.done, 0);
+	td.pause = 1;
+	td.busy = 0;
+	td.pixels = 0;
 	for (int i = 0; i < threads; i++)
-		pthread_create(pthd + i, 0, thread, &thread_data);
+		pthread_create(pthd + i, 0, thread, &td);
 
 	struct edit *edit = alloc_edit(10240, "");
 	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
@@ -398,12 +387,12 @@ int main(int argc, char **argv)
 	int edit_mode = 0;
 	int use_aabb = 0;
 	for (;;) {
-		draw(screen, camera, a, use_aabb);
+		draw(screen, &td, camera, a, use_aabb);
 		if (edit_mode)
 			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
 		handle_events(screen, &camera, &a, edit, &edit_mode, &use_aabb);
-		handle_stats(&thread_data.pixels);
+		handle_stats(&td.pixels);
 	}
 	return 0;
 }

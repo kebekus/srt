@@ -14,14 +14,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "camera.h"
 #include "stripe_data.h"
 
-#if USE_LLVM
 v4sf curve_xyza(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_x(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_y(v4sf x, v4sf y, v4sf z, float a);
 v4sf deriv_z(v4sf x, v4sf y, v4sf z, float a);
-#else
-#include "module.h"
-#endif
 
 extern inline v4sf curve(m34sf m, float a)
 {
