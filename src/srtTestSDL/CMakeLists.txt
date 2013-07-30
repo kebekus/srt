@@ -6,4 +6,4 @@ add_executable( srtTestSDL
   srt.cpp
   ppm.cpp
   )
-target_link_libraries( srtTestSDL srt ${SDL_LDFLAGS} ${SDL_LIBRARY})
+target_link_libraries( srtTestSDL srt ${SDL_LDFLAGS} ${SDL_LIBRARY} ${QT_LIBRARIES})
