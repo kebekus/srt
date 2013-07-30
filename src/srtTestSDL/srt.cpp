@@ -349,7 +349,6 @@ int main(int argc, char **argv)
 
 	int threads = sysconf(_SC_NPROCESSORS_ONLN);
 	fprintf(stderr, "using %d threads\n", threads);
-	SDL_Thread *th[threads];
 	struct thread_data td;
 	td.mutex = SDL_CreateMutex();
 	SDL_mutexP(td.mutex);
@@ -359,7 +358,7 @@ int main(int argc, char **argv)
 	td.busy = 0;
 	td.pixels = 0;
 	for (int i = 0; i < threads; i++)
-		th[i] = SDL_CreateThread(thread, &td);
+		SDL_CreateThread(thread, &td);
 
 	struct edit *edit = alloc_edit(10240, "");
 	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
