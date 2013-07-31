@@ -310,6 +310,7 @@ void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb, int6
 	for (int i = 0; i < h / 2; i++) {
 		tskList[i].sd = &sd;
 		tskList[i].line = 2 * i;
+		tskList[i].pixels = 0;
 	}
 
 	QtConcurrent::blockingMap(tskList, runTask);
