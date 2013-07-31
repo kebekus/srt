@@ -277,27 +277,18 @@ void handle_stats(int64_t *pixels)
 	}
 }
 
-struct thread_data {
-	struct stripe_data sd;
-	int stripe;
-	int height;
-	int64_t pixels;
-};
-
 struct task {
-	struct thread_data *td;
-	int fromLine;
-	int toLine;
-	int step;
+	struct stripe_data *sd;
+	int line;
+	int pixels;
 };
 
 void runTask(task &tsk)
 {
-	for (int strp = tsk.fromLine; strp < tsk.toLine; strp += tsk.step)
-		stripe(&(tsk.td)->sd, strp);
+	tsk.pixels = stripe(tsk.sd, tsk.line);
 }
 
-void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, float a, int use_aabb, int numTasks)
+void draw(SDL_Surface *screen, struct camera camera, float a, int use_aabb, int64_t *pixels)
 {
 	struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
 	struct aabb aabb = { v4sf_set3(-3, -3, -3), v4sf_set3(3, 3, 3) };
@@ -313,23 +304,18 @@ void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, flo
 	m34sf U = m34sf_subv(zU, camera.right);
 	m34sf V = m34sf_addv(zV, camera.up);
 	m34sf UV = m34sf_add(U, V);
-	td->sd = (struct stripe_data){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb };
-	td->height = h;
-	td->stripe = 0;
+	struct stripe_data sd = (struct stripe_data){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb };
 
-#warning inefficiency
-	// Set up a list of tasks. This is extremely inefficient, because we
-	// create and delete vectors all the time.
-	QVector<task> tskList(numTasks);
-	for (int i = 0; i < numTasks; i++) {
-		tskList[i].td = td;
-		tskList[i].step = 2 * numTasks;
-		tskList[i].fromLine = 2 * i;
-		tskList[i].toLine = h;
+	QVector<task> tskList(h / 2);
+	for (int i = 0; i < h / 2; i++) {
+		tskList[i].sd = &sd;
+		tskList[i].line = 2 * i;
 	}
 
-	// Run tasks concurrently
 	QtConcurrent::blockingMap(tskList, runTask);
+
+	for (int i = 0; i < h / 2; i++)
+		*pixels += tskList[i].pixels;
 }
 
 
@@ -353,11 +339,6 @@ int main(int argc, char **argv)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	SDL_EnableUNICODE(1);
 
-	int numTasks = qMax(1 , QThread::idealThreadCount());
-	std::cerr << "num tasks: " << numTasks << std::endl;
-	struct thread_data td;
-	td.pixels = 0;
-
 	struct edit *edit = alloc_edit(10240, "");
 	resize_edit(edit, 10, (3 * screen->h) / 4, screen->w - 10, screen->h - 10);
 
@@ -370,17 +351,18 @@ int main(int argc, char **argv)
 		fprintf(stderr, "~ %s\n\n", get_err_str());
 		exit(1);
 	}
-	float a = 1.0;
 
+	float a = 1.0;
+	int64_t pixels = 0;
 	int edit_mode = 0;
 	int use_aabb = 0;
 	for (;;) {
-		draw(screen, &td, camera, a, use_aabb, numTasks);
+		draw(screen, camera, a, use_aabb, &pixels);
 		if (edit_mode)
 			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
 		handle_events(screen, &camera, &a, edit, &edit_mode, &use_aabb);
-		handle_stats(&td.pixels);
+		handle_stats(&pixels);
 	}
 	return 0;
 }
