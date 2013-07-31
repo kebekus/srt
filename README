@@ -20,8 +20,11 @@ More details in "value.c" :)
 
 Dependencies:
 
-SDL:
+SDL frontend:
 http://www.libsdl.org/
+Qt frontend:
+https://qt-project.org/
+
 LLVM
 http://llvm.org/
 CLANG:
