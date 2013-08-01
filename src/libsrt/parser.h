@@ -47,7 +47,7 @@ struct parser_node *parser_new_pow(struct parser_tree *tree, struct parser_node 
 struct parser_node *parser_new_num(struct parser_tree *tree, float value);
 struct parser_node *parser_new_var(struct parser_tree *tree, int token);
 int parser_token_prio(int token);
-int parser_parse(struct parser_tree *tree, char *str);
+int parser_parse(struct parser_tree *tree, const char *str);
 struct parser_tree *parser_alloc_tree(int size);
 void parser_free_tree(struct parser_tree *tree);
 void parser_reset_tree(struct parser_tree *tree);

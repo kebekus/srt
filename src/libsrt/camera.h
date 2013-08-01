@@ -16,7 +16,7 @@ struct camera
 	float near, far;
 };
 
-struct camera init_camera()
+inline struct camera init_camera()
 {
 	return (struct camera) {
 		v4sf_set3(0, 1, 0),

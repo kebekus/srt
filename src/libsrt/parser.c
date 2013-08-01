@@ -12,7 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "error.h"
 #include "reduce.h"
 
-struct parser_node *node_set_err_str(char *what)
+struct parser_node *node_set_err_str(const char *what)
 {
 	set_err_str(what);
 	return 0;
@@ -190,7 +190,7 @@ static struct parser_node *handle_node(struct parser_tree *tree, struct parser_n
 	return parser_new_node(tree, left, token, right);
 }
 
-static struct parser_node *handle_num(struct parser_tree *tree, int *pos, char *str, int len)
+static struct parser_node *handle_num(struct parser_tree *tree, int *pos, const char *str, int len)
 {
 	char tmp[20];
 	int i = 0;
@@ -208,7 +208,7 @@ static struct parser_node *handle_num(struct parser_tree *tree, int *pos, char *
 	return parser_new_num(tree, atof(tmp));
 }
 
-static int cmp_word(char *word, int *pos, char *str, int len)
+static int cmp_word(const char *word, int *pos, const char *str, int len)
 {
 	int word_len = strlen(word);
 	if ((*pos + word_len) > len || strncmp(word, str + *pos, word_len))
@@ -382,7 +382,7 @@ static int closing_paran(struct parser_tree *tree, struct parser_node **left, in
 	return 1;
 }
 
-int parser_parse(struct parser_tree *tree, char *str)
+int parser_parse(struct parser_tree *tree, const char *str)
 {
 	set_err_str_pos("empty expression", 0);
 	parser_reset_tree(tree);

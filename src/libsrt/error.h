@@ -9,10 +9,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef ERROR_H
 #define ERROR_H
 
-char *get_err_str();
+const char *get_err_str();
 int get_err_pos();
-int set_err_str(char *what);
+int set_err_str(const char *what);
 int set_err_pos(int pos);
-int set_err_str_pos(char *what, int pos);
+int set_err_str_pos(const char *what, int pos);
 
 #endif

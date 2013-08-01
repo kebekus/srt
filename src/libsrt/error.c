@@ -8,10 +8,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "error.h"
 
-static char *error_string = 0;
+static const char *error_string = 0;
 static int error_position = 0;
 
-char *get_err_str()
+const char *get_err_str()
 {
 	return error_string;
 }
@@ -21,7 +21,7 @@ int get_err_pos()
 	return error_position;
 }
 
-int set_err_str(char *what)
+int set_err_str(const char *what)
 {
 	error_string = what;
 	return 0;
@@ -33,7 +33,7 @@ int set_err_pos(int pos)
 	return 0;
 }
 
-int set_err_str_pos(char *what, int pos)
+int set_err_str_pos(const char *what, int pos)
 {
 	error_string = what;
 	error_position = pos;
