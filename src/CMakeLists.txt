@@ -52,5 +52,6 @@ add_definitions( -march=native -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONS
 # Add subprojects
 #
 add_subdirectory(libsrt)
+add_subdirectory(libqsrt)
 add_subdirectory(srtTestSDL)
 add_subdirectory(srtTestQt)
