@@ -40,6 +40,8 @@ FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
+# Doxygen for API documentation
+find_package(Doxygen REQUIRED)
 
 #
 # General compiler settings
