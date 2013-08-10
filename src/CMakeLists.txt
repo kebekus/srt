@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.6)
 
 #
 # External packages
@@ -36,7 +36,7 @@ execute_process(
   )
 
 # Qt
-FIND_PACKAGE(Qt4 REQUIRED)
+FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtTest)
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 

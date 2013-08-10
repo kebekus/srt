@@ -5,7 +5,8 @@
    Q_OBJECT
      
   private slots:
+   void benchmark();
+   void specialStates();
    void constructor();
-   void equality();
-   void storage();
+   void equationProperty();
  };

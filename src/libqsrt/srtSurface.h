@@ -3,6 +3,9 @@
 #ifndef SRTSURFACE
 #define SRTSURFACE
 
+#include <QMutex>
+#include <QObject>
+#include <QReadWriteLock>
 #include <QString>
 
 #warning the user of libqsrt should never include this
@@ -12,58 +15,190 @@ extern "C" {
 #include "parser.h"
 }
 
+class srtScene;
+
 #warning documentation missing
 
-class srtSurface{
+/**
+ * \brief Algebraic surface in three-dimensional Euclidean space.
+ *
+ * This class represents an algebraic surface in the three-dimensional Euclidean
+ * space.  Surfaces are given implicitly, as the zero-set of a polynomial in the
+ * variables x, y and z. The method setEquation() is used to specify the
+ * equation.
+ *
+ * Surfaces may have special states.
+ *
+ * - Surfaces are empty if no equation has been set, or if an empty equation has
+ *   been set. Empty surfaces can be rendered, but nothing will show. Use the
+ *   method isEmpty() to check if your surface is empty.
+ *
+ * - If setEquation() has been called with a string that does not contain a
+ *   well-formed polynomial, then an error condition will be set. Surfaces with
+ *   error conditions cannot be rendered. Use the method hasError() to check if
+ *   an error condition is set, and use the methods errorString() and
+ *   errorIndex() to obtain a description of the error.
+ *
+ * All methods of the class are reentrant and thread-safe.
+ *
+ * @warning Do not copy this class at present
+ *
+ * @author Stefan Kebekus 
+ */
+
+class srtSurface : public QObject
+{
+ Q_OBJECT
+ Q_PROPERTY(QString equation READ getEquation WRITE setEquation NOTIFY changed)
+
  public:
   /**
-   * Default constructor
+   * \brief Default constructor
    *
-   * Construct an empty surface
+   * @param parent Standard argument for the QObject constructor
+   *
+   * Construct an empty surface. Because this constructor also initializes the
+   * JIT compiler, the constructor is not very fast. On an Intel(R) Core(TM)
+   * i7-3517U CPU @ 1.90GHz, it takes about 2msec to run.
    */
-  srtSurface();
+  srtSurface(QObject *parent=0);
 
-  srtSurface(const QString &equation);
+  /**
+   * \brief Construct and algebraic surface
+   *
+   * @param equation String which will be passed on to setEquation()
+   * @param parent Standard argument for the QObject constructor
+   *
+   * Convenience constructor which calls the default constructor then then sets
+   * an equation using setEquation(). The following two code snippets are
+   * equivalent.
+   *
+   * @code
+   * ...
+   * srtSurface surf("x^2+y^2-z^2-1");
+   * ...
+   * @endcode
+   * @code
+   * ...
+   * srtSurface surf;
+   * surf.setEquation("x^2+y^2-z^2-1");
+   * ...
+   * @endcode
+   *
+   * Like setEquation(), this constructor can be slow. On an Intel(R) Core(TM)
+   * i7-3517U CPU @ 1.90GHz, this constructor takes about 44msec to run. In
+   * settings where this is an issue, it might make sense to run setEquation()
+   * in a separate thread.
+   */
+  srtSurface(const QString &equation, QObject *parent=0);
 
-#warning destructor missing
+  /**
+   * \brief Destructor
+   *
+   * @note If this destructor is called while the surface is still being
+   * rendered in another thread, the method will block until the rendering
+   * process terminates.
+   */
+  ~srtSurface();
 
-#warning copy constructor missing
+#warning What about constants a, b?
+  /**
+   * \brief Specifies the equation which defines the surface implicitly
+   *
+   * @param equation String that defines a polynomial in variables x, y and z,
+   * for example instance "x^2+y^2-z^2-1". Strings such as "x^y" or "sqrt(x)"
+   * are not polynomial and generate errors. If the string is empty, the surface
+   * is set to "empty".
+   *
+   * This method sets the equation which defines the surface implicitly, parses
+   * the equation and generates optimized machine code which is later used when
+   * the surface is rendered. If the parameter equation is not a polynomial, an
+   * error condition is set. The method hasError() can be used to check if this
+   * is the case. An error message can be retrieved using errorString(). A
+   * pointer to the first occurrence of the error is found using errorIndex().
+   *
+   * If appropriate, the signal changed() will be emitted.
+   *
+   * @note This method is slow. On an Intel(R) Core(TM) i7-3517U CPU @ 1.90GHz
+   * this method takes about 40msec to run for a reasonably-sized equation.
+   *
+   * @note If this method is called while the surface is still being rendered in
+   * another thread, the method will block until the rendering process
+   * terminates.
+   */
+  void setEquation(const QString &equation=QString::null);
 
-#warning implicit sharing missing
+  /**
+   * \brief Returns the equation set with setEquation()
+   *
+   * @returns The equation string that was previously set with setEquation()
+   */
+  QString getEquation();
 
-#warning I/O missing
+  /**
+   * \brief Returns error status
+   *
+   * @returns True if an error condition has been set because the equation
+   * string does not contain a valid polynomial. In this case, an error message
+   * can then be retrieved using errorString() and a pointer to the first
+   * occurrence of the error is found using errorIndex().
+   */
+  bool hasError();
 
-#warning this is not thread-safe! 
-  void setEquation(const QString &equation);
+  /**
+   * \brief Checks for empty surface
+   *
+   * @returns True if the surface is empty.
+   */
+  bool isEmpty();
 
-#warning this is not thread-safe! 
-  QString getEquation() const {return _equation;}
+  /**
+   * \brief Human readable error message
+   *
+   * @returns If an error condition has been set, this method returns a human
+   * readable error message in English language that describes the first error
+   * found. If no error condition has been set, an empty string is returned. 
+   *
+   * Use the method hasError() to check if an error condition has been set.
+   */
+  QString errorString();
 
-#warning this is not thread-safe! 
-  bool hasError() const {return !_errorString.isEmpty();}
+  /**
+   * \brief Pointer to first error in the equation string
+   *
+   * @returns If an error condition has been set, this method returns the index
+   * of the first error found in the equation string. If no error condition has
+   * been set, zero is returned. 
+   *
+   * Use the method hasError() to check if an error condition has been set.
+   */
+  int errorIndex();
 
-#warning this is not thread-safe! 
-  bool isEmpty() const {return !_equation.isEmpty();}
-
-#warning this is not thread-safe! Far from it!
-#warning this behaves terribly with respect to copying
-#warning this should not be left open
-#warning non-qt types used here which should be hidden
-  int64_t (*stripe)(struct stripe_data *sd, int j);
-#warning this is not thread-safe! Far from it!
-#warning this behaves terribly with respect to copying
-#warning this should not be left open
-#warning non-qt types used here which should be hidden
-  v4sf (*curve)(m34sf v, float a);
-
-#warning this is not thread-safe! 
-  QString errorString() const {return _errorString;}
-
-#warning this is not thread-safe! 
-  unsigned int errorColumn() const {return _errorColumn;}
+ signals:
+  /**
+   * \brief Emitted whenever any member of this class changes its value
+   *
+   * This signal is emitted whenever any member of this class changes its value
+   */
+  void changed();
 
  private:
-#warning mutex missing
+  friend class srtScene;
+
+  // Default constructor. I have implemented this as a separate, private method
+  // so that more than one constructor implementation can use method --calling
+  // 'default constructors' from other constructors is nearly impossible in standard
+  // C++.
+  void construct();
+
+  // Mutex used to serialize access to the parser and the methods get_err_str()
+#warning flawed design
+  static QMutex parserSerialization;
+  
+  // Read-Write lock, to be used for all private members that are defined below
+  // this point
+  QReadWriteLock privateMemberLock;
+
   // The equation that is currently set. If empty, then the surface is
   // empty. The member 'errorString' below can be used to find out if the
   // equation could be compiled into machine code.
@@ -76,7 +211,27 @@ class srtSurface{
   
   // If _errorString is not empty, then this member points to the index in
   // _equation where the error occurred.
-  unsigned int _errorColumn;
+  int _errorIndex;
+
+  // Pointer to parser interna. 
+#warning I do not properly understand what that is.
+  struct parser_jit *jit;
+  struct parser_tree *curve_tree;
+  struct parser_tree *deriv_tree[3];
+
+
+#warning this is not thread-safe! Far from it!
+#warning this behaves terribly with respect to copying
+#warning this should not be left open
+#warning non-qt types used here which should be hidden
+  int64_t (*stripe)(struct stripe_data *sd, int j);
+#warning this is not thread-safe! Far from it!
+#warning this behaves terribly with respect to copying
+#warning this should not be left open
+#warning non-qt types used here which should be hidden
+#warning It seems that this is never used
+  v4sf (*curve)(m34sf v, float a);
+
 };
 
 #endif

@@ -19,6 +19,7 @@ srtScene::srtScene()
 
 class task {
 public:
+  int64_t (*stripe)(struct stripe_data *sd, int j);
   struct stripe_data *sd;
   srtSurface *surface;
   int line;
@@ -26,16 +27,27 @@ public:
 
 void runTask(task &tsk)
 {
-  tsk.surface->stripe(tsk.sd, tsk.line);
+  tsk.stripe(tsk.sd, tsk.line);
 }
 
 QImage srtScene::draw(QSize size)
 {
-  // Paranoia check: if size is empty or invalid, return an empty image.
+  // Paranoia check: if size is empty or invalid, return a null image.
   if (size.isEmpty())
     return QImage();
 
+  // Paranoia check: if surface has an error, return a null image.
+  if (surface.hasError()) 
+    return QImage();
+    
   QImage img(size, QImage::Format_ARGB32);
+
+  // Paranoia check: if surface is empty, return an empty image.
+  if (surface.isEmpty()) {
+    img.fill(Qt::black);
+#warning clear image
+    return img;
+  }
 
   
   struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
@@ -59,8 +71,12 @@ QImage srtScene::draw(QSize size)
 
   int numTasks = qMax(1 , QThread::idealThreadCount());
   
+  // Get read access to private members of the surface
+  QReadLocker privatMemberLocker(&surface.privateMemberLock);
+
   QVector<task> tskList(h/2);
   for (int i = 0; i < h/2; i++) {
+    tskList[i].stripe = surface.stripe;
     tskList[i].surface = &surface;
     tskList[i].sd = &sdata;
     tskList[i].line = 2 * i;

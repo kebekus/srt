@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   scene.surface.setEquation("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
   if (scene.surface.hasError()) {
     qDebug() << scene.surface.errorString() << endl
-	     << "Column: " << scene.surface.errorColumn();
+	     << "Index: " << scene.surface.errorIndex();
     exit(1);
   }
   
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
   for(int i=0; i<100; i++)
     img = scene.draw( QSize(900, 900));
   qDebug() << "The slow operation took" << timer.elapsed() << "milliseconds";
-
+  
   img.save("test.png");
   
   return 0;
