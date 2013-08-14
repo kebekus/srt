@@ -17,13 +17,13 @@ extern "C" {
 
 class srtScene;
 
-#warning documentation missing
+
 
 /**
  * \brief Algebraic surface in three-dimensional Euclidean space.
  *
  * This class represents an algebraic surface in the three-dimensional Euclidean
- * space.  Surfaces are given implicitly, as the zero-set of a polynomial in the
+ * space. Surfaces are given implicitly, as the zero-set of a polynomial in the
  * variables x, y and z. The method setEquation() is used to specify the
  * equation.
  *
@@ -41,15 +41,22 @@ class srtScene;
  *
  * All methods of the class are reentrant and thread-safe.
  *
- * @warning Do not copy this class at present
- *
  * @author Stefan Kebekus 
  */
 
 class srtSurface : public QObject
 {
- Q_OBJECT
- Q_PROPERTY(QString equation READ getEquation WRITE setEquation NOTIFY changed)
+  Q_OBJECT;
+
+ /**
+  * \brief Polynomial that defines the surface implicitly
+  *
+  * This string defines a polynomial in variables x, y and z, for example
+  * instance "x^2+y^2-z^2-1". Use the functions getEquation() and setEquation()
+  * to access the property. The signal changed() is emitted whenever this
+  * property changes.
+  */
+  Q_PROPERTY(QString equation READ getEquation WRITE setEquation NOTIFY changed);
 
  public:
   /**
@@ -101,33 +108,6 @@ class srtSurface : public QObject
    */
   ~srtSurface();
 
-#warning What about constants a, b?
-  /**
-   * \brief Specifies the equation which defines the surface implicitly
-   *
-   * @param equation String that defines a polynomial in variables x, y and z,
-   * for example instance "x^2+y^2-z^2-1". Strings such as "x^y" or "sqrt(x)"
-   * are not polynomial and generate errors. If the string is empty, the surface
-   * is set to "empty".
-   *
-   * This method sets the equation which defines the surface implicitly, parses
-   * the equation and generates optimized machine code which is later used when
-   * the surface is rendered. If the parameter equation is not a polynomial, an
-   * error condition is set. The method hasError() can be used to check if this
-   * is the case. An error message can be retrieved using errorString(). A
-   * pointer to the first occurrence of the error is found using errorIndex().
-   *
-   * If appropriate, the signal changed() will be emitted.
-   *
-   * @note This method is slow. On an Intel(R) Core(TM) i7-3517U CPU @ 1.90GHz
-   * this method takes about 40msec to run for a reasonably-sized equation.
-   *
-   * @note If this method is called while the surface is still being rendered in
-   * another thread, the method will block until the rendering process
-   * terminates.
-   */
-  void setEquation(const QString &equation=QString::null);
-
   /**
    * \brief Returns the equation set with setEquation()
    *
@@ -174,6 +154,39 @@ class srtSurface : public QObject
    */
   int errorIndex();
 
+ public slots:
+#warning What about constants a, b?
+  /**
+   * \brief Specifies the equation which defines the surface implicitly
+   *
+   * @param equation String that defines a polynomial in variables x, y and z,
+   * for example instance "x^2+y^2-z^2-1". Strings such as "x^y" or "sqrt(x)"
+   * are not polynomial and generate errors. If the string is empty, the surface
+   * is set to "empty".
+   *
+   * This method sets the equation which defines the surface implicitly, parses
+   * the equation and generates optimized machine code which is later used when
+   * the surface is rendered. If the parameter equation is not a polynomial, an
+   * error condition is set. The method hasError() can be used to check if this
+   * is the case. An error message can be retrieved using errorString(). A
+   * pointer to the first occurrence of the error is found using errorIndex().
+   *
+   * If appropriate, the signal changed() will be emitted.
+   *
+   * @note This method is slow. On an Intel(R) Core(TM) i7-3517U CPU @ 1.90GHz
+   * this method takes about 40msec to run for a reasonably-sized equation.
+   *
+   * @note If this method is called while the surface is still being rendered in
+   * another thread, the method will block until the rendering process
+   * terminates.
+   */
+  void setEquation(const QString &equation=QString::null);
+ 
+  /**
+   * \brief Emits the signal changed()
+   */
+ void touch() {emit changed();}
+ 
  signals:
   /**
    * \brief Emitted whenever any member of this class changes its value

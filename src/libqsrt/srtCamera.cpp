@@ -3,5 +3,5 @@
 
 srtCamera::srtCamera()
 {
-  camera = init_camera();
+  _camera = init_camera();
 }

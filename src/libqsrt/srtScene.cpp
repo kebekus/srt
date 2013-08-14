@@ -49,37 +49,37 @@ QImage srtScene::draw(QSize size)
     return img;
   }
 
-  
   struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
   struct aabb aabb = { v4sf_set3(-3, -3, -3), v4sf_set3(3, 3, 3) };
-
 #warning This is WRONG.
   uint32_t *fb = (uint32_t *)img.scanLine(0);
+
+  struct camera _camera = init_camera();
 
   int w = img.width();
   int h = img.height();
   float dw = 2.0f / (float)w;
   float dh = -2.0f / (float)h;
-  v4sf dU = v4sf_set1(dw) * camera.camera.right;
-  v4sf dV = v4sf_set1(dh) * camera.camera.up;
+  v4sf dU  = v4sf_set1(dw) * _camera.right;
+  v4sf dV  = v4sf_set1(dh) * _camera.up;
   m34sf zU = m34sf_set(v4sf_set1(0), dU, v4sf_set1(0), dU);
   m34sf zV = m34sf_set(v4sf_set1(0), v4sf_set1(0), dV, dV);
-  m34sf U = m34sf_subv(zU, camera.camera.right);
-  m34sf V = m34sf_addv(zV, camera.camera.up);
+  m34sf U  = m34sf_subv(zU, _camera.right);
+  m34sf V  = m34sf_addv(zV, _camera.up);
   m34sf UV = m34sf_add(U, V);
-  struct stripe_data sdata = { fb, w, h, dU, dV, UV, sphere, aabb, camera.camera, a, use_aabb };
+  struct stripe_data sdata = { fb, w, h, dU, dV, UV, sphere, aabb, _camera, a, use_aabb };
 
   int numTasks = qMax(1 , QThread::idealThreadCount());
-  
+
   // Get read access to private members of the surface
   QReadLocker privatMemberLocker(&surface.privateMemberLock);
 
   QVector<task> tskList(h/2);
   for (int i = 0; i < h/2; i++) {
-    tskList[i].stripe = surface.stripe;
+    tskList[i].stripe  = surface.stripe;
     tskList[i].surface = &surface;
-    tskList[i].sd = &sdata;
-    tskList[i].line = 2 * i;
+    tskList[i].sd      = &sdata;
+    tskList[i].line    = 2 * i;
   }
   
   // Run tasks concurrently

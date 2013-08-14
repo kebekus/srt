@@ -7,22 +7,29 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 
-#include <QCoreApplication>
+#include <QApplication>
 #include <QDebug>
 #include <QElapsedTimer>
 #include <QImage>
 
 #include "srtScene.h"
-
+#include "mainWindow.h"
 
 
 
 int main(int argc, char **argv)
 {
-  QCoreApplication app(argc, argv);
+  QApplication app(argc, argv);
   app.setApplicationName("srtTestQt");
   app.setOrganizationName("Albert-Ludwigs-Universität Freiburg");
   app.setOrganizationName("uni-freiburg.de");
+
+  // Now start the GUI
+  mainWindow mW;
+
+  mW.show();
+  return app.exec();
+
 
   QElapsedTimer timer;
   timer.start();

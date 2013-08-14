@@ -13,7 +13,7 @@ class srtCamera{
   srtCamera();
 
 #warning serialisation and i/o missing
-  struct camera camera;
+  struct camera _camera;
 };
 
 #endif
