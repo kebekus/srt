@@ -14,6 +14,7 @@ set_target_properties(qsrt PROPERTIES AUTOMOC TRUE)
 
 # Unit tests
 ADD_EXECUTABLE( qsrt_tests
+  srt_test.cpp
   srtCamera.cpp
   srtScene.cpp
   srtSurface.cpp

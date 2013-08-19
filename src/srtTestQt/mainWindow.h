@@ -1,5 +1,6 @@
 
 #include <QMainWindow>
+#include "srtScene.h"
 
 #include "ui_mainWindow.h"
 
@@ -27,7 +28,22 @@ public:
    */
   ~mainWindow();
 
+
+ public slots:
+  void equationChanged();
+
+  void setSampleSurface1();
+  void setSampleSurface2();
+  void setSampleSurface3();
+  void setSampleSurface4();
+  void setSampleSurface5();
+  void setSampleSurface6();
+  void setSampleSurface7();
+  void setSampleSurface8();
+
  private:
   // GUI, as construced with the Qt designer
   Ui::mainWindow ui;
+
+  srtScene scene;
 };

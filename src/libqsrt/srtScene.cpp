@@ -11,11 +11,15 @@ extern "C" {
 }
 
 
-srtScene::srtScene() 
+srtScene::srtScene(QObject *parent) 
+  : QObject(parent)
 {
   a = 1.0;
   use_aabb = 0;
+
+  connect(&surface, SIGNAL(changed()), this, SIGNAL(changed()));
 }
+
 
 class task {
 public:
@@ -25,10 +29,12 @@ public:
   int line;
 };
 
+
 void runTask(task &tsk)
 {
   tsk.stripe(tsk.sd, tsk.line);
 }
+
 
 QImage srtScene::draw(QSize size)
 {

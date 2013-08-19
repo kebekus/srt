@@ -2,6 +2,7 @@
 #define SRTWIDGET
 
 #include <QFrame>
+#include <QPointer>
 
 #include "srtScene.h"
 
@@ -14,10 +15,12 @@ class srtWidget : public QFrame
 
   ~srtWidget();
 
+  void setScene(srtScene *_scene);
+
   virtual void paintEvent ( QPaintEvent * event );
 
  private:
-  srtScene scene;
+  QPointer<srtScene> scene;
 };
 
 #endif

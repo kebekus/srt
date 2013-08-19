@@ -61,22 +61,25 @@ void srtSurface_test::constructor()
   QVERIFY( s3.hasError() );
 }
 
+
 void srtSurface_test::equationProperty()
 {
   srtSurface s1(this);
 
+  // Set empty equation
   s1.setEquation();
   QVERIFY( s1.isEmpty() );
   QVERIFY( !s1.hasError() );
   
+  // Set correct equation
   s1.setEquation("x^2+y^2-z^2-1");
   QVERIFY( !s1.isEmpty() );
   QVERIFY( !s1.hasError() );
   QVERIFY( s1.errorString().isEmpty() );
 
+  // Set wrong equation
   s1.setEquation("x^2+y^2-z^2-goof");
   QVERIFY( !s1.isEmpty() );
   QVERIFY( s1.hasError() );
   QVERIFY( !s1.errorString().isEmpty() );
-  QVERIFY( s1.errorIndex() == 12 );
 }
