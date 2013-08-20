@@ -8,8 +8,10 @@ mainWindow::mainWindow(QWidget *parent)
   ui.setupUi(this);
   ui.actionQuit->setShortcut(QKeySequence::Quit);
 
-  ui.equation->setText("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
   connect(ui.equation, SIGNAL(editingFinished()), this, SLOT(equationChanged()));
+
+  connect(ui.aSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderMoved(int)) );
+  sliderMoved( ui.aSlider->value() );
 
   connect( ui.actionSurface_1, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface1()) );
   connect( ui.actionSurface_2, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface2()) );
@@ -20,11 +22,11 @@ mainWindow::mainWindow(QWidget *parent)
   connect( ui.actionSurface_7, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface7()) );
   connect( ui.actionSurface_8, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface8()) );
 
-  connect( ui.aSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderMoved(int)) );
-  sliderMoved( ui.aSlider->value() );
 
   scene.surface.setEquation(ui.equation->text());
   ui.sceneWidget->setScene(&scene);
+
+  setSampleSurface8();
 }
 
 
