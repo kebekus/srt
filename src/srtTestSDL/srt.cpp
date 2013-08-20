@@ -81,10 +81,18 @@ void snapshot(SDL_Surface *screen, struct camera camera, float a, int i, int j)
 {
 	int w = screen->w;
 	int h = screen->h;
-	float dw = 2.0f / (float)w;
+	float dw = 2.0f / (float)h;
 	float dh = -2.0f / (float)h;
-	v4sf U = v4sf_set1(i * dw) * camera.right - camera.right;
-	v4sf V = v4sf_set1(j * dh) * camera.up + camera.up;
+	float ow = (float)w / (float)h;
+	float oh = 1;
+	if (w < h) {
+		dw = 2.0f / (float)w;
+		dh = -2.0f / (float)w;
+		ow = 1;
+		oh = (float)h / (float)w;
+	}
+	v4sf U = v4sf_set1(i * dw) * camera.right - v4sf_set1(ow) * camera.right;
+	v4sf V = v4sf_set1(j * dh) * camera.up + v4sf_set1(oh) * camera.up;
 	v4sf dir = v4sf_normal3(U + V + camera.dir);
 	struct ray ray = init_ray(m34sf_splat(camera.origin), m34sf_splat(dir));
 	FILE *file = fopen("plot.dat", "w");
@@ -95,11 +103,13 @@ void snapshot(SDL_Surface *screen, struct camera camera, float a, int i, int j)
 	fclose(file);
 }
 
-void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct edit *edit, int *edit_mode, int *use_aabb)
+void handle_events(SDL_Surface **screen, struct camera *camera, float *a, struct edit *edit, int *edit_mode, int *use_aabb)
 {
 	static int focus = 1;
 	static int button_left = 0;
 	static int button_right = 0;
+	int width = 0;
+	int height = 0;
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		if (*edit_mode && handle_edit(event, edit))
@@ -152,7 +162,7 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct 
 						*camera = init_camera();
 						break;
 					case SDLK_p:
-						ppm_save("screenshot.ppm", screen);
+						ppm_save("screenshot.ppm", *screen);
 						break;
 					case SDLK_b:
 						*use_aabb ^= 1;
@@ -214,7 +224,7 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct 
 						button_left = 0;
 						break;
 					case SDL_BUTTON_MIDDLE:
-						snapshot(screen, *camera, *a, event.button.x, event.button.y);
+						snapshot(*screen, *camera, *a, event.button.x, event.button.y);
 						break;
 					case SDL_BUTTON_RIGHT:
 						button_right = 0;
@@ -225,15 +235,15 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct 
 				break;
 			case SDL_MOUSEMOTION:
 				if (button_left) {
-					m4sf pitch = m4sf_rot(camera->right, M_PI * (float)event.motion.yrel / (float)screen->h);
-					m4sf yaw = m4sf_rot(camera->up, -M_PI * (float)event.motion.xrel / (float)screen->w);
+					m4sf pitch = m4sf_rot(camera->right, M_PI * (float)event.motion.yrel / (float)(*screen)->h);
+					m4sf yaw = m4sf_rot(camera->up, -M_PI * (float)event.motion.xrel / (float)(*screen)->w);
 					camera->up = m4sf_vmul(pitch, camera->up);
 					camera->right = m4sf_vmul(yaw, camera->right);
 					camera->dir = v4sf_cross3(camera->up, camera->right);
 				}
 				if (button_right) {
-					m4sf rotx = m4sf_rot(camera->right, -M_PI * (float)event.motion.yrel / (float)screen->h);
-					m4sf roty = m4sf_rot(camera->up, -M_PI * (float)event.motion.xrel / (float)screen->w);
+					m4sf rotx = m4sf_rot(camera->right, -M_PI * (float)event.motion.yrel / (float)(*screen)->h);
+					m4sf roty = m4sf_rot(camera->up, -M_PI * (float)event.motion.xrel / (float)(*screen)->w);
 					m4sf rotation = m4sf_mul(rotx, roty);
 					camera->origin = m4sf_vmul(rotation, camera->origin);
 					camera->up = m4sf_vmul(rotation, camera->up);
@@ -241,12 +251,24 @@ void handle_events(SDL_Surface *screen, struct camera *camera, float *a, struct 
 					camera->dir = v4sf_cross3(camera->up, camera->right);
 				}
 				break;
+			case SDL_VIDEORESIZE:
+				width = event.resize.w;
+				height = event.resize.h;
+				break;
 			case SDL_QUIT:
 				exit(0);
 				break;
 			default:
 				break;
 		}
+	}
+	if (width || height) {
+		*screen = SDL_SetVideoMode(width, height, 32, SDL_DOUBLEBUF|SDL_RESIZABLE);
+		if (!*screen)
+			exit(1);
+		if ((*screen)->format->BytesPerPixel != 4)
+			exit(1);
+		resize_edit(edit, 10, (3 * (*screen)->h) / 4, (*screen)->w - 10, (*screen)->h - 10);
 	}
 	if (!focus)
 		SDL_Delay(100);
@@ -314,14 +336,24 @@ void draw(SDL_Surface *screen, struct thread_data *td, struct camera camera, flo
 	uint32_t *fb = (uint32_t *)screen->pixels;
 	int w = screen->w;
 	int h = screen->h;
-	float dw = 2.0f / (float)w;
+	float dw = 2.0f / (float)h;
 	float dh = -2.0f / (float)h;
+	float ow = (float)w / (float)h;
+	float oh = 1;
+	if (w < h) {
+		dw = 2.0f / (float)w;
+		dh = -2.0f / (float)w;
+		ow = 1;
+		oh = (float)h / (float)w;
+	}
 	v4sf dU = v4sf_set1(dw) * camera.right;
 	v4sf dV = v4sf_set1(dh) * camera.up;
+	v4sf oU = v4sf_set1(ow) * camera.right;
+	v4sf oV = v4sf_set1(oh) * camera.up;
 	m34sf zU = m34sf_set(v4sf_set1(0), dU, v4sf_set1(0), dU);
 	m34sf zV = m34sf_set(v4sf_set1(0), v4sf_set1(0), dV, dV);
-	m34sf U = m34sf_subv(zU, camera.right);
-	m34sf V = m34sf_addv(zV, camera.up);
+	m34sf U = m34sf_subv(zU, oU);
+	m34sf V = m34sf_addv(zV, oV);
 	m34sf UV = m34sf_add(U, V);
 	td->sd = (struct stripe_data){ fb, w, h, dU, dV, UV, sphere, aabb, camera, a, use_aabb };
 	td->height = h;
@@ -338,7 +370,7 @@ int main(int argc, char **argv)
 	if (argc == 2)
 		str = argv[1];
 	SDL_Init(SDL_INIT_VIDEO);
-	SDL_Surface *screen = SDL_SetVideoMode(1024, 1024, 32, SDL_DOUBLEBUF);
+	SDL_Surface *screen = SDL_SetVideoMode(512, 512, 32, SDL_DOUBLEBUF|SDL_RESIZABLE);
 	if (!screen)
 		exit(1);
 	if (screen->format->BytesPerPixel != 4)
@@ -381,7 +413,7 @@ int main(int argc, char **argv)
 		if (edit_mode)
 			draw_edit(edit, screen, 0x00bebebe, 0);
 		SDL_Flip(screen);
-		handle_events(screen, &camera, &a, edit, &edit_mode, &use_aabb);
+		handle_events(&screen, &camera, &a, edit, &edit_mode, &use_aabb);
 		handle_stats(&td.pixels);
 	}
 	return 0;
