@@ -11,14 +11,17 @@ mainWindow::mainWindow(QWidget *parent)
   ui.equation->setText("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
   connect(ui.equation, SIGNAL(editingFinished()), this, SLOT(equationChanged()));
 
-  connect( ui.actionSurface_1, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface1()));
-  connect( ui.actionSurface_2, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface2()));
-  connect( ui.actionSurface_3, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface3()));
-  connect( ui.actionSurface_4, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface4()));
-  connect( ui.actionSurface_5, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface5()));
-  connect( ui.actionSurface_6, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface6()));
-  connect( ui.actionSurface_7, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface7()));
-  connect( ui.actionSurface_8, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface8()));
+  connect( ui.actionSurface_1, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface1()) );
+  connect( ui.actionSurface_2, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface2()) );
+  connect( ui.actionSurface_3, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface3()) );
+  connect( ui.actionSurface_4, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface4()) );
+  connect( ui.actionSurface_5, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface5()) );
+  connect( ui.actionSurface_6, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface6()) );
+  connect( ui.actionSurface_7, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface7()) );
+  connect( ui.actionSurface_8, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface8()) );
+
+  connect( ui.aSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderMoved(int)) );
+  sliderMoved( ui.aSlider->value() );
 
   scene.surface.setEquation(ui.equation->text());
   ui.sceneWidget->setScene(&scene);
@@ -102,4 +105,10 @@ void mainWindow::equationChanged()
     statusBar()->showMessage(scene.surface.errorString(), 2000);
     ui.equation->setCursorPosition(scene.surface.errorIndex());
   }
+}
+
+
+void mainWindow::sliderMoved(int val)
+{
+  ui.aLabel->setText( QString("a = %1").arg(val/10.0));
 }

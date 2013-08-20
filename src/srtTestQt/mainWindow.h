@@ -31,6 +31,7 @@ public:
 
  public slots:
   void equationChanged();
+  void sliderMoved(int value);
 
   void setSampleSurface1();
   void setSampleSurface2();
