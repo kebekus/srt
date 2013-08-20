@@ -3,6 +3,11 @@
 #include "srtScene.h"
 #include "srtSurface_test.h"
 
+void srtSurface_test::increaseCounter()
+{
+  counter++;
+}
+
 
 void srtSurface_test::benchmark()
 {
@@ -64,22 +69,44 @@ void srtSurface_test::constructor()
 
 void srtSurface_test::equationProperty()
 {
+  // Newly constructed equations should be empty.
   srtSurface s1(this);
-
-  // Set empty equation
-  s1.setEquation();
   QVERIFY( s1.isEmpty() );
   QVERIFY( !s1.hasError() );
-  
+  QVERIFY( s1.getEquation().isEmpty() );  
+
+  // Count number of times that the surface changes
+  connect(&s1, SIGNAL(changed()), this, SLOT(increaseCounter()));
+  counter = 0;
+
   // Set correct equation
-  s1.setEquation("x^2+y^2-z^2-1");
+  QString eq("x^2+y^2-z^2-a");
+  s1.setEquation(eq);
   QVERIFY( !s1.isEmpty() );
   QVERIFY( !s1.hasError() );
   QVERIFY( s1.errorString().isEmpty() );
+  QVERIFY( s1.getEquation() == eq );
+
+  // Setting same equation one more time should not increase the counter
+  s1.setEquation(eq);
+
+  // Set empty equation.
+  s1.setEquation();
+  QVERIFY( s1.isEmpty() );
+  QVERIFY( !s1.hasError() );
+  QVERIFY( s1.getEquation().isEmpty() );  
 
   // Set wrong equation
-  s1.setEquation("x^2+y^2-z^2-goof");
+  eq = "x^2+y^2-z^2-goof";
+  s1.setEquation(eq);
   QVERIFY( !s1.isEmpty() );
   QVERIFY( s1.hasError() );
   QVERIFY( !s1.errorString().isEmpty() );
+  QVERIFY( s1.getEquation() == eq );
+
+  // Setting same equation one more time should not increase the counter
+  s1.setEquation("x^2+y^2-z^2-goof");
+
+  // Check counter
+  QVERIFY( counter == 3 );
 }

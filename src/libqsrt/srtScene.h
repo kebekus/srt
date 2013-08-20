@@ -13,22 +13,22 @@ class srtScene : public QObject
 {
   Q_OBJECT
 
+
  public:
   /**
    * Default constructor
    */
   srtScene(QObject *parent=0);
 
- 
 #warning destructor missing
 
+ 
  signals:
   void changed();
 
  public:
 
   QImage draw(QSize size);
-  float a;
   int use_aabb;
   srtCamera camera;
   srtSurface surface;

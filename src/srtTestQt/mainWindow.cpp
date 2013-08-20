@@ -110,5 +110,7 @@ void mainWindow::equationChanged()
 
 void mainWindow::sliderMoved(int val)
 {
-  ui.aLabel->setText( QString("a = %1").arg(val/10.0));
+  qreal a = val/100.0;
+  ui.aLabel->setText( QString("a = %1").arg(a));
+  scene.surface.setA(a);
 }
