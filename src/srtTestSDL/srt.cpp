@@ -252,8 +252,8 @@ void handle_events(SDL_Surface **screen, struct camera *camera, float *a, struct
 				}
 				break;
 			case SDL_VIDEORESIZE:
-				width = event.resize.w;
-				height = event.resize.h;
+				width = event.resize.w & ~1;
+				height = event.resize.h & ~1;
 				break;
 			case SDL_QUIT:
 				exit(0);
@@ -262,7 +262,7 @@ void handle_events(SDL_Surface **screen, struct camera *camera, float *a, struct
 				break;
 		}
 	}
-	if (width || height) {
+	if (width && height) {
 		*screen = SDL_SetVideoMode(width, height, 32, SDL_DOUBLEBUF|SDL_RESIZABLE);
 		if (!*screen)
 			exit(1);
