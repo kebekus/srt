@@ -9,7 +9,7 @@ class mainWindow : public QMainWindow
 {
     Q_OBJECT
 
-public:
+ public:
   /**
    * Standard constructor
    *
@@ -42,7 +42,16 @@ public:
   void setSampleSurface7();
   void setSampleSurface8();
 
+ protected:
+  /**
+   * Re-implemented from QWidget
+   */
+  void closeEvent(QCloseEvent *event);
+
+
  private:
+  void adjustGUItoScene();
+
   // GUI, as construced with the Qt designer
   Ui::mainWindow ui;
 

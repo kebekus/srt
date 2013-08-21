@@ -1,7 +1,6 @@
 #warning copyright missing
 #include "srtSurface.h"
 
-
 extern "C" {
 #include "error.h"
 #include "deriv.h"
@@ -21,11 +20,12 @@ srtSurface::srtSurface(QObject *parent)
 }
 
 
-srtSurface::srtSurface(const QString &equation, QObject *parent)
+srtSurface::srtSurface(const QString &equation, qreal a, QObject *parent)
   : QObject(parent), privateMemberLock(QReadWriteLock::Recursive)
 {
   construct();
   setEquation(equation);
+  setA(a);
 }
 
 
@@ -33,7 +33,7 @@ srtSurface::~srtSurface()
 {
   // Get write access to private members. Wait till the last reader has finished
   QWriteLocker locker(&privateMemberLock);
-
+  
 #warning I do not properly understand what that is. Is this correct?
   parser_free_tree(curve_tree);
   parser_free_tree(deriv_tree[0]);
@@ -47,14 +47,14 @@ void srtSurface::setA(qreal a)
 {
   // Get write access to private members
   QWriteLocker privatMemberLocker(&privateMemberLock);
-
+  
   // Paranoia check: don't do anything if the equation did not change
   if (a == _a)
     return;
   
   _a = a;
   emit changed();
-  return;
+  creturn;
 }
 
 

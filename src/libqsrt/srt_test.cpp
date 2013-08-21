@@ -1,3 +1,5 @@
+#warning copyright info 
+
 #include <QtTest/QtTest>
 
 #include "srtScene.h"
@@ -40,3 +42,22 @@ void srt_test::parser_floatParsing()
   QVERIFY( img2 == img3 );
 }
 
+
+void srt_test::parser_constantA()
+{
+  // At one point, the equation parser was not able to distinguish between the
+  // constants 0 and 0.5. Check that this works correctly now.
+  srtScene scene;
+  scene.surface.setEquation("x^2+z^2-y^2+1");
+  QImage img1 = scene.draw( QSize(100,100) );
+
+  scene.surface.setEquation("x^2+z^2-y^2+2");
+  QImage img2 = scene.draw( QSize(100,100) );
+
+  scene.surface.setEquation("x^2+z^2-y^2+a");
+  scene.surface.setA(1.0);
+  QImage img3 = scene.draw( QSize(100,100) );
+
+  QVERIFY( !(img1 == img2) );
+  QVERIFY( img1 == img3 );
+}

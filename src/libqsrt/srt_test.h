@@ -1,4 +1,6 @@
- #include <QtTest/QtTest>
+#warning copyright info 
+
+#include <QtTest/QtTest>
 
  class srt_test : public QObject
  {
@@ -7,4 +9,5 @@
   private slots:
    void parser_errorReporting();
    void parser_floatParsing();
+   void parser_constantA();
  };
