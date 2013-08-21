@@ -262,7 +262,7 @@ void handle_events(SDL_Surface **screen, struct camera *camera, float *a, struct
 				break;
 		}
 	}
-	if (width || height) {
+	if (width && height) {
 		*screen = SDL_SetVideoMode(width, height, 32, SDL_DOUBLEBUF|SDL_RESIZABLE);
 		if (!*screen)
 			exit(1);
