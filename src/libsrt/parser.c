@@ -190,6 +190,18 @@ static struct parser_node *handle_node(struct parser_tree *tree, struct parser_n
 	return parser_new_node(tree, left, token, right);
 }
 
+static float a2f(const char *s)
+{
+	float r = 0;
+	for (; '0' <= *s && *s <= '9'; s++)
+		r = 10 * r + (*s - '0');
+	if ('.' != *s++)
+		return r;
+	for (float d = 10; '0' <= *s && *s <= '9'; s++, d *= 10)
+		r += (*s - '0') / d;
+	return r;
+}
+
 static struct parser_node *handle_num(struct parser_tree *tree, int *pos, const char *str, int len)
 {
 	char tmp[20];
@@ -205,7 +217,7 @@ static struct parser_node *handle_num(struct parser_tree *tree, int *pos, const 
 	}
 	(*pos)--;
 	tmp[i] = 0;
-	return parser_new_num(tree, atof(tmp));
+	return parser_new_num(tree, a2f(tmp));
 }
 
 static int cmp_word(const char *word, int *pos, const char *str, int len)
