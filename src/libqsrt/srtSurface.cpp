@@ -43,6 +43,21 @@ srtSurface::~srtSurface()
 }
 
 
+void srtSurface::setA(qreal a)
+{
+  // Get write access to private members
+  QWriteLocker privatMemberLocker(&privateMemberLock);
+
+  // Paranoia check: don't do anything if the equation did not change
+  if (a == _a)
+    return;
+  
+  _a = a;
+  emit changed();
+  return;
+}
+
+
 void srtSurface::setEquation(const QString &equation)
 {
   // Get write access to private members
@@ -104,6 +119,15 @@ void srtSurface::setEquation(const QString &equation)
 }
 
 
+qreal srtSurface::getA()
+{
+  // Get read access to private members
+  QReadLocker privatMemberLocker(&privateMemberLock);
+
+  return _a;
+}
+
+
 QString srtSurface::getEquation()
 {
   // Get read access to private members
@@ -157,6 +181,7 @@ void srtSurface::construct()
   _equation    = QString::null;
   _errorString = QString::null;
   _errorIndex  = 0;
+  _a           = 0;
   stripe       = 0;
   curve        = 0;
 

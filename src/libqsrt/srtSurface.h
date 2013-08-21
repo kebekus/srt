@@ -51,12 +51,15 @@ class srtSurface : public QObject
  /**
   * \brief Polynomial that defines the surface implicitly
   *
-  * This string defines a polynomial in variables x, y and z, for example
-  * instance "x^2+y^2-z^2-1". Use the functions getEquation() and setEquation()
-  * to access the property. The signal changed() is emitted whenever this
-  * property changes.
+  * This string defines a polynomial in variables x, y and z, and an additional
+  * constant a, for example instance "x^2+y^2-z^2-a". Use the functions
+  * getEquation() and setEquation() to access the property. The signal changed()
+  * is emitted whenever this property changes.
   */
   Q_PROPERTY(QString equation READ getEquation WRITE setEquation NOTIFY changed);
+
+#warning documentation
+  Q_PROPERTY(qreal a READ getA WRITE setA NOTIFY changed);
 
  public:
   /**
@@ -109,6 +112,13 @@ class srtSurface : public QObject
   ~srtSurface();
 
   /**
+   * \brief Returns the constant a
+   *
+   * @returns The constant that was previously set with setA()
+   */
+  qreal getA();
+
+  /**
    * \brief Returns the equation set with setEquation()
    *
    * @returns The equation string that was previously set with setEquation()
@@ -155,14 +165,24 @@ class srtSurface : public QObject
   int errorIndex();
 
  public slots:
-#warning What about constants a, b?
+#warning documentation
+  /**
+   * \brief Specifies the constant a
+   *
+   * @param a A real number that is substituted for the constant 'a' when the
+   * surface is rendered.
+   *
+   * If appropriate, the signal changed() will be emitted.
+   */
+  void setA(qreal a=0);
+
   /**
    * \brief Specifies the equation which defines the surface implicitly
    *
    * @param equation String that defines a polynomial in variables x, y and z,
-   * for example instance "x^2+y^2-z^2-1". Strings such as "x^y" or "sqrt(x)"
-   * are not polynomial and generate errors. If the string is empty, the surface
-   * is set to "empty".
+   * and an additional constant a, for example instance "x^2+y^2-z^2-a". Strings
+   * such as "x^y" or "sqrt(x)" are not polynomial and generate errors. If the
+   * string is empty, the surface is set to "empty".
    *
    * This method sets the equation which defines the surface implicitly, parses
    * the equation and generates optimized machine code which is later used when
@@ -185,7 +205,7 @@ class srtSurface : public QObject
   /**
    * \brief Emits the signal changed()
    */
- void touch() {emit changed();}
+  void touch() {emit changed();}
  
  signals:
   /**
@@ -225,6 +245,9 @@ class srtSurface : public QObject
   // If _errorString is not empty, then this member points to the index in
   // _equation where the error occurred.
   int _errorIndex;
+
+  // Constant a
+  qreal _a;
 
   // Pointer to parser interna. 
 #warning I do not properly understand what that is.

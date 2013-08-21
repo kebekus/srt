@@ -14,7 +14,6 @@ extern "C" {
 srtScene::srtScene(QObject *parent) 
   : QObject(parent)
 {
-  a = 1.0;
   use_aabb = 0;
 
   connect(&surface, SIGNAL(changed()), this, SIGNAL(changed()));
@@ -73,12 +72,14 @@ QImage srtScene::draw(QSize size)
   m34sf U  = m34sf_subv(zU, _camera.right);
   m34sf V  = m34sf_addv(zV, _camera.up);
   m34sf UV = m34sf_add(U, V);
-  struct stripe_data sdata = { fb, w, h, dU, dV, UV, sphere, aabb, _camera, a, use_aabb };
-
-  int numTasks = qMax(1 , QThread::idealThreadCount());
 
   // Get read access to private members of the surface
   QReadLocker privatMemberLocker(&surface.privateMemberLock);
+
+  struct stripe_data sdata = { fb, w, h, dU, dV, UV, sphere, aabb, _camera, (float) surface._a, use_aabb };
+
+  int numTasks = qMax(1 , QThread::idealThreadCount());
+
 
   QVector<task> tskList(h/2);
   for (int i = 0; i < h/2; i++) {
