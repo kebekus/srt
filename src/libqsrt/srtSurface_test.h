@@ -8,7 +8,9 @@ public slots:
    void increaseCounter();
   
 private slots:
-   void benchmark();
+   void benchmark_JITinitialization();
+   void benchmark_JITcompilation();
+
    void specialStates();
    void constructor();
    void equationProperty();

@@ -1,3 +1,5 @@
+#warning copyright info
+
 #include <QtTest/QtTest>
 
 #include "srtScene.h"
@@ -9,24 +11,22 @@ void srtSurface_test::increaseCounter()
 }
 
 
-void srtSurface_test::benchmark()
+void srtSurface_test::benchmark_JITinitialization()
 {
-  QElapsedTimer timer;
-
-  timer.start();
-  srtSurface s1;
-  qDebug() << "Creation of one empty surface object took" << timer.elapsed() << "milliseconds";
-
-  timer.start();
-  srtSurface s("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
-  qDebug() << "Creation of one non-empty surface object took" << timer.elapsed() << "milliseconds";
-
-  timer.start();
-  for(int i=0; i<5; i++) {
-    s.setEquation("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2+0");
-    s.setEquation("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
+  QBENCHMARK {
+    srtSurface s1(this);
   }
-  qDebug() << "JIT compilation of ten equations took" << timer.elapsed() << "milliseconds";
+}
+
+
+void srtSurface_test::benchmark_JITcompilation()
+{
+  srtSurface s1(this);
+
+  QBENCHMARK {
+    s1.setEquation("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2+0");
+    s1.setEquation("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
+  }
 }
 
 
