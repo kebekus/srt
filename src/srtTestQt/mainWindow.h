@@ -1,3 +1,4 @@
+#warning copyright missing
 
 #include <QMainWindow>
 #include "srtScene.h"

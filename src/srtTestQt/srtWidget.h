@@ -1,3 +1,6 @@
+#warning copyright missing
+
+
 #ifndef SRTWIDGET
 #define SRTWIDGET
 

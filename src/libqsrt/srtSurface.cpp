@@ -54,7 +54,7 @@ void srtSurface::setA(qreal a)
   
   _a = a;
   emit changed();
-  creturn;
+  return;
 }
 
 
