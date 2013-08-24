@@ -170,7 +170,7 @@ int srtSurface::errorIndex()
   QReadLocker privatMemberLocker(&privateMemberLock);
 
   if (hasError())
-    return qBound(0, _errorIndex, _errorString.size());
+    return _errorIndex;
 
   return 0;
 }
