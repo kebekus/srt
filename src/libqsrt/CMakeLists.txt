@@ -14,14 +14,19 @@ set_target_properties(qsrt PROPERTIES AUTOMOC TRUE)
 
 # Unit tests
 ADD_EXECUTABLE( qsrt_tests
+  qsrt_tests.cpp
   srt_test.cpp
-  srtCamera.cpp
-  srtScene.cpp
-  srtSurface.cpp
   srtSurface_test.cpp
-  tests.cpp
   )
-TARGET_LINK_LIBRARIES( qsrt_tests srt ${QT_QTTEST_LIBRARY} ${QT_LIBRARIES} )
+TARGET_LINK_LIBRARIES( qsrt_tests qsrt ${QT_QTTEST_LIBRARY} ${QT_LIBRARIES} )
+set_target_properties(qsrt_tests PROPERTIES AUTOMOC TRUE)
+
+
+# Memory test
+ADD_EXECUTABLE( qsrt_memtest
+  qsrt_memtest.cpp
+  )
+TARGET_LINK_LIBRARIES( qsrt_memtest qsrt ${QT_LIBRARIES} )
 set_target_properties(qsrt_tests PROPERTIES AUTOMOC TRUE)
 
 

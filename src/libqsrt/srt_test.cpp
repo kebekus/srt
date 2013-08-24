@@ -61,3 +61,17 @@ void srt_test::parser_constantA()
   QVERIFY( !(img1 == img2) );
   QVERIFY( img1 == img3 );
 }
+
+
+void srt_test::multipleSurfaces()
+{
+  srtScene scene1;
+  scene1.surface.setEquation("x^2+z^2-y^2+1");
+  QImage img1 = scene1.draw( QSize(100,100) );
+
+  srtScene scene2;
+  scene2.surface.setEquation("x^2+z^2-y^2+2");
+  QImage img2 = scene1.draw( QSize(100,100) );
+  
+  QVERIFY( img1 == img2 );
+}

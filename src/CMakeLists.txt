@@ -46,7 +46,7 @@ find_package(Doxygen REQUIRED)
 #
 # General compiler settings
 #
-add_definitions( -march=native -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
+add_definitions( -msse2 -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
 
 

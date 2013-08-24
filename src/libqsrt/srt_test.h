@@ -10,4 +10,5 @@
    void parser_errorReporting();
    void parser_floatParsing();
    void parser_constantA();
+   void multipleSurfaces();
  };

@@ -1,9 +1,6 @@
 project(libsrt)
 
-
-add_definitions( -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
-SET( CMAKE_C_FLAGS  "-std=c99 -march=native" )
-
+#add_definitions( -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
 add_custom_command(
   OUTPUT value_bc.h
