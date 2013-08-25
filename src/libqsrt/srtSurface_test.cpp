@@ -1,4 +1,22 @@
-#warning copyright info
+/***************************************************************************
+ *   Copyright (C) 2013 Stefan Kebekus                                     *
+ *   stefan.kebekus@math.uni-freiburg.de                                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #include <QtTest/QtTest>
 
@@ -73,7 +91,7 @@ void srtSurface_test::equationProperty()
   srtSurface s1(this);
   QVERIFY( s1.isEmpty() );
   QVERIFY( !s1.hasError() );
-  QVERIFY( s1.getEquation().isEmpty() );  
+  QVERIFY( s1.equation().isEmpty() );  
 
   // Count number of times that the surface changes
   connect(&s1, SIGNAL(changed()), this, SLOT(increaseCounter()));
@@ -83,10 +101,10 @@ void srtSurface_test::equationProperty()
   QString eq("x^2+y^2-z^2-a");
   s1.setEquation(eq);
   QVERIFY( !s1.isEmpty() );
-  QVERIFY( s1.getEquation() == eq );
+  QVERIFY( s1.equation() == eq );
   QVERIFY( !s1.hasError() );
   QVERIFY( s1.errorString().isEmpty() );
-  QVERIFY( s1.getEquation() == eq );
+  QVERIFY( s1.equation() == eq );
 
   // Setting same equation one more time should not increase the counter
   s1.setEquation(eq);
@@ -95,16 +113,16 @@ void srtSurface_test::equationProperty()
   s1.setEquation();
   QVERIFY( s1.isEmpty() );
   QVERIFY( !s1.hasError() );
-  QVERIFY( s1.getEquation().isEmpty() );  
+  QVERIFY( s1.equation().isEmpty() );  
 
   // Set wrong equation
   eq = "x^2+y^2-z^2-goof";
   s1.setEquation(eq);
   QVERIFY( !s1.isEmpty() );
-  QVERIFY( s1.getEquation() == eq );
+  QVERIFY( s1.equation() == eq );
   QVERIFY( s1.hasError() );
   QVERIFY( !s1.errorString().isEmpty() );
-  QVERIFY( s1.getEquation() == eq );
+  QVERIFY( s1.equation() == eq );
 
   // Setting same equation one more time should not increase the counter
   s1.setEquation("x^2+y^2-z^2-goof");
@@ -116,9 +134,8 @@ void srtSurface_test::equationProperty()
 
 void srtSurface_test::aProperty()
 {
-  // Newly constructed equations should be empty.
   srtSurface s1("x", 1.0, this);
-  QVERIFY( s1.getA() == 1.0 );
+  QVERIFY( s1.a() == 1.0 );
 
   // Count number of times that the surface changes
   connect(&s1, SIGNAL(changed()), this, SLOT(increaseCounter()));
@@ -127,8 +144,98 @@ void srtSurface_test::aProperty()
   // Set correct equation
   qreal a = 1.5;
   s1.setA(a);
-  QVERIFY( s1.getA() == a );
+  QVERIFY( s1.a() == a );
 
   // Check counter
+  QVERIFY( counter == 1 );
+}
+
+
+void srtSurface_test::serialization()
+{
+  // Create two different surfaces
+  srtSurface s1("x", 1.0, this);
+  srtSurface s2(this);
+
+  // Count number of times that the surface changes
+  connect(&s2, SIGNAL(changed()), this, SLOT(increaseCounter()));
+  counter = 0;
+
+  // Get a temporary file
+  QTemporaryFile file;
+
+  // Write s1 to a file
+  file.open();
+  QDataStream out(&file);
+  out << s1;
+  file.close();
+
+  // Read s2 from that file
+  file.open();
+  QDataStream in(&file);
+  in >> s2;
+  file.close();
+
+  // The two should now be equal
+  QVERIFY( s1 == s2 );
+  QVERIFY( counter == 1 );
+  counter = 0;
+
+  // Read s2 again, check that counter did not change
+  file.open();
+  in >> s2;
+  file.close();
+  QVERIFY( counter == 0 );
+
+  // Now write garbage to the file
+  file.open();
+  out << "Lirum Larum Löffelstiel";
+  file.close();
+  
+  // Read s2 from that file
+  file.open();
+  in >> s2;
+  file.close();
+
+  // The two should no longer be equal, s2 shoud have an error condition set
+  QVERIFY( s1 != s2 );
+  QVERIFY( s2.hasError() );
+  QVERIFY( s2.errorIndex() == -1 );
+  QVERIFY( counter == 1 );
+}
+
+
+void srtSurface_test::conversionQByteArray()
+{
+  // Create two different surfaces
+  srtSurface s1("x", 1.0, this);
+  srtSurface s2(this);
+  QVERIFY( s1 != s2 );
+
+  // Count number of times that the surface changes
+  connect(&s2, SIGNAL(changed()), this, SLOT(increaseCounter()));
+  counter = 0;
+
+  QByteArray ar=s1;
+  s2.load(ar);
+  QVERIFY( s1 == s2 );
+  QVERIFY( counter == 1 );
+}
+
+
+void srtSurface_test::conversionQVariant()
+{
+  // Create two different surfaces
+  srtSurface s1("x", 1.0, this);
+  srtSurface s2(this);
+  QVERIFY( s1 != s2 );
+
+  // Count number of times that the surface changes
+  connect(&s2, SIGNAL(changed()), this, SLOT(increaseCounter()));
+  counter = 0;
+
+  QVariant var=s1;
+  s2.load(var);
+  QVERIFY( s1 == s2 );
   QVERIFY( counter == 1 );
 }

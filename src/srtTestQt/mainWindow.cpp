@@ -1,6 +1,25 @@
-#warning copyright info
+/***************************************************************************
+ *   Copyright (C) 2013 Stefan Kebekus                                     *
+ *   stefan.kebekus@math.uni-freiburg.de                                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #include <QCloseEvent>
+#include <QDebug>
 #include <QSettings>
 #include "mainWindow.h"
 
@@ -33,10 +52,13 @@ mainWindow::mainWindow(QWidget *parent)
   connect( ui.actionSurface_7, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface7()) );
   connect( ui.actionSurface_8, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface8()) );
 
-  scene.surface.setEquation(ui.equation->text());
   ui.sceneWidget->setScene(&scene);
 
-  setSampleSurface8();
+  scene.surface.load(settings.value("mainWindow/surface"));
+  if (scene.surface.isEmpty())
+    setSampleSurface8();
+  else
+    adjustGUItoScene();
 }
 
 
@@ -53,6 +75,7 @@ void mainWindow::closeEvent(QCloseEvent *event)
   if (!isFullScreen()) {
     settings.setValue("mainWindow/geometry", saveGeometry());
     settings.setValue("mainWindow/windowState", saveState());
+    settings.setValue("mainWindow/surface", scene.surface );
   }
   
   event->accept();
@@ -144,9 +167,9 @@ void mainWindow::sliderMoved(int val)
 
 void mainWindow::adjustGUItoScene()
 {
-  ui.equation->setText( scene.surface.getEquation() );
+  ui.equation->setText( scene.surface.equation() );
   ui.equation->setCursorPosition(0);
   
-  int val = qBound( ui.aSlider->minimum(), (int)floor(scene.surface.getA()*100.0+0.5), ui.aSlider->maximum() );
+  int val = qBound( ui.aSlider->minimum(), (int)floor(scene.surface.a()*100.0+0.5), ui.aSlider->maximum() );
   ui.aSlider->setValue(val);  
 }

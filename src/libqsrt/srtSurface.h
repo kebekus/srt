@@ -1,4 +1,22 @@
-#warning copyright notice missing
+/***************************************************************************
+ *   Copyright (C) 2013 Stefan Kebekus                                     *
+ *   stefan.kebekus@math.uni-freiburg.de                                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #ifndef SRTSURFACE
 #define SRTSURFACE
@@ -7,6 +25,7 @@
 #include <QObject>
 #include <QReadWriteLock>
 #include <QString>
+#include <QVariant>
 
 #warning the user of libqsrt should never include this
 extern "C" {
@@ -16,7 +35,6 @@ extern "C" {
 }
 
 class srtScene;
-
 
 
 /**
@@ -54,10 +72,10 @@ class srtSurface : public QObject
   *
   * This string defines a polynomial in variables x, y and z, and an additional
   * constant a, for example instance "x^2+y^2-z^2-a". Use the methods
-  * getEquation() and setEquation() to access the property. The signal changed()
+  * equation() and setEquation() to access the property. The signal changed()
   * is emitted whenever this property changes.
   */
-  Q_PROPERTY(QString equation READ getEquation WRITE setEquation NOTIFY changed);
+  Q_PROPERTY(QString equation READ equation WRITE setEquation NOTIFY changed);
 
  /**
   * \brief Constant used in the polynomial equation
@@ -65,10 +83,10 @@ class srtSurface : public QObject
   * This float defines a constant which is used when the polynomial is
   * evaluates. While setting a new equation string is slow because of the JIT
   * compiler involved, changing the constant a is extremely fast. Use the
-  * methods getA() and setA() to access the property. The signal changed() is
+  * methods a() and setA() to access the property. The signal changed() is
   * emitted whenever this property changes.
   */
-  Q_PROPERTY(qreal a READ getA WRITE setA NOTIFY changed);
+  Q_PROPERTY(qreal a READ a WRITE setA NOTIFY changed);
 
  public:
   /**
@@ -87,6 +105,10 @@ class srtSurface : public QObject
    * \brief Constructs an algebraic surface
    *
    * @param equation String which will be passed on to setEquation()
+   *
+   * @param a A real number that is substituted for the constant 'a' when the
+   * surface is rendered.
+   *
    * @param parent Standard argument for the QObject constructor
    *
    * Convenience constructor which calls the default constructor then then sets
@@ -129,7 +151,7 @@ class srtSurface : public QObject
    *
    * @see setA()
    */
-  qreal getA();
+  qreal a();
 
   /**
    * \brief Returns the equation set with setEquation().
@@ -138,7 +160,7 @@ class srtSurface : public QObject
    *
    * @see setEquation()
    */
-  QString getEquation();
+  QString equation();
 
   /**
    * \brief Returns error status
@@ -179,6 +201,12 @@ class srtSurface : public QObject
    */
   int errorIndex();
 
+  operator QByteArray(); 
+  operator QVariant() {return QVariant( QByteArray(*this));}; 
+
+  void load(QByteArray ar);
+  void load(QVariant var) {load(var.toByteArray());};
+
  public slots:
   /**
    * \brief Specifies the constant a
@@ -192,7 +220,7 @@ class srtSurface : public QObject
    * in another thread, the method will block until the rendering process
    * terminates.
    *
-   * @see getA()
+   * @see a()
    */
   void setA(qreal a=0);
 
@@ -220,7 +248,7 @@ class srtSurface : public QObject
    * another thread, the method will block until the rendering process
    * terminates.
    *
-   * @see getEquation()
+   * @see equation()
    */
   void setEquation(const QString &equation=QString::null);
  
@@ -239,6 +267,14 @@ class srtSurface : public QObject
 
  private:
   friend class srtScene;
+  friend bool operator== (srtSurface& s1, srtSurface& s2);
+  friend QDataStream & operator<< (QDataStream& out, srtSurface& surface);
+  friend QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
+
+#warning documentation
+  bool _setEquation(const QString &equation);
+  bool _setA(qreal a);
+  void _clear();
 
   // Default constructor. I have implemented this as a separate, private method
   // so that more than one constructor implementation can use method --calling
@@ -287,5 +323,17 @@ class srtSurface : public QObject
   v4sf (*curve)(m34sf v, float a);
 
 };
+
+#warning documentation!
+QDataStream & operator<< (QDataStream& out, srtSurface& surface);
+
+#warning documentation!
+QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
+
+#warning documentation!
+bool operator== (srtSurface& s1, srtSurface& s2);
+
+#warning documentation!
+bool operator!= (srtSurface& s1, srtSurface& s2);
 
 #endif
