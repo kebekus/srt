@@ -4,10 +4,10 @@
 extern "C" {
 #include "error.h"
 #include "deriv.h"
-#include "jit.h"
 #include "reduce.h"
 #include "value_bc.h"
 }
+#include "jit.h"
 
 // Static Variables
 QMutex      srtSurface::parserSerialization;

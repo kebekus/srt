@@ -13,9 +13,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <llvm-c/BitReader.h>
 #include <llvm-c/Transforms/Scalar.h>
 #include <llvm-c/Transforms/IPO.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "cbind.h"
 #include "jit.h"
 
 struct jit
@@ -27,9 +28,21 @@ struct jit
 	LLVMMemoryBufferRef bc;
 };
 
+LLVMMemoryBufferRef LLVMGetMemoryBufferFromArray(const char *Array, unsigned Length)
+{
+	assert(Array);
+	assert(Length);
+	return llvm::wrap(llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(Array, Length), "", false));
+}
+
+void *LLVMGetPointerToFunction(LLVMExecutionEngineRef EE, LLVMValueRef F)
+{
+	return llvm::unwrap(EE)->getPointerToFunction(llvm::unwrap<llvm::Function>(F));
+}
+
 void parser_reset_jit(struct parser_jit *parser_jit)
 {
-	struct jit *jit = parser_jit->data;
+	struct jit *jit = (struct jit *)parser_jit->data;
 	char *error = 0;
 	if (LLVMRemoveModule(jit->engine, jit->module, &jit->module, &error)) {
 		fprintf(stderr, "LLVMRemoveModule:\n%s\n", error);
@@ -56,7 +69,7 @@ struct parser_jit *parser_alloc_jit(char *bc, int len)
 {
 	LLVMLinkInJIT();
 	LLVMInitializeNativeTarget();
-	struct jit *jit = malloc(sizeof(struct jit));
+	struct jit *jit = (struct jit *)malloc(sizeof(struct jit));
 
 	jit->bc = 0;
 	if (bc && len)
@@ -94,7 +107,7 @@ struct parser_jit *parser_alloc_jit(char *bc, int len)
 	LLVMAddCFGSimplificationPass(jit->pass);
 	LLVMAddFunctionInliningPass(jit->pass);
 
-	struct parser_jit *parser_jit = malloc(sizeof(struct parser_jit));
+	struct parser_jit *parser_jit = (struct parser_jit *)malloc(sizeof(struct parser_jit));
 	parser_jit->data = jit;
 	return parser_jit;
 }
@@ -153,7 +166,7 @@ static LLVMValueRef emit(LLVMBuilderRef builder, struct parser_node *node, LLVMV
 
 void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, const char *name)
 {
-	struct jit *jit = parser_jit->data;
+	struct jit *jit = (struct jit *)parser_jit->data;
 	LLVMValueRef func;
 	if (LLVMFindFunction(jit->engine, name, &func)) {
 		LLVMTypeRef args[] = {
@@ -180,7 +193,7 @@ void parser_jit_build(struct parser_jit *parser_jit, struct parser_tree *tree, c
 
 void parser_jit_link(struct parser_jit *parser_jit)
 {
-	struct jit *jit = parser_jit->data;
+	struct jit *jit = (struct jit *)parser_jit->data;
 	char *error = 0;
 	if (LLVMVerifyModule(jit->module, LLVMReturnStatusAction, &error)) {
 		fprintf(stderr, "LLVMVerifyModule:\n%s\n", error);
@@ -204,7 +217,7 @@ void parser_jit_link(struct parser_jit *parser_jit)
 
 void *parser_jit_func(struct parser_jit *parser_jit, const char *name)
 {
-	struct jit *jit = parser_jit->data;
+	struct jit *jit = (struct jit *)parser_jit->data;
 	LLVMValueRef func;
 	if (LLVMFindFunction(jit->engine, name, &func)) {
 		fprintf(stderr, "LLVMFindFunction\n");
@@ -215,7 +228,7 @@ void *parser_jit_func(struct parser_jit *parser_jit, const char *name)
 
 void parser_free_jit(struct parser_jit *parser_jit)
 {
-	struct jit *jit = parser_jit->data;
+	struct jit *jit = (struct jit *)parser_jit->data;
 	LLVMDisposeMemoryBuffer(jit->bc);
 	LLVMDisposeExecutionEngine(jit->engine);
 	LLVMDisposePassManager(jit->pass);
