@@ -15,8 +15,7 @@ add_library(srt SHARED
   deriv.c
   error.c
   eval.c
-  cbind.cpp
-  jit.c
+  jit.cpp
   parser.c
   reduce.c
   value_bc.h

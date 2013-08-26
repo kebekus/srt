@@ -25,10 +25,10 @@ extern "C" {
 #include "deriv.h"
 #include "error.h"
 #include "reduce.h"
-#include "jit.h"
 #include "stripe_data.h"
 #include "value_bc.h"
 }
+#include "jit.h"
 
 int64_t (*stripe)(struct stripe_data *sd, int j);
 v4sf (*curve)(m34sf v, float a);
