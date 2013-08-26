@@ -39,7 +39,7 @@ srtSurface::~srtSurface()
   parser_free_tree(deriv_tree[0]);
   parser_free_tree(deriv_tree[1]);
   parser_free_tree(deriv_tree[2]);
-  parser_free_jit(jit);
+  delete jit;
 }
 
 
@@ -104,15 +104,15 @@ void srtSurface::setEquation(const QString &equation)
     }
   }
 
-  parser_reset_jit(jit);
-  parser_jit_build(jit, curve_tree, "curve_xyza");
-  parser_jit_build(jit, deriv_tree[0], "deriv_x");
-  parser_jit_build(jit, deriv_tree[1], "deriv_y");
-  parser_jit_build(jit, deriv_tree[2], "deriv_z");
-  parser_jit_link(jit);
+  jit->reset();
+  jit->build(curve_tree, "curve_xyza");
+  jit->build(deriv_tree[0], "deriv_x");
+  jit->build(deriv_tree[1], "deriv_y");
+  jit->build(deriv_tree[2], "deriv_z");
+  jit->link();
 
-  stripe = (int64_t (*)(struct stripe_data *, int))parser_jit_func(jit, "stripe");
-  curve = (v4sf (*)(m34sf, float))parser_jit_func(jit, "curve");
+  stripe = (int64_t (*)(struct stripe_data *, int))jit->func("stripe");
+  curve = (v4sf (*)(m34sf, float))jit->func("curve");
   
   emit changed();
   return;
@@ -187,7 +187,7 @@ void srtSurface::construct()
 
   // Initialize JIT parser interna. 
 #warning I do not properly understand what that is. How do we ever free this data?
-  jit           = parser_alloc_jit((char *)value_bc, value_bc_len);
+  jit           = new parser::jit((char *)value_bc, value_bc_len);
   curve_tree    = parser_alloc_tree(8192);
   deriv_tree[0] = parser_alloc_tree(8192);
   deriv_tree[1] = parser_alloc_tree(8192);

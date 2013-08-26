@@ -14,6 +14,7 @@ extern "C" {
 #include "matrix.h"
 #include "parser.h"
 }
+#include "jit.h"
 
 class srtScene;
 
@@ -273,7 +274,7 @@ class srtSurface : public QObject
 
   // Pointer to parser interna. 
 #warning I do not properly understand what that is.
-  struct parser_jit *jit;
+  class parser::jit *jit;
   struct parser_tree *curve_tree;
   struct parser_tree *deriv_tree[3];
 

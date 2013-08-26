@@ -35,13 +35,13 @@ v4sf (*curve)(m34sf v, float a);
 
 int jit_curve(struct edit *edit)
 {
-	static struct parser_jit *jit;
+	static class parser::jit *jit;
 	static struct parser_tree *curve_tree;
 	static struct parser_tree *deriv_tree[3];
 
 	static int init = 0;
 	if (!init) {
-		jit = parser_alloc_jit((char *)value_bc, value_bc_len);
+		jit = new parser::jit((char *)value_bc, value_bc_len);
 		curve_tree = parser_alloc_tree(8192);
 		for (int j = 0; j < 3; j++)
 			deriv_tree[j] = parser_alloc_tree(8192);
@@ -62,15 +62,15 @@ int jit_curve(struct edit *edit)
 			return 0;
 		}
 	}
-	parser_reset_jit(jit);
-	parser_jit_build(jit, curve_tree, "curve_xyza");
-	parser_jit_build(jit, deriv_tree[0], "deriv_x");
-	parser_jit_build(jit, deriv_tree[1], "deriv_y");
-	parser_jit_build(jit, deriv_tree[2], "deriv_z");
+	jit->reset();
+	jit->build(curve_tree, "curve_xyza");
+	jit->build(deriv_tree[0], "deriv_x");
+	jit->build(deriv_tree[1], "deriv_y");
+	jit->build(deriv_tree[2], "deriv_z");
 
-	parser_jit_link(jit);
-	stripe = (int64_t (*)(struct stripe_data *, int))parser_jit_func(jit, "stripe");
-	curve = (v4sf (*)(m34sf, float))parser_jit_func(jit, "curve");
+	jit->link();
+	stripe = (int64_t (*)(struct stripe_data *, int))jit->func("stripe");
+	curve = (v4sf (*)(m34sf, float))jit->func("curve");
 
 	edit_msg(edit, 0, 0);
 
