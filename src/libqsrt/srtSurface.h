@@ -53,10 +53,12 @@ class srtScene;
  *   method isEmpty() to check if your surface is empty.
  *
  * - If setEquation() has been called with a string that does not contain a
- *   well-formed polynomial, then an error condition will be set. Surfaces with
- *   error conditions cannot be rendered. Use the method hasError() to check if
- *   an error condition is set, and use the methods errorString() and
- *   errorIndex() to obtain a description of the error.
+ *   well-formed polynomial, then an error condition will be set. An error
+ *   condition may also be set by the method load(), or when trying to read a
+ *   suface object from a QDataStream. Surfaces with error conditions cannot be
+ *   rendered. Use the method hasError() to check if an error condition is set,
+ *   and use the methods errorString() and errorIndex() to obtain a description
+ *   of the error.
  *
  * All methods of the class are reentrant and thread-safe.
  *
@@ -201,11 +203,74 @@ class srtSurface : public QObject
    */
   int errorIndex();
 
-  operator QByteArray(); 
+  /**
+   * \brief Saves the surface an into a QByteArray
+   *
+   * This method serializes the surface into a QByteArray. The data can be
+   * loaded back into a surface object using the method load.
+   *
+   * @see load()
+   */
+  operator QByteArray();
+
+  /**
+   * \brief Saves the surface an into a QVariant object
+   *
+   * This convenience method serializes the surface into a QVariant object,
+   * which contains a QByteArray. The data can be loaded back into a surface
+   * object using the method load. This allows to conveniently store a surface
+   * into an application's settings.
+   *
+   * @code
+   * // Save surface surf
+   * QSettings settings;
+   * settings.setValue("mainWindow/surface", surface );
+   * ...
+   * @endcode
+   * @code
+   * // Restore surface surf
+   * QSettings settings;
+   * surface.load(settings.value("mainWindow/surface"));
+   * ...
+   * @endcode
+   *
+   * @see load()
+   */
   operator QVariant() {return QVariant( QByteArray(*this));}; 
 
-  void load(QByteArray ar);
+  /**
+   * \brief Restores previously saved surface attributes
+   * 
+   * This method restores a previously saved srtSurface object by reading in
+   * saved properties from a serialized srtSurface and setting the properties in
+   * the present object. The signal changed() might be emitted.
+   *
+   * If the QByteArray does not contain a properly serialized srtSurface object,
+   * the surface is clear()ed, and an error condition is set.
+   *
+   * @param array A QByteArrary containing a serialized srtSurface object, as
+   * produced by the operator QByteArray().
+   */
+  void load(QByteArray array);
+
+  /**
+   * \brief Restores previously saved surface attributes
+   * 
+   * This method restores a previously saved srtSurface object by reading in
+   * saved properties from a serialized srtSurface and setting the properties in
+   * the present object. The signal changed() might be emitted.
+   *
+   * If the QVariant does not contain a QByteArray containing a properly
+   * serialized srtSurface object, the surface is clear()ed, and an error
+   * condition is set.
+   *
+   * @param array A QByteArrary containing a serialized srtSurface object, as
+   * produced by the operator QVariant().
+   */
   void load(QVariant var) {load(var.toByteArray());};
+
+#warning documentation
+  void clear();
 
  public slots:
   /**
@@ -268,12 +333,14 @@ class srtSurface : public QObject
  private:
   friend class srtScene;
   friend bool operator== (srtSurface& s1, srtSurface& s2);
+  friend bool operator!= (srtSurface& s1, srtSurface& s2);
   friend QDataStream & operator<< (QDataStream& out, srtSurface& surface);
   friend QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
 
 #warning documentation
   bool _setEquation(const QString &equation);
   bool _setA(qreal a);
+#warning documentation
   void _clear();
 
   // Default constructor. I have implemented this as a separate, private method
@@ -325,15 +392,32 @@ class srtSurface : public QObject
 };
 
 #warning documentation!
+/**
+ * \brief serialisation
+ *
+ * Rhabarbar
+ */
 QDataStream & operator<< (QDataStream& out, srtSurface& surface);
 
 #warning documentation!
 QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
 
-#warning documentation!
+/**
+ * \brief Checks two srtSurfaces for equality
+ *
+ * Two surfaces are considered equal if all their properties agree.
+ *
+ * @returns true on equality
+ */
 bool operator== (srtSurface& s1, srtSurface& s2);
 
-#warning documentation!
+/**
+ * \brief Checks two srtSurfaces for inequality
+ *
+ * Two surfaces are considered unequal if one property disagrees.
+ *
+ * @returns true on inequality
+ */
 bool operator!= (srtSurface& s1, srtSurface& s2);
 
 #endif
