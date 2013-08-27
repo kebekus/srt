@@ -6,15 +6,6 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#include <llvm-c/Core.h>
-#include <llvm-c/Analysis.h>
-#include <llvm-c/ExecutionEngine.h>
-#include <llvm-c/Target.h>
-#include <llvm-c/BitReader.h>
-#include <llvm-c/Transforms/Scalar.h>
-#include <llvm-c/Transforms/IPO.h>
-#include <llvm/Support/MemoryBuffer.h>
-#include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "jit.h"
