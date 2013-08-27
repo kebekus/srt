@@ -27,15 +27,9 @@
 #include <QString>
 #include <QVariant>
 
-#warning the user of libqsrt should never include this
-extern "C" {
-#include "vector.h"
-#include "matrix.h"
-#include "parser.h"
-}
-#include "jit.h"
-
+// srt classes used by private members
 class srtScene;
+namespace parser{class jit;}
 
 
 /**
@@ -205,22 +199,22 @@ class srtSurface : public QObject
   int errorIndex();
 
   /**
-   * \brief Saves the surface an into a QByteArray
+   * \brief Write surface properties into a QByteArray
    *
-   * This method serializes the surface into a QByteArray. The data can be
-   * loaded back into a surface object using the method load.
+   * This method writes all properties of the surface into a QByteArray. The
+   * data can be loaded back into a surface object using the method load().
    *
    * @see load()
    */
   operator QByteArray();
 
   /**
-   * \brief Saves the surface an into a QVariant object
+   * \brief Write surface properties into a QVariant object
    *
-   * This convenience method serializes the surface into a QVariant object,
-   * which contains a QByteArray. The data can be loaded back into a surface
-   * object using the method load. This allows to conveniently store a surface
-   * into an application's settings.
+   * This method writes all properties of the surface into a QVariant
+   * object. The data can be loaded back into a surface object using the method
+   * load(). This allows to conveniently store a surface into an application's
+   * settings.
    *
    * @code
    * // Save surface surf
@@ -240,40 +234,38 @@ class srtSurface : public QObject
   operator QVariant() {return QVariant( QByteArray(*this));}; 
 
   /**
-   * \brief Restores previously saved surface attributes
+   * \brief Restore surface properties
    * 
-   * This method restores a previously saved srtSurface object by reading in
-   * saved properties from a serialized srtSurface and setting the properties in
-   * the present object. The signal changed() might be emitted.
+   * This method reads previously saved surface properties and sets these
+   * properties in the present object. The signal changed() might be emitted.
    *
-   * If the QByteArray does not contain a properly serialized srtSurface object,
-   * the surface is clear()ed, and an error condition is set.
+   * On error, the surface is clear()ed, and an error condition is set.
    *
-   * @param array A QByteArrary containing a serialized srtSurface object, as
-   * produced by the operator QByteArray().
+   * @param array A QByteArrary, as produced by the operator QByteArray().
    */
   void load(QByteArray array);
 
   /**
-   * \brief Restores previously saved surface attributes
+   * \brief Restore previously saved surface attributes
    * 
-   * This method restores a previously saved srtSurface object by reading in
-   * saved properties from a serialized srtSurface and setting the properties in
-   * the present object. The signal changed() might be emitted.
+   * This method reads previously saved surface properties and sets these
+   * properties in the present object. The signal changed() might be emitted.
    *
-   * If the QVariant does not contain a QByteArray containing a properly
-   * serialized srtSurface object, the surface is clear()ed, and an error
-   * condition is set.
+   * On error, the surface is clear()ed, and an error condition is set.
    *
-   * @param array A QByteArrary containing a serialized srtSurface object, as
-   * produced by the operator QVariant().
+   * @param var A QVariant, as produced by the operator QVariant().
    */
   void load(QVariant var) {load(var.toByteArray());};
 
-#warning documentation
+ public slots:
+  /**
+   * \brief Sets all properties to default values
+   * 
+   * This methodd sets all properties to default values. Afterwards, the surface
+   * is empty. The signal changed() might be emitted.
+   */
   void clear();
 
- public slots:
   /**
    * \brief Specifies the constant a
    *
@@ -338,11 +330,12 @@ class srtSurface : public QObject
   friend QDataStream & operator<< (QDataStream& out, srtSurface& surface);
   friend QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
 
-#warning documentation
+  // These methods implement the functionality for setEquation, setA, etc, but
+  // do not emit the signal changed() and do use the privateMember lock. They
+  // return 'true' if the properties of the surface really did change.
   bool _setEquation(const QString &equation);
   bool _setA(qreal a);
-#warning documentation
-  void _clear();
+  bool _clear();
 
   // Default constructor. I have implemented this as a separate, private method
   // so that more than one constructor implementation can use method --calling
@@ -377,34 +370,33 @@ class srtSurface : public QObject
 
   // Pointer to parser interna. 
 #warning I do not properly understand what that is.
-  class parser::jit *jit;
+  parser::jit *jit;
   struct parser_tree *curve_tree;
   struct parser_tree *deriv_tree[3];
-
-
-#warning this should not be left open
-#warning non-qt types used here which should be hidden
   int64_t (*stripe)(struct stripe_data *sd, int j);
-#warning this should not be left open
-#warning non-qt types used here which should be hidden
-#warning It seems that this is never used
-  v4sf (*curve)(m34sf v, float a);
-
 };
 
-#warning documentation!
+
 /**
- * \brief serialisation
+ * \brief Write surface properties into a QDataStream
  *
- * Rhabarbar
+ * This method writes all properties of the surface into a QDataStream. The data
+ * can be loaded back into a surface object using the operator >>.
  */
 QDataStream & operator<< (QDataStream& out, srtSurface& surface);
 
-#warning documentation!
+/**
+ * \brief Read surface properties from a QDataStream
+ * 
+ * This method reads previously saved surface properties and sets these
+ * properties in the present object. The signal changed() might be emitted.
+ *
+ * On error, the surface is clear()ed, and an error condition is set.
+ */
 QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
 
 /**
- * \brief Checks two srtSurfaces for equality
+ * \brief Check two srtSurfaces for equality
  *
  * Two surfaces are considered equal if all their properties agree.
  *
@@ -413,7 +405,7 @@ QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
 bool operator== (srtSurface& s1, srtSurface& s2);
 
 /**
- * \brief Checks two srtSurfaces for inequality
+ * \brief Check two srtSurfaces for inequality
  *
  * Two surfaces are considered unequal if one property disagrees.
  *

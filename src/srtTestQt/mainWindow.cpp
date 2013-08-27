@@ -18,9 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <math.h>
 #include <QCloseEvent>
 #include <QDebug>
 #include <QSettings>
+
 #include "mainWindow.h"
 
 
@@ -172,7 +174,7 @@ void mainWindow::sceneChanged()
 
   // Show or clear error message in the status bar.
   if (scene.surface.hasError()) 
-    statusBar()->showMessage(scene.surface.errorString(), 2000);
+    statusBar()->showMessage(scene.surface.errorString(), 5000);
   else
     statusBar()->clearMessage();
 }

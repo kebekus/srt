@@ -64,6 +64,40 @@ srtSurface::~srtSurface()
 }
 
 
+void srtSurface::clear()
+{
+  // Get write access to private members
+  privateMemberLock.lockForWrite();
+  bool change = _clear();
+  privateMemberLock.unlock();
+
+  if (change)
+    emit changed();
+
+  return;
+}
+
+
+bool srtSurface::_clear()
+{
+  bool changed = false;
+
+  changed |=  (_a == 0.0);
+  _a = 0.0;
+
+  changed |=  (_equation.isEmpty());
+  _equation = QString::null;
+
+  changed |=  (_errorString.isEmpty());
+  _errorString = QString::null;
+
+  changed |=  (_errorIndex == 0);
+  _errorIndex = 0;
+
+  return changed;
+}
+
+
 void srtSurface::setA(qreal a)
 {
   // Get write access to private members
@@ -149,7 +183,6 @@ bool srtSurface::_setEquation(const QString &equation)
   jit->link();
 
   stripe = (int64_t (*)(struct stripe_data *, int))jit->func("stripe");
-  curve = (v4sf (*)(m34sf, float))jit->func("curve");
   
   return true;
 }
@@ -240,7 +273,11 @@ void srtSurface::load(QByteArray ar)
 
 void srtSurface::construct()
 {
-  _clear();
+  _equation    = QString::null;
+  _errorString = QString::null;
+  _errorIndex  = 0;
+  _a           = 0;
+  stripe       = 0;
 
   // Initialize JIT parser interna. 
 #warning I do not properly understand what that is. How do we ever free this data?
@@ -249,17 +286,6 @@ void srtSurface::construct()
   deriv_tree[0] = parser_alloc_tree(8192);
   deriv_tree[1] = parser_alloc_tree(8192);
   deriv_tree[2] = parser_alloc_tree(8192);
-}
-
-
-void srtSurface::_clear()
-{
-  _equation    = QString::null;
-  _errorString = QString::null;
-  _errorIndex  = 0;
-  _a           = 0;
-  stripe       = 0;
-  curve        = 0;
 }
 
 

@@ -95,8 +95,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionQuit">
    <property name="icon">
-    <iconset resource="srtTestQt.qrc">
-     <normaloff>:/icons/quit.png</normaloff>:/icons/quit.png</iconset>
+    <iconset theme="application-exit"/>
    </property>
    <property name="text">
     <string>Quit</string>

@@ -54,9 +54,14 @@ void srtWidget::paintEvent(QPaintEvent *event)
 
   if (!scene.isNull())
     if (!scene->surface.isEmpty() && !scene->surface.hasError()) {
-      QImage img = scene->draw( QSize(frameRect().width()-2*frameWidth(), frameRect().height()-2*frameWidth()) );
-      if (!img.isNull())
-	painter.drawImage( QPoint(frameWidth(), frameWidth()), img);
+      int width  = frameRect().width()-2*frameWidth();
+      int height = frameRect().height()-2*frameWidth();
+
+      QImage img = scene->draw( QSize(2*width, 2*height) );
+      if (!img.isNull()) {
+	QImage scaled = img.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+	painter.drawImage( QPoint(frameWidth(), frameWidth()), scaled);
+      }
     }
 
   painter.end();
