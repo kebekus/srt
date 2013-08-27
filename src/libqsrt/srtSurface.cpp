@@ -30,18 +30,20 @@ extern "C" {
 }
 #include "jit.h"
 
+namespace qsrt {
+
 // Static Variables
-QMutex      srtSurface::parserSerialization;
+QMutex      Surface::parserSerialization;
 
 
-srtSurface::srtSurface(QObject *parent)
+Surface::Surface(QObject *parent)
   : QObject(parent), privateMemberLock(QReadWriteLock::Recursive)
 {
   construct();
 }
 
 
-srtSurface::srtSurface(const QString &equation, qreal a, QObject *parent)
+Surface::Surface(const QString &equation, qreal a, QObject *parent)
   : QObject(parent), privateMemberLock(QReadWriteLock::Recursive)
 {
   construct();
@@ -50,7 +52,7 @@ srtSurface::srtSurface(const QString &equation, qreal a, QObject *parent)
 }
 
 
-srtSurface::~srtSurface()
+Surface::~Surface()
 {
   // Get write access to private members. Wait till the last reader has finished
   QWriteLocker locker(&privateMemberLock);
@@ -64,7 +66,7 @@ srtSurface::~srtSurface()
 }
 
 
-void srtSurface::clear()
+void Surface::clear()
 {
   // Get write access to private members
   privateMemberLock.lockForWrite();
@@ -78,7 +80,7 @@ void srtSurface::clear()
 }
 
 
-bool srtSurface::_clear()
+bool Surface::_clear()
 {
   bool changed = false;
 
@@ -98,7 +100,7 @@ bool srtSurface::_clear()
 }
 
 
-void srtSurface::setA(qreal a)
+void Surface::setA(qreal a)
 {
   // Get write access to private members
   privateMemberLock.lockForWrite();
@@ -112,7 +114,7 @@ void srtSurface::setA(qreal a)
 }
 
 
-bool srtSurface::_setA(qreal a)
+bool Surface::_setA(qreal a)
 {
   // Paranoia check: don't do anything if the equation did not change
   if (a == _a)
@@ -123,7 +125,7 @@ bool srtSurface::_setA(qreal a)
 }
 
 
-void srtSurface::setEquation(const QString &equation)
+void Surface::setEquation(const QString &equation)
 {
   // Get write access to private members
   privateMemberLock.lockForWrite();
@@ -137,7 +139,7 @@ void srtSurface::setEquation(const QString &equation)
 }
 
 
-bool srtSurface::_setEquation(const QString &equation)
+bool Surface::_setEquation(const QString &equation)
 {
   // Paranoia check: don't do anything if the equation did not change
   if (_equation == equation)
@@ -188,7 +190,7 @@ bool srtSurface::_setEquation(const QString &equation)
 }
 
 
-qreal srtSurface::a()
+qreal Surface::a()
 {
   // Get read access to private members
   QReadLocker privatMemberLocker(&privateMemberLock);
@@ -197,7 +199,7 @@ qreal srtSurface::a()
 }
 
 
-QString srtSurface::equation()
+QString Surface::equation()
 {
   // Get read access to private members
   QReadLocker privatMemberLocker(&privateMemberLock);
@@ -209,7 +211,7 @@ QString srtSurface::equation()
 }
 
 
-bool srtSurface::hasError()
+bool Surface::hasError()
 {
   // Get read access to private members
   QReadLocker privatMemberLocker(&privateMemberLock);
@@ -218,7 +220,7 @@ bool srtSurface::hasError()
 }
 
 
-bool srtSurface::isEmpty()
+bool Surface::isEmpty()
 {
   // Get read access to private members
   QReadLocker privatMemberLocker(&privateMemberLock);
@@ -227,7 +229,7 @@ bool srtSurface::isEmpty()
 }
 
 
-QString srtSurface::errorString() 
+QString Surface::errorString() 
 {
   // Get read access to private members
   QReadLocker privatMemberLocker(&privateMemberLock);
@@ -236,7 +238,7 @@ QString srtSurface::errorString()
 }
 
 
-int srtSurface::errorIndex()
+int Surface::errorIndex()
 {
   // Get read access to private members
   QReadLocker privatMemberLocker(&privateMemberLock);
@@ -248,7 +250,7 @@ int srtSurface::errorIndex()
 }
 
 
-srtSurface::operator QByteArray()
+Surface::operator QByteArray()
 {
   QByteArray byteArray;
   QBuffer buffer(&byteArray);
@@ -261,7 +263,7 @@ srtSurface::operator QByteArray()
 }
 
 
-void srtSurface::load(QByteArray ar)
+void Surface::load(QByteArray ar)
 {
   QBuffer buffer(&ar);
   buffer.open(QIODevice::ReadOnly);
@@ -271,7 +273,7 @@ void srtSurface::load(QByteArray ar)
 }
 
 
-void srtSurface::construct()
+void Surface::construct()
 {
   _equation    = QString::null;
   _errorString = QString::null;
@@ -289,7 +291,7 @@ void srtSurface::construct()
 }
 
 
-QDataStream & operator<< (QDataStream& out, srtSurface& surface)
+QDataStream & operator<< (QDataStream& out, qsrt::Surface& surface)
 {
   // Write a header with a "magic number" and a version
   out << (quint16)1341;
@@ -312,7 +314,7 @@ QDataStream & operator<< (QDataStream& out, srtSurface& surface)
 }
 
 
-QDataStream & operator>> (QDataStream& in, srtSurface& surface)
+QDataStream & operator>> (QDataStream& in, qsrt::Surface& surface)
 {
   // Read and check the header
   quint16 magic;
@@ -388,7 +390,7 @@ QDataStream & operator>> (QDataStream& in, srtSurface& surface)
 }
 
 
-bool operator== (srtSurface& s1, srtSurface& s2)
+bool operator== (Surface& s1, Surface& s2)
 {
   // Get read access to private members
   QReadLocker privatMemberLocker1(&s1.privateMemberLock);
@@ -421,7 +423,9 @@ bool operator== (srtSurface& s1, srtSurface& s2)
 }
 
 
-bool operator!= (srtSurface& s1, srtSurface& s2)
+bool operator!= (Surface& s1, Surface& s2)
 {
   return !(s1 == s2);
 }
+
+} // namespace qsrt

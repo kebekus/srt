@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
   srt_test test1;
   QTest::qExec(&test1, argc, argv);
 
-  srtSurface_test test2;
+  Surface_test test2;
   QTest::qExec(&test2, argc, argv);
 }
  

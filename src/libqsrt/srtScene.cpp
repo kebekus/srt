@@ -44,7 +44,7 @@ class task {
 public:
   int64_t (*stripe)(struct stripe_data *sd, int j);
   struct stripe_data *sd;
-  srtSurface *surface;
+  qsrt::Surface *surface;
   int line;
 };
 
@@ -67,10 +67,10 @@ QImage srtScene::draw(QSize size)
     
   QImage img(size, QImage::Format_ARGB32);
 
-  // Paranoia check: if surface is empty, return an empty image.
+  // Paranoia check: if surface is empty, return a transparent image.
   if (surface.isEmpty()) {
     img.fill(Qt::black);
-#warning clear image
+#warning return transparent image instead
     return img;
   }
 
@@ -110,7 +110,7 @@ QImage srtScene::draw(QSize size)
 
   struct stripe_data sdata = { fb, w, h, dU, dV, UV, sphere, aabb, _camera, (float) surface._a, use_aabb };
 
-  int numTasks = qMax(1 , QThread::idealThreadCount());
+  int numTasks = qMax(1, QThread::idealThreadCount());
 
 
   QVector<task> tskList(h/2);

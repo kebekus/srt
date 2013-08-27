@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv)
 {
-  srtSurface s1;
+  qsrt::Surface s1;
 
   for(int i=0; i<20; i++) {
     s1.setEquation("x^2+z^2-y^2-1");

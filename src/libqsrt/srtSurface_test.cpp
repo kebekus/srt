@@ -23,23 +23,23 @@
 #include "srtScene.h"
 #include "srtSurface_test.h"
 
-void srtSurface_test::increaseCounter()
+void Surface_test::increaseCounter()
 {
   counter++;
 }
 
 
-void srtSurface_test::benchmark_JITinitialization()
+void Surface_test::benchmark_JITinitialization()
 {
   QBENCHMARK {
-    srtSurface s1(this);
+    qsrt::Surface s1(this);
   }
 }
 
 
-void srtSurface_test::benchmark_JITcompilation()
+void Surface_test::benchmark_JITcompilation()
 {
-  srtSurface s1(this);
+  qsrt::Surface s1(this);
 
   QBENCHMARK {
     s1.setEquation("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2+0");
@@ -48,7 +48,7 @@ void srtSurface_test::benchmark_JITcompilation()
 }
 
 
-void srtSurface_test::specialStates()
+void Surface_test::specialStates()
 {
   srtScene scene;
   QVERIFY( scene.surface.isEmpty() );
@@ -69,26 +69,26 @@ void srtSurface_test::specialStates()
 }
 
 
-void srtSurface_test::constructor()
+void Surface_test::constructor()
 {
-  srtSurface s1(this);
+  qsrt::Surface s1(this);
   QVERIFY( s1.isEmpty() );
   QVERIFY( !s1.hasError() );
 
-  srtSurface s2("x^2+y^2-z^2-1", 0.0, this);
+  qsrt::Surface s2("x^2+y^2-z^2-1", 0.0, this);
   QVERIFY( !s2.isEmpty() );
   QVERIFY( !s2.hasError() );
 
-  srtSurface s3("x^2+y^2-z^2-goof", 0.0, this);
+  qsrt::Surface s3("x^2+y^2-z^2-goof", 0.0, this);
   QVERIFY( !s3.isEmpty() );
   QVERIFY( s3.hasError() );
 }
 
 
-void srtSurface_test::equationProperty()
+void Surface_test::equationProperty()
 {
   // Newly constructed equations should be empty.
-  srtSurface s1(this);
+  qsrt::Surface s1(this);
   QVERIFY( s1.isEmpty() );
   QVERIFY( !s1.hasError() );
   QVERIFY( s1.equation().isEmpty() );  
@@ -132,9 +132,9 @@ void srtSurface_test::equationProperty()
 }
 
 
-void srtSurface_test::aProperty()
+void Surface_test::aProperty()
 {
-  srtSurface s1("x", 1.0, this);
+  qsrt::Surface s1("x", 1.0, this);
   QVERIFY( s1.a() == 1.0 );
 
   // Count number of times that the surface changes
@@ -151,11 +151,11 @@ void srtSurface_test::aProperty()
 }
 
 
-void srtSurface_test::serialization()
+void Surface_test::serialization()
 {
   // Create two different surfaces
-  srtSurface s1("x", 1.0, this);
-  srtSurface s2(this);
+  qsrt::Surface s1("x", 1.0, this);
+  qsrt::Surface s2(this);
 
   // Count number of times that the surface changes
   connect(&s2, SIGNAL(changed()), this, SLOT(increaseCounter()));
@@ -205,11 +205,11 @@ void srtSurface_test::serialization()
 }
 
 
-void srtSurface_test::conversionQByteArray()
+void Surface_test::conversionQByteArray()
 {
   // Create two different surfaces
-  srtSurface s1("x", 1.0, this);
-  srtSurface s2(this);
+  qsrt::Surface s1("x", 1.0, this);
+  qsrt::Surface s2(this);
   QVERIFY( s1 != s2 );
 
   // Count number of times that the surface changes
@@ -223,11 +223,11 @@ void srtSurface_test::conversionQByteArray()
 }
 
 
-void srtSurface_test::conversionQVariant()
+void Surface_test::conversionQVariant()
 {
   // Create two different surfaces
-  srtSurface s1("x", 1.0, this);
-  srtSurface s2(this);
+  qsrt::Surface s1("x", 1.0, this);
+  qsrt::Surface s2(this);
   QVERIFY( s1 != s2 );
 
   // Count number of times that the surface changes

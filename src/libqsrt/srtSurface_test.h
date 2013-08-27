@@ -20,7 +20,7 @@
 
 #include <QtTest/QtTest>
 
- class srtSurface_test : public QObject
+ class Surface_test : public QObject
  {
    Q_OBJECT
    

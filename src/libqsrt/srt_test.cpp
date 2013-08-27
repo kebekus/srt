@@ -26,7 +26,7 @@
 
 void srt_test::parser_errorReporting()
 {
-  srtSurface s1;
+  qsrt::Surface s1;
 
   // Check in examples that errors in the equation are reported at the correct
   // position

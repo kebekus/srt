@@ -30,7 +30,11 @@
 // srt classes used by private members
 class srtScene;
 namespace parser{class jit;}
+struct stripe_data;
+struct parser_tree;
 
+
+namespace qsrt {
 
 /**
  * \brief Algebraic surface in three-dimensional Euclidean space.
@@ -60,7 +64,7 @@ namespace parser{class jit;}
  * @author Stefan Kebekus 
  */
 
-class srtSurface : public QObject
+class Surface : public QObject
 {
   Q_OBJECT;
 
@@ -96,7 +100,7 @@ class srtSurface : public QObject
    * fast. On an Intel(R) Core(TM) i7-3517U CPU @ 1.90GHz, it takes about 2msec
    * to run.
    */
-  srtSurface(QObject *parent=0);
+  Surface(QObject *parent=0);
 
   /**
    * \brief Constructs an algebraic surface
@@ -114,12 +118,12 @@ class srtSurface : public QObject
    *
    * @code
    * ...
-   * srtSurface surf("x^2+y^2-z^2-1", 1.0);
+   * Surface surf("x^2+y^2-z^2-1", 1.0);
    * ...
    * @endcode
    * @code
    * ...
-   * srtSurface surf;
+   * Surface surf;
    * surf.setEquation("x^2+y^2-z^2-1");
    * surf.setA(1.0);
    * ...
@@ -130,7 +134,7 @@ class srtSurface : public QObject
    * settings where this is an issue, it might make sense to run setEquation()
    * in a separate thread.
    */
-  srtSurface(const QString &equation, qreal a=0.0, QObject *parent=0);
+  Surface(const QString &equation, qreal a=0.0, QObject *parent=0);
 
   /**
    * \brief Destructor
@@ -139,7 +143,7 @@ class srtSurface : public QObject
    * rendered in another thread, the method will block until the rendering
    * process terminates.
    */
-  ~srtSurface();
+  ~Surface();
 
   /**
    * \brief Returns the constant a
@@ -325,10 +329,10 @@ class srtSurface : public QObject
 
  private:
   friend class srtScene;
-  friend bool operator== (srtSurface& s1, srtSurface& s2);
-  friend bool operator!= (srtSurface& s1, srtSurface& s2);
-  friend QDataStream & operator<< (QDataStream& out, srtSurface& surface);
-  friend QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
+  friend bool operator== (Surface& s1, Surface& s2);
+  friend bool operator!= (Surface& s1, Surface& s2);
+  friend QDataStream & operator<< (QDataStream& out, Surface& surface);
+  friend QDataStream & operator>> (QDataStream& in, Surface& Surface);
 
   // These methods implement the functionality for setEquation, setA, etc, but
   // do not emit the signal changed() and do use the privateMember lock. They
@@ -383,7 +387,7 @@ class srtSurface : public QObject
  * This method writes all properties of the surface into a QDataStream. The data
  * can be loaded back into a surface object using the operator >>.
  */
-QDataStream & operator<< (QDataStream& out, srtSurface& surface);
+QDataStream & operator<< (QDataStream& out, Surface& surface);
 
 /**
  * \brief Read surface properties from a QDataStream
@@ -393,24 +397,26 @@ QDataStream & operator<< (QDataStream& out, srtSurface& surface);
  *
  * On error, the surface is clear()ed, and an error condition is set.
  */
-QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
+QDataStream & operator>> (QDataStream& in, Surface& Surface);
 
 /**
- * \brief Check two srtSurfaces for equality
+ * \brief Check two Surfaces for equality
  *
  * Two surfaces are considered equal if all their properties agree.
  *
  * @returns true on equality
  */
-bool operator== (srtSurface& s1, srtSurface& s2);
+bool operator== (Surface& s1, Surface& s2);
 
 /**
- * \brief Check two srtSurfaces for inequality
+ * \brief Check two Surfaces for inequality
  *
  * Two surfaces are considered unequal if one property disagrees.
  *
  * @returns true on inequality
  */
-bool operator!= (srtSurface& s1, srtSurface& s2);
+bool operator!= (Surface& s1, Surface& s2);
+
+} // namespace qsrt
 
 #endif

@@ -31,7 +31,7 @@ class srtScene : public QObject
   QImage draw(QSize size);
   int use_aabb;
   srtCamera camera;
-  srtSurface surface;
+  qsrt::Surface surface;
 };
 
 #endif
