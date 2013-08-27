@@ -1,4 +1,22 @@
-#warning copyright notice missing
+/***************************************************************************
+ *   Copyright (C) 2013 Stefan Kebekus                                     *
+ *   stefan.kebekus@math.uni-freiburg.de                                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #ifndef SRTSURFACE
 #define SRTSURFACE
@@ -7,6 +25,7 @@
 #include <QObject>
 #include <QReadWriteLock>
 #include <QString>
+#include <QVariant>
 
 #warning the user of libqsrt should never include this
 extern "C" {
@@ -17,7 +36,6 @@ extern "C" {
 #include "jit.h"
 
 class srtScene;
-
 
 
 /**
@@ -36,10 +54,12 @@ class srtScene;
  *   method isEmpty() to check if your surface is empty.
  *
  * - If setEquation() has been called with a string that does not contain a
- *   well-formed polynomial, then an error condition will be set. Surfaces with
- *   error conditions cannot be rendered. Use the method hasError() to check if
- *   an error condition is set, and use the methods errorString() and
- *   errorIndex() to obtain a description of the error.
+ *   well-formed polynomial, then an error condition will be set. An error
+ *   condition may also be set by the method load(), or when trying to read a
+ *   suface object from a QDataStream. Surfaces with error conditions cannot be
+ *   rendered. Use the method hasError() to check if an error condition is set,
+ *   and use the methods errorString() and errorIndex() to obtain a description
+ *   of the error.
  *
  * All methods of the class are reentrant and thread-safe.
  *
@@ -55,10 +75,10 @@ class srtSurface : public QObject
   *
   * This string defines a polynomial in variables x, y and z, and an additional
   * constant a, for example instance "x^2+y^2-z^2-a". Use the methods
-  * getEquation() and setEquation() to access the property. The signal changed()
+  * equation() and setEquation() to access the property. The signal changed()
   * is emitted whenever this property changes.
   */
-  Q_PROPERTY(QString equation READ getEquation WRITE setEquation NOTIFY changed);
+  Q_PROPERTY(QString equation READ equation WRITE setEquation NOTIFY changed);
 
  /**
   * \brief Constant used in the polynomial equation
@@ -66,10 +86,10 @@ class srtSurface : public QObject
   * This float defines a constant which is used when the polynomial is
   * evaluates. While setting a new equation string is slow because of the JIT
   * compiler involved, changing the constant a is extremely fast. Use the
-  * methods getA() and setA() to access the property. The signal changed() is
+  * methods a() and setA() to access the property. The signal changed() is
   * emitted whenever this property changes.
   */
-  Q_PROPERTY(qreal a READ getA WRITE setA NOTIFY changed);
+  Q_PROPERTY(qreal a READ a WRITE setA NOTIFY changed);
 
  public:
   /**
@@ -88,6 +108,10 @@ class srtSurface : public QObject
    * \brief Constructs an algebraic surface
    *
    * @param equation String which will be passed on to setEquation()
+   *
+   * @param a A real number that is substituted for the constant 'a' when the
+   * surface is rendered.
+   *
    * @param parent Standard argument for the QObject constructor
    *
    * Convenience constructor which calls the default constructor then then sets
@@ -130,7 +154,7 @@ class srtSurface : public QObject
    *
    * @see setA()
    */
-  qreal getA();
+  qreal a();
 
   /**
    * \brief Returns the equation set with setEquation().
@@ -139,7 +163,7 @@ class srtSurface : public QObject
    *
    * @see setEquation()
    */
-  QString getEquation();
+  QString equation();
 
   /**
    * \brief Returns error status
@@ -180,6 +204,75 @@ class srtSurface : public QObject
    */
   int errorIndex();
 
+  /**
+   * \brief Saves the surface an into a QByteArray
+   *
+   * This method serializes the surface into a QByteArray. The data can be
+   * loaded back into a surface object using the method load.
+   *
+   * @see load()
+   */
+  operator QByteArray();
+
+  /**
+   * \brief Saves the surface an into a QVariant object
+   *
+   * This convenience method serializes the surface into a QVariant object,
+   * which contains a QByteArray. The data can be loaded back into a surface
+   * object using the method load. This allows to conveniently store a surface
+   * into an application's settings.
+   *
+   * @code
+   * // Save surface surf
+   * QSettings settings;
+   * settings.setValue("mainWindow/surface", surface );
+   * ...
+   * @endcode
+   * @code
+   * // Restore surface surf
+   * QSettings settings;
+   * surface.load(settings.value("mainWindow/surface"));
+   * ...
+   * @endcode
+   *
+   * @see load()
+   */
+  operator QVariant() {return QVariant( QByteArray(*this));}; 
+
+  /**
+   * \brief Restores previously saved surface attributes
+   * 
+   * This method restores a previously saved srtSurface object by reading in
+   * saved properties from a serialized srtSurface and setting the properties in
+   * the present object. The signal changed() might be emitted.
+   *
+   * If the QByteArray does not contain a properly serialized srtSurface object,
+   * the surface is clear()ed, and an error condition is set.
+   *
+   * @param array A QByteArrary containing a serialized srtSurface object, as
+   * produced by the operator QByteArray().
+   */
+  void load(QByteArray array);
+
+  /**
+   * \brief Restores previously saved surface attributes
+   * 
+   * This method restores a previously saved srtSurface object by reading in
+   * saved properties from a serialized srtSurface and setting the properties in
+   * the present object. The signal changed() might be emitted.
+   *
+   * If the QVariant does not contain a QByteArray containing a properly
+   * serialized srtSurface object, the surface is clear()ed, and an error
+   * condition is set.
+   *
+   * @param array A QByteArrary containing a serialized srtSurface object, as
+   * produced by the operator QVariant().
+   */
+  void load(QVariant var) {load(var.toByteArray());};
+
+#warning documentation
+  void clear();
+
  public slots:
   /**
    * \brief Specifies the constant a
@@ -193,7 +286,7 @@ class srtSurface : public QObject
    * in another thread, the method will block until the rendering process
    * terminates.
    *
-   * @see getA()
+   * @see a()
    */
   void setA(qreal a=0);
 
@@ -221,7 +314,7 @@ class srtSurface : public QObject
    * another thread, the method will block until the rendering process
    * terminates.
    *
-   * @see getEquation()
+   * @see equation()
    */
   void setEquation(const QString &equation=QString::null);
  
@@ -240,6 +333,16 @@ class srtSurface : public QObject
 
  private:
   friend class srtScene;
+  friend bool operator== (srtSurface& s1, srtSurface& s2);
+  friend bool operator!= (srtSurface& s1, srtSurface& s2);
+  friend QDataStream & operator<< (QDataStream& out, srtSurface& surface);
+  friend QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
+
+#warning documentation
+  bool _setEquation(const QString &equation);
+  bool _setA(qreal a);
+#warning documentation
+  void _clear();
 
   // Default constructor. I have implemented this as a separate, private method
   // so that more than one constructor implementation can use method --calling
@@ -288,5 +391,34 @@ class srtSurface : public QObject
   v4sf (*curve)(m34sf v, float a);
 
 };
+
+#warning documentation!
+/**
+ * \brief serialisation
+ *
+ * Rhabarbar
+ */
+QDataStream & operator<< (QDataStream& out, srtSurface& surface);
+
+#warning documentation!
+QDataStream & operator>> (QDataStream& in, srtSurface& Surface);
+
+/**
+ * \brief Checks two srtSurfaces for equality
+ *
+ * Two surfaces are considered equal if all their properties agree.
+ *
+ * @returns true on equality
+ */
+bool operator== (srtSurface& s1, srtSurface& s2);
+
+/**
+ * \brief Checks two srtSurfaces for inequality
+ *
+ * Two surfaces are considered unequal if one property disagrees.
+ *
+ * @returns true on inequality
+ */
+bool operator!= (srtSurface& s1, srtSurface& s2);
 
 #endif
