@@ -67,9 +67,11 @@ srtSurface::~srtSurface()
 void srtSurface::setA(qreal a)
 {
   // Get write access to private members
-  QWriteLocker privatMemberLocker(&privateMemberLock);
-  
-  if (_setA(a))
+  privateMemberLock.lockForWrite();
+  bool change = _setA(a);
+  privateMemberLock.unlock();
+
+  if (change)
     emit changed();
 
   return;
@@ -90,9 +92,11 @@ bool srtSurface::_setA(qreal a)
 void srtSurface::setEquation(const QString &equation)
 {
   // Get write access to private members
-  QWriteLocker privatMemberLocker(&privateMemberLock);
+  privateMemberLock.lockForWrite();
+  bool change = _setEquation(equation);
+  privateMemberLock.unlock();
 
-  if (_setEquation(equation))
+  if (change)
     emit changed();
 
   return;
@@ -284,15 +288,13 @@ QDataStream & operator<< (QDataStream& out, srtSurface& surface)
 
 QDataStream & operator>> (QDataStream& in, srtSurface& surface)
 {
-  // Get write access to private members, then write them to the stream
-  QWriteLocker privatMemberLocker(&surface.privateMemberLock);
-
-  bool changed = false;
-
   // Read and check the header
   quint16 magic;
   in >> magic;
   if (magic != 1341) {
+    // Get write access to private members, then write them to the stream
+    QWriteLocker privatMemberLocker(&surface.privateMemberLock);
+
     surface._clear();
     surface._errorString = "bad file format";
     surface._errorIndex  = -1;
@@ -304,6 +306,9 @@ QDataStream & operator>> (QDataStream& in, srtSurface& surface)
   quint16 version;
   in >> version;
   if (version > 1) {
+    // Get write access to private members, then write them to the stream
+    QWriteLocker privatMemberLocker(&surface.privateMemberLock);
+
     surface._clear();
     surface._errorString = "file format too new";
     surface._errorIndex  = -1;
@@ -326,6 +331,9 @@ QDataStream & operator>> (QDataStream& in, srtSurface& surface)
   in >> n_a;
 
   if (in.status() != QDataStream::Ok) {
+    // Get write access to private members, then write them to the stream
+    QWriteLocker privatMemberLocker(&surface.privateMemberLock);
+
     surface._clear();
     surface._errorString = "I/O error";
     surface._errorIndex  = -1;
@@ -333,8 +341,9 @@ QDataStream & operator>> (QDataStream& in, srtSurface& surface)
     return in;
   }
 
-  // Write the data to the surface
-  changed |= surface._setEquation(n_equation);
+  // Get write access to private members and apply changes
+  surface.privateMemberLock.lockForWrite();
+  bool changed = surface._setEquation(n_equation);
   if (surface._errorString.isEmpty()) {
     changed |= (surface._errorString != n_errorString);
     changed |= (surface._errorIndex != n_errorIndex);
@@ -343,6 +352,7 @@ QDataStream & operator>> (QDataStream& in, srtSurface& surface)
     surface._errorIndex  = n_errorIndex;
   }
   changed |= surface._setA(n_a);
+  surface.privateMemberLock.unlock();
 
   if (changed)
     surface.touch();

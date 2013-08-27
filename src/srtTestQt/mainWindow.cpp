@@ -52,13 +52,14 @@ mainWindow::mainWindow(QWidget *parent)
   connect( ui.actionSurface_7, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface7()) );
   connect( ui.actionSurface_8, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface8()) );
 
+  // Wire up scene, so GUI will reflect changes there
+  connect(&scene, SIGNAL(changed()), this, SLOT(sceneChanged()));
   ui.sceneWidget->setScene(&scene);
 
+  // Initialize scene
   scene.surface.load(settings.value("mainWindow/surface"));
-  if (scene.surface.isEmpty())
+  if (scene.surface.isEmpty() || scene.surface.hasError())
     setSampleSurface8();
-  else
-    adjustGUItoScene();
 }
 
 
@@ -86,7 +87,6 @@ void mainWindow::setSampleSurface1()
 {
   scene.surface.setEquation("(2*x^2 + y^2 + z^2 - 1)^3 - x^2*z^3/10 - y^2*z^3");
   scene.surface.setA(0.0);
-  adjustGUItoScene();
 }
 
 
@@ -94,7 +94,6 @@ void mainWindow::setSampleSurface2()
 {
   scene.surface.setEquation("x^2 + 4 * y^2 + z^2 - 8");
   scene.surface.setA(0.0);
-  adjustGUItoScene();
 }
 
 
@@ -102,7 +101,6 @@ void mainWindow::setSampleSurface3()
 {
   scene.surface.setEquation("(x^2 + y^2 + z^2 + 2)^2 - 12*(x^2 + y^2)");
   scene.surface.setA(0.0);
-  adjustGUItoScene();
 }
 
 
@@ -110,7 +108,6 @@ void mainWindow::setSampleSurface4()
 {
   scene.surface.setEquation("x*y*z");
   scene.surface.setA(0.0);
-  adjustGUItoScene();
 }
 
 
@@ -118,7 +115,6 @@ void mainWindow::setSampleSurface5()
 {
   scene.surface.setEquation("x^2 + y^2 + z - 1");
   scene.surface.setA(0.0);
-  adjustGUItoScene();
 }
 
 
@@ -126,7 +122,6 @@ void mainWindow::setSampleSurface6()
 {
   scene.surface.setEquation("x^2 + y^2 - 1");
   scene.surface.setA(0.0);
-  adjustGUItoScene();
 }
 
 
@@ -134,7 +129,6 @@ void mainWindow::setSampleSurface7()
 {
   scene.surface.setEquation("x^2 + y^2 - z^2");
   scene.surface.setA(0.0);
-  adjustGUItoScene();
 }
 
 
@@ -142,7 +136,6 @@ void mainWindow::setSampleSurface8()
 {
   scene.surface.setEquation("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
   scene.surface.setA(1.0);
-  adjustGUItoScene();
 }
 
 
@@ -150,26 +143,36 @@ void mainWindow::equationChanged()
 {
   scene.surface.setEquation(ui.equation->text());
 
-  if (scene.surface.hasError()) {
-    statusBar()->showMessage(scene.surface.errorString(), 2000);
+  if (scene.surface.hasError())
     ui.equation->setCursorPosition(scene.surface.errorIndex());
-  }
 }
 
 
 void mainWindow::sliderMoved(int val)
 {
   qreal a = val/100.0;
-  ui.aLabel->setText( QString("a = %1").arg(a));
   scene.surface.setA(a);
 }
 
 
-void mainWindow::adjustGUItoScene()
+void mainWindow::sceneChanged()
 {
+  // Set surface equation in text field
   ui.equation->setText( scene.surface.equation() );
-  ui.equation->setCursorPosition(0);
-  
+
+  // Adjust the slider and label to reflect the current value of 'a'
   int val = qBound( ui.aSlider->minimum(), (int)floor(scene.surface.a()*100.0+0.5), ui.aSlider->maximum() );
   ui.aSlider->setValue(val);  
+  ui.aLabel->setText( QString("a = %1").arg( scene.surface.a() ));
+
+  // Enable slider and label only if 'a' is used in the equation
+  bool aExists = scene.surface.equation().contains('a');
+  ui.aSlider->setEnabled(aExists);
+  ui.aLabel->setEnabled(aExists);
+
+  // Show or clear error message in the status bar.
+  if (scene.surface.hasError()) 
+    statusBar()->showMessage(scene.surface.errorString(), 2000);
+  else
+    statusBar()->clearMessage();
 }
