@@ -9,8 +9,17 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef JIT_H
 #define JIT_H
 #include "parser.h"
+
+#include <llvm-c/Core.h>
+#include <llvm-c/Analysis.h>
+#include <llvm-c/ExecutionEngine.h>
+#include <llvm-c/Target.h>
+#include <llvm-c/BitReader.h>
+#include <llvm-c/Transforms/Scalar.h>
+#include <llvm-c/Transforms/IPO.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
+
 namespace parser
 {
 	class jit
