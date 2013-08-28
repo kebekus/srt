@@ -10,20 +10,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define JIT_H
 #include "parser.h"
 
-#include <llvm-c/Core.h>
-#include <llvm-c/Analysis.h>
-#include <llvm-c/ExecutionEngine.h>
-#include <llvm-c/Target.h>
-#include <llvm-c/BitReader.h>
-#include <llvm-c/Transforms/Scalar.h>
-#include <llvm-c/Transforms/IPO.h>
-#include <llvm/Support/MemoryBuffer.h>
-#include <llvm/ExecutionEngine/ExecutionEngine.h>
-
 namespace parser
 {
 	class jit
 	{
+	protected:
+		jit();
+		jit(const class jit &);
+		class jit& operator=(const class jit &);
 	public:
 		jit(char *code, int len);
 		~jit();
@@ -32,11 +26,8 @@ namespace parser
 		void *func(const char *name);
 		void link();
 	private:
-		LLVMModuleRef module;
-		LLVMBuilderRef builder;
-		LLVMPassManagerRef pass;
-		LLVMExecutionEngineRef engine;
-		LLVMMemoryBufferRef bc;
+		struct data;
+		struct data *data;
 	};
 }
 #endif
