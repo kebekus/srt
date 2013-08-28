@@ -14,8 +14,8 @@ namespace parser
 {
 	class jit
 	{
-	protected:
-		jit();
+		struct data;
+		struct data *data;
 		jit(const class jit &);
 		class jit& operator=(const class jit &);
 	public:
@@ -25,9 +25,6 @@ namespace parser
 		void build(struct parser_tree *tree, const char *name);
 		void *func(const char *name);
 		void link();
-	private:
-		struct data;
-		struct data *data;
 	};
 }
 #endif
