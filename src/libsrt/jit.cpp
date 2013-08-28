@@ -6,9 +6,26 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+#include <llvm-c/Core.h>
+#include <llvm-c/Analysis.h>
+#include <llvm-c/ExecutionEngine.h>
+#include <llvm-c/Target.h>
+#include <llvm-c/BitReader.h>
+#include <llvm-c/Transforms/Scalar.h>
+#include <llvm-c/Transforms/IPO.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "jit.h"
+
+struct parser::jit::data {
+	LLVMModuleRef module;
+	LLVMBuilderRef builder;
+	LLVMPassManagerRef pass;
+	LLVMExecutionEngineRef engine;
+	LLVMMemoryBufferRef bc;
+};
 
 LLVMMemoryBufferRef LLVMGetMemoryBufferFromArray(const char *Array, unsigned Length)
 {
@@ -25,67 +42,68 @@ void *LLVMGetPointerToFunction(LLVMExecutionEngineRef EE, LLVMValueRef F)
 void parser::jit::reset()
 {
 	char *error = 0;
-	if (LLVMRemoveModule(engine, module, &module, &error)) {
+	if (LLVMRemoveModule(data->engine, data->module, &data->module, &error)) {
 		fprintf(stderr, "LLVMRemoveModule:\n%s\n", error);
 		LLVMDisposeMessage(error);
 		abort();
 	}
 	LLVMDisposeMessage(error);
-	LLVMDisposeModule(module);
+	LLVMDisposeModule(data->module);
 	error = 0;
-	if (bc) {
-		if (LLVMParseBitcode(bc, &module, &error)) {
+	if (data->bc) {
+		if (LLVMParseBitcode(data->bc, &data->module, &error)) {
 			fprintf(stderr, "LLVMParseBitcode:\n%s\n", error);
 			LLVMDisposeMessage(error);
 			abort();
 		}
 	} else {
-		module = LLVMModuleCreateWithName("jit");
+		data->module = LLVMModuleCreateWithName("jit");
 	}
 	LLVMDisposeMessage(error);
-	LLVMAddModule(engine, module);
+	LLVMAddModule(data->engine, data->module);
 }
 
 parser::jit::jit(char *code, int len)
 {
 	LLVMLinkInJIT();
 	LLVMInitializeNativeTarget();
+	data = new struct data;
 
-	bc = 0;
+	data->bc = 0;
 	if (code && len)
-		bc = LLVMGetMemoryBufferFromArray(code, len);
+		data->bc = LLVMGetMemoryBufferFromArray(code, len);
 
 	char *error = 0;
-	if (bc) {
-		if (LLVMParseBitcode(bc, &module, &error)) {
+	if (data->bc) {
+		if (LLVMParseBitcode(data->bc, &data->module, &error)) {
 			fprintf(stderr, "LLVMParseBitcode:\n%s\n", error);
 			LLVMDisposeMessage(error);
 			abort();
 		}
 	} else {
-		module = LLVMModuleCreateWithName("jit");
+		data->module = LLVMModuleCreateWithName("jit");
 	}
 	LLVMDisposeMessage(error);
 
 	error = 0;
-	if (LLVMCreateJITCompilerForModule(&engine, module, 2, &error)) {
+	if (LLVMCreateJITCompilerForModule(&data->engine, data->module, 2, &error)) {
 		fprintf(stderr, "LLVMCreateJITCompilerForModule:\n%s\n", error);
 		LLVMDisposeMessage(error);
 		abort();
 	}
 	LLVMDisposeMessage(error);
 
-	builder = LLVMCreateBuilder();
-	pass = LLVMCreatePassManager();
+	data->builder = LLVMCreateBuilder();
+	data->pass = LLVMCreatePassManager();
 
-	LLVMAddTargetData(LLVMGetExecutionEngineTargetData(engine), pass);
-	LLVMAddConstantPropagationPass(pass);
-	LLVMAddInstructionCombiningPass(pass);
-	LLVMAddPromoteMemoryToRegisterPass(pass);
-//	LLVMAddDemoteMemoryToRegisterPass(pass);
-	LLVMAddGVNPass(pass);
-	LLVMAddCFGSimplificationPass(pass);
-	LLVMAddFunctionInliningPass(pass);
+	LLVMAddTargetData(LLVMGetExecutionEngineTargetData(data->engine), data->pass);
+	LLVMAddConstantPropagationPass(data->pass);
+	LLVMAddInstructionCombiningPass(data->pass);
+	LLVMAddPromoteMemoryToRegisterPass(data->pass);
+//	LLVMAddDemoteMemoryToRegisterPass(data->pass);
+	LLVMAddGVNPass(data->pass);
+	LLVMAddCFGSimplificationPass(data->pass);
+	LLVMAddFunctionInliningPass(data->pass);
 
 }
 
@@ -144,14 +162,14 @@ static LLVMValueRef emit(LLVMBuilderRef builder, struct parser_node *node, LLVMV
 void parser::jit::build(struct parser_tree *tree, const char *name)
 {
 	LLVMValueRef func;
-	if (LLVMFindFunction(engine, name, &func)) {
+	if (LLVMFindFunction(data->engine, name, &func)) {
 		LLVMTypeRef args[] = {
 			LLVMVectorType(LLVMFloatType(), 4),
 			LLVMVectorType(LLVMFloatType(), 4),
 			LLVMVectorType(LLVMFloatType(), 4),
 			LLVMFloatType()
 		};
-		func = LLVMAddFunction(module, name, LLVMFunctionType(LLVMVectorType(LLVMFloatType(), 4), args, 4, 0));
+		func = LLVMAddFunction(data->module, name, LLVMFunctionType(LLVMVectorType(LLVMFloatType(), 4), args, 4, 0));
 		LLVMSetFunctionCallConv(func, LLVMCCallConv);
 	}
 	LLVMValueRef x = LLVMGetParam(func, 0);
@@ -163,25 +181,25 @@ void parser::jit::build(struct parser_tree *tree, const char *name)
 	LLVMValueRef a = LLVMGetParam(func, 3);
 	LLVMSetValueName(a, "a");
 	LLVMBasicBlockRef entry = LLVMAppendBasicBlock(func, "entry");
-	LLVMPositionBuilderAtEnd(builder, entry);
-	LLVMBuildRet(builder, emit(builder, tree->root, x, y, z, splat(builder, a)));
+	LLVMPositionBuilderAtEnd(data->builder, entry);
+	LLVMBuildRet(data->builder, emit(data->builder, tree->root, x, y, z, splat(data->builder, a)));
 }
 
 void parser::jit::link()
 {
 	char *error = 0;
-	if (LLVMVerifyModule(module, LLVMReturnStatusAction, &error)) {
+	if (LLVMVerifyModule(data->module, LLVMReturnStatusAction, &error)) {
 		fprintf(stderr, "LLVMVerifyModule:\n%s\n", error);
 		LLVMDisposeMessage(error);
 		abort();
 	}
 	LLVMDisposeMessage(error);
 
-	LLVMRunPassManager(pass, module);
-//	LLVMDumpModule(module);
+	LLVMRunPassManager(data->pass, data->module);
+//	LLVMDumpModule(data->module);
 #if 0
 	error = 0;
-	if (LLVMPrintModuleToFile(module, "module.ll", &error)) {
+	if (LLVMPrintModuleToFile(data->module, "module.ll", &error)) {
 		fprintf(stderr, "LLVMPrintModuleToFile:\n%s\n", error);
 		LLVMDisposeMessage(error);
 		abort();
@@ -193,19 +211,20 @@ void parser::jit::link()
 void *parser::jit::func(const char *name)
 {
 	LLVMValueRef func;
-	if (LLVMFindFunction(engine, name, &func)) {
+	if (LLVMFindFunction(data->engine, name, &func)) {
 		fprintf(stderr, "LLVMFindFunction\n");
 		abort();
 	}
-	return LLVMGetPointerToFunction(engine, func);
+	return LLVMGetPointerToFunction(data->engine, func);
 }
 
 parser::jit::~jit()
 {
-	LLVMDisposeMemoryBuffer(bc);
-	LLVMDisposeExecutionEngine(engine);
-	LLVMDisposePassManager(pass);
-	LLVMDisposeBuilder(builder);
-//	LLVMDisposeModule(module); engine owns module ..
+	LLVMDisposeMemoryBuffer(data->bc);
+	LLVMDisposeExecutionEngine(data->engine);
+	LLVMDisposePassManager(data->pass);
+	LLVMDisposeBuilder(data->builder);
+//	LLVMDisposeModule(data->module); engine owns module ..
+	delete data;
 }
 
