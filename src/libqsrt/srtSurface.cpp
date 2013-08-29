@@ -57,7 +57,6 @@ Surface::~Surface()
   // Get write access to private members. Wait till the last reader has finished
   QWriteLocker locker(&privateMemberLock);
   
-#warning I do not properly understand what that is. Is this correct?
   parser_free_tree(curve_tree);
   parser_free_tree(deriv_tree[0]);
   parser_free_tree(deriv_tree[1]);
@@ -282,7 +281,6 @@ void Surface::construct()
   stripe       = 0;
 
   // Initialize JIT parser interna. 
-#warning I do not properly understand what that is. How do we ever free this data?
   jit           = new parser::jit((char *)value_bc, value_bc_len);
   curve_tree    = parser_alloc_tree(8192);
   deriv_tree[0] = parser_alloc_tree(8192);
