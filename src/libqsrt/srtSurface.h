@@ -328,7 +328,7 @@ class Surface : public QObject
   void changed();
 
  private:
-  friend class srtScene;
+  friend class ::srtScene;
   friend bool operator== (Surface& s1, Surface& s2);
   friend bool operator!= (Surface& s1, Surface& s2);
   friend QDataStream & operator<< (QDataStream& out, Surface& surface);
