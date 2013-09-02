@@ -43,6 +43,7 @@ class srtCamera : public QObject
   QVector3D position();
   QVector3D viewDirection();
   QVector3D upwardDirection();
+  QVector3D rightDirection();
 
 #warning serialisation and i/o missing
   struct camera _camera;

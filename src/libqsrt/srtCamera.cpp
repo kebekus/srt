@@ -46,6 +46,12 @@ QVector3D srtCamera::upwardDirection()
 }
 
 
+QVector3D srtCamera::rightDirection()
+{
+  return QVector3D::crossProduct(_upwardDirection,_viewDirection);
+}
+
+
 void srtCamera::reset()
 {
   QVector3D n_position        = QVector3D(0,0,10);

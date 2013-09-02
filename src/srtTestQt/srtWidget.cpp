@@ -18,7 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <math.h>
 #include <QDebug>
+#include <QMouseEvent>
 #include <QPainter>
 
 #include "srtWidget.h"
@@ -27,6 +29,12 @@
 srtWidget::srtWidget(QWidget *parent)
   : QFrame(parent)
 {
+  //  setAttribute(Qt::WA_AcceptTouchEvents);
+
+  // Test only
+  grabGesture(Qt::PanGesture);
+  grabGesture(Qt::PinchGesture);
+  grabGesture(Qt::SwipeGesture);
 }
 
 
@@ -42,6 +50,16 @@ void srtWidget::setScene(srtScene *_scene)
     return;
 
   connect(scene, SIGNAL(changed()), this, SLOT(update()));
+}
+
+
+bool srtWidget::event(QEvent *event)
+{
+  if (event->type() == QEvent::Gesture) {
+    qDebug() << "A Gesture!  Hallelujah!";
+    return false;
+  }
+  return QWidget::event(event);
 }
 
 
@@ -67,5 +85,40 @@ void srtWidget::paintEvent(QPaintEvent *event)
   painter.end();
   QFrame::paintEvent(event);
 }
+
+
+void srtWidget::mousePressEvent(QMouseEvent *event )
+{
+  if (event->button() != Qt::LeftButton) 
+    return;
+
+  originalXPos = event->globalX();
+  originalYPos = event->globalY();
+
+  event->accept();
+}
+
+
+void srtWidget::mouseMoveEvent(QMouseEvent *event )
+{
+  event->accept();
+
+  int deltaX = originalXPos - event->globalX();
+  int deltaY = originalYPos - event->globalY();
+
+  originalXPos = event->globalX();
+  originalYPos = event->globalY();
+
+
+  if ((deltaX == 0) && (deltaY == 0))
+    return;
+
+  double angle = -sqrt(deltaX*deltaX + deltaY*deltaY);
+  
+  if (scene) {
+    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle( deltaX*scene->camera.upwardDirection() + deltaY*scene->camera.rightDirection(), angle) );
+  }
+}
+
 
 #warning set minimum size (100x100)

@@ -37,10 +37,18 @@ class srtWidget : public QFrame
 
   void setScene(srtScene *_scene);
 
-  virtual void paintEvent ( QPaintEvent * event );
+  // Re-implemented event handlers
+  bool event(QEvent *event);
+  void paintEvent (QPaintEvent * event );
+  void mousePressEvent(QMouseEvent *event );
+  void mouseMoveEvent(QMouseEvent *event );
 
  private:
   QPointer<srtScene> scene;
+
+  // Used in mouse rotation
+  int originalXPos;
+  int originalYPos;
 };
 
 #endif
