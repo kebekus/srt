@@ -27,13 +27,20 @@
 
 
 srtWidget::srtWidget(QWidget *parent)
-  : QFrame(parent), rotationTimer(this)
+  : QFrame(parent), _rotationTimer(this)
 {
   // Initialize Members
-  angle = 0;
-  axis  = QVector3D(0,1,0);
+  _manipulationEnabled = true;
+  originalXPos = 0;
+  originalYPos = 0;
+  _manipulationAngle = 0.0;
+  _manipulationAxis = QVector3D(0,1,0);
+  _manipulationRotationalSpeed = 0.0;
 
-  connect(&rotationTimer, SIGNAL(timeout()), this, SLOT(rotate()));
+  _rotationAxis = QVector3D(0,1,0);
+  _rotationSpeed = 0.0;
+
+  connect(&_rotationTimer, SIGNAL(timeout()), this, SLOT(performRotation()));
 
   // Test only
   grabGesture(Qt::TapGesture);
@@ -56,7 +63,6 @@ void srtWidget::setScene(srtScene *_scene)
     return;
 
   connect(scene, SIGNAL(changed()), this, SLOT(update()));
-  connect(&scene->surface, SIGNAL(equationChanged()), &rotationTimer, SLOT(stop()));
 }
 
 
@@ -94,68 +100,90 @@ void srtWidget::paintEvent(QPaintEvent *event)
 }
 
 
-void srtWidget::mousePressEvent(QMouseEvent *event )
+void srtWidget::setRotationAxis(QVector3D axis)
 {
-  if (event->button() != Qt::LeftButton) 
+  if (qFuzzyCompare(axis, QVector3D()))
     return;
 
-  rotationTimer.stop();
-  stopWatch.start();
+  _rotationAxis = axis.normalized();
+}
 
+
+void srtWidget::setRotation(bool rotate)
+{
+  if (rotate)
+    _rotationTimer.start(50);
+  else
+    _rotationTimer.stop();
+}
+
+
+void srtWidget::mousePressEvent(QMouseEvent *event )
+{
+  if ((!_manipulationEnabled) || (event->button() != Qt::LeftButton)) {
+    event->ignore();
+    return;
+  }
+  event->accept();
+
+  // Stop any rotation movement
+  setRotation(false);
+
+  // Record current mouse position, start timer in order to record mouse speed
+  stopWatch.start();
   originalXPos    = event->globalX();
   originalYPos    = event->globalY();
-  angle           = 0.0;
-  rotationalSpeed = 0.0;
-
-  event->accept();
 }
 
 
 void srtWidget::mouseMoveEvent(QMouseEvent *event )
 {
+  if (!_manipulationEnabled) {
+    event->ignore();
+    return;
+  }
   event->accept();
 
+
+  // Compute axis and rotational speed, reset timer to record mouse speed when
+  // the next event takes place
   int deltaX = originalXPos - event->globalX();
   int deltaY = originalYPos - event->globalY();
-
   originalXPos = event->globalX();
   originalYPos = event->globalY();
-
-  if ((deltaX == 0) && (deltaY == 0))
-    return;
+  int elapsed = stopWatch.restart();
+  _manipulationAngle = -0.3*sqrt(deltaX*deltaX + deltaY*deltaY);
+  _manipulationAxis  = deltaX*scene->camera.upwardDirection() + deltaY*scene->camera.rightDirection();
+  _manipulationRotationalSpeed = (elapsed > 0) ? _manipulationAngle/elapsed : _manipulationAngle;
 
   // Now rotate
-  angle = -0.3*sqrt(deltaX*deltaX + deltaY*deltaY);
-  axis  = deltaX*scene->camera.upwardDirection() + deltaY*scene->camera.rightDirection();
-  int elapsed = stopWatch.restart();
-  if (elapsed > 0) {
-    rotationalSpeed = angle/elapsed;
-  } else
-    rotationalSpeed = angle;
-
-  if (scene)
-    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle(axis, angle) );
+  if ((scene) && (_manipulationAngle != 0))
+    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle(_manipulationAxis, _manipulationAngle) );
 }
 
 
 void srtWidget::mouseReleaseEvent(QMouseEvent *event )
 {
+  if (!_manipulationEnabled) {
+    event->ignore();
+    return;
+  }
   event->accept();
 
   // Start rotation if the last mouse move is no longer than 100msec ago.
-  if (stopWatch.elapsed() < 100) {
-    stopWatch.start();
-    rotationTimer.start(50);
-  }
+  if (stopWatch.elapsed() > 100)
+    return;
+
+  setRotationAxis(_manipulationAxis);
+  setRotationSpeed(_manipulationRotationalSpeed);
+  setRotation(true);
 }
 
 
-void srtWidget::rotate()
+void srtWidget::performRotation()
 {
-  angle = stopWatch.restart()*rotationalSpeed;
+  qreal angle = stopWatch.restart()*_rotationSpeed;
 
   if (scene)
-    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle(axis, angle) );
+    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle(_rotationAxis, angle) );
 }
-
-#warning set minimum size (100x100)

@@ -32,6 +32,11 @@ class srtWidget : public QFrame
 {
   Q_OBJECT
 
+  Q_PROPERTY(bool manipulationEnabled READ manipulationEnabled WRITE setManipulationEnabled);
+  Q_PROPERTY(QVector3D rotationAxis READ rotationAxis WRITE setRotationAxis);
+  Q_PROPERTY(qreal rotationSpeed READ rotationSpeed WRITE setRotationSpeed);
+  Q_PROPERTY(bool rotation READ rotation WRITE setRotation);
+
  public:
   srtWidget(QWidget *parent = 0);
 
@@ -39,6 +44,17 @@ class srtWidget : public QFrame
 
   void setScene(srtScene *_scene);
 
+  bool manipulationEnabled() const { return _manipulationEnabled; }
+  void setManipulationEnabled(bool enabled) {_manipulationEnabled = enabled; }
+
+  QVector3D rotationAxis() const { return _rotationAxis; }
+  void setRotationAxis(QVector3D axis);
+
+  qreal rotationSpeed() const { return _rotationSpeed; }
+  void setRotationSpeed(qreal speed) { _rotationSpeed = speed; }
+
+  bool rotation() const { return _rotationTimer.isActive(); }
+  void setRotation(bool rotate);
 
   // Re-implemented event handlers
   bool event(QEvent *event);
@@ -48,20 +64,25 @@ class srtWidget : public QFrame
   void mouseReleaseEvent(QMouseEvent *event);
 
  private slots:
-  // Rotates about 'axis', with angle equals to 'angle'
-  void rotate();
+  // Rotates about '_rotationAxis', with an angle determined by '_rotationSpeed'
+  // and the elapsed time measured by '_rotationTimer'.
+  void performRotation();
 
  private:
   QPointer<srtScene> scene;
 
-  // Used in mouse rotation
-  int originalXPos;
-  int originalYPos;
-  qreal angle;
-  qreal rotationalSpeed; // in angle/msec
-  QVector3D axis;
-  QTimer rotationTimer;
-  QTime  stopWatch;
+  // Used in mouse manipulation
+  bool      _manipulationEnabled;
+  int       originalXPos, originalYPos;
+  qreal     _manipulationAngle;
+  QVector3D _manipulationAxis;
+  qreal     _manipulationRotationalSpeed; // in angle/msec
+  QTime     stopWatch;
+
+  // Used in rotation
+  QVector3D _rotationAxis;
+  qreal     _rotationSpeed;
+  QTimer    _rotationTimer;
 };
 
 #endif

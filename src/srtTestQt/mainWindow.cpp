@@ -20,7 +20,6 @@
 
 #include <math.h>
 #include <QCloseEvent>
-#include <QDebug>
 #include <QSettings>
 
 #include "mainWindow.h"
@@ -40,7 +39,7 @@ mainWindow::mainWindow(QWidget *parent)
   restoreState(settings.value("mainWindow/windowState").toByteArray());
 
   // Wire up GUI elements
-  connect(ui.equation, SIGNAL(editingFinished()), this, SLOT(equationChanged()));
+  connect(ui.equation, SIGNAL(editingFinished()), this, SLOT(equationTextFieldChanged()));
   connect(ui.aSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderMoved(int)) );
   sliderMoved( ui.aSlider->value() );
 
@@ -55,18 +54,18 @@ mainWindow::mainWindow(QWidget *parent)
   connect( ui.actionSurface_8, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface8()) );
 
   // Wire up scene, so GUI will reflect changes there
-  connect(&scene, SIGNAL(changed()), this, SLOT(sceneChanged()));
+  connect(&(scene.surface), SIGNAL(aChanged()), this, SLOT(aChanged()));
+  connect(&(scene.surface), SIGNAL(equationChanged()), this, SLOT(equationChanged()));
   ui.sceneWidget->setScene(&scene);
 
   // Initialize scene
   scene.surface.load(settings.value("mainWindow/surface"));
   if (scene.surface.isEmpty() || scene.surface.hasError())
     setSampleSurface8();
-}
-
-
-mainWindow::~mainWindow()
-{
+  else {
+    aChanged();
+    equationChanged();
+  }
 }
 
 
@@ -141,12 +140,9 @@ void mainWindow::setSampleSurface8()
 }
 
 
-void mainWindow::equationChanged()
+void mainWindow::equationTextFieldChanged()
 {
-  scene.surface.setEquation(ui.equation->text());
-
-  if (scene.surface.hasError())
-    ui.equation->setCursorPosition(scene.surface.errorIndex());
+  scene.surface.setEquation( ui.equation->text() );
 }
 
 
@@ -157,24 +153,29 @@ void mainWindow::sliderMoved(int val)
 }
 
 
-void mainWindow::sceneChanged()
+void mainWindow::aChanged()
 {
-  // Set surface equation in text field
-  ui.equation->setText( scene.surface.equation() );
-
   // Adjust the slider and label to reflect the current value of 'a'
   int val = qBound( ui.aSlider->minimum(), (int)floor(scene.surface.a()*100.0+0.5), ui.aSlider->maximum() );
   ui.aSlider->setValue(val);  
   ui.aLabel->setText( QString("a = %1").arg( scene.surface.a() ));
+}
+
+
+void mainWindow::equationChanged()
+{
+  // Set surface equation in text field
+  ui.equation->setText( scene.surface.equation() );
+
+  // React to errors
+  if (scene.surface.hasError()) {
+    ui.equation->setCursorPosition(scene.surface.errorIndex());
+    statusBar()->showMessage(scene.surface.errorString(), 5000);
+  } else
+    statusBar()->clearMessage();
 
   // Enable slider and label only if 'a' is used in the equation
   bool aExists = scene.surface.equation().contains('a');
   ui.aSlider->setEnabled(aExists);
   ui.aLabel->setEnabled(aExists);
-
-  // Show or clear error message in the status bar.
-  if (scene.surface.hasError()) 
-    statusBar()->showMessage(scene.surface.errorString(), 5000);
-  else
-    statusBar()->clearMessage();
 }

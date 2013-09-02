@@ -40,16 +40,8 @@ class mainWindow : public QMainWindow
    */
   mainWindow(QWidget *parent = 0);
 
-  /**
-   * Standard destructor
-   *
-   * The destructor hase been re-implemented to save the user settings
-   */
-  ~mainWindow();
-
-
  public slots:
-  void equationChanged();
+  void equationTextFieldChanged();
   void sliderMoved(int value);
 
   void setSampleSurface1();
@@ -66,11 +58,13 @@ class mainWindow : public QMainWindow
   void closeEvent(QCloseEvent *event);
 
  private slots:
-  void sceneChanged();
+  void aChanged();
+  void equationChanged();
 
  private:
   // GUI, as construced with the Qt designer
   Ui::mainWindow ui;
 
+  // The central scene that is rendered in the widget
   srtScene scene;
 };
