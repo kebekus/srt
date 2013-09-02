@@ -37,6 +37,7 @@ srtScene::srtScene(QObject *parent)
   use_aabb = 0;
 
   connect(&surface, SIGNAL(changed()), this, SIGNAL(changed()));
+  connect(&camera, SIGNAL(changed()), this, SIGNAL(changed()));
 }
 
 
@@ -80,6 +81,16 @@ QImage srtScene::draw(QSize size)
   uint32_t *fb = (uint32_t *)img.scanLine(0);
 
   struct camera _camera = init_camera();
+
+  QVector3D v;
+  v = camera.upwardDirection();
+  _camera.up = v4sf_set3(v.x(), v.y(), v.z());
+  v = camera.viewDirection();
+  _camera.dir = v4sf_set3(v.x(), v.y(), v.z());
+  v = QVector3D::crossProduct(camera.upwardDirection(), camera.viewDirection());
+  _camera.right = v4sf_set3(v.x(), v.y(), v.z());
+  v = camera.position();
+  _camera.origin = v4sf_set3(v.x(), v.y(), v.z());
 
   int w = img.width();
   int h = img.height();

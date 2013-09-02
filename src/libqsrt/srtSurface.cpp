@@ -40,6 +40,8 @@ Surface::Surface(QObject *parent)
   : QObject(parent), privateMemberLock(QReadWriteLock::Recursive)
 {
   construct();
+  connect(this, SIGNAL(equationChanged()), this, SIGNAL(changed()));
+  connect(this, SIGNAL(aChanged()), this, SIGNAL(changed()));
 }
 
 
@@ -69,11 +71,8 @@ void Surface::clear()
 {
   // Get write access to private members
   privateMemberLock.lockForWrite();
-  bool change = _clear();
+  _clear();
   privateMemberLock.unlock();
-
-  if (change)
-    emit changed();
 
   return;
 }
@@ -107,7 +106,7 @@ void Surface::setA(qreal a)
   privateMemberLock.unlock();
 
   if (change)
-    emit changed();
+    emit aChanged();
 
   return;
 }
@@ -132,7 +131,7 @@ void Surface::setEquation(const QString &equation)
   privateMemberLock.unlock();
 
   if (change)
-    emit changed();
+    emit equationChanged();
 
   return;
 }
@@ -369,21 +368,14 @@ QDataStream & operator>> (QDataStream& in, qsrt::Surface& surface)
 
   // Get write access to private members and apply changes
   surface.privateMemberLock.lockForWrite();
-  bool changed = surface._setEquation(n_equation);
-  if (surface._errorString.isEmpty()) {
-    changed |= (surface._errorString != n_errorString);
-    changed |= (surface._errorIndex != n_errorIndex);
-
-    surface._errorString = n_errorString;
-    surface._errorIndex  = n_errorIndex;
-  }
-  changed |= surface._setA(n_a);
+  surface._setEquation(n_equation);
+  surface._errorString = n_errorString;
+  surface._errorIndex  = n_errorIndex;
+  surface._setA(n_a);
   surface.privateMemberLock.unlock();
 
-  if (changed)
-    surface.touch();
-  
   in.setVersion(oldVersion);
+
   return in;
 }
 

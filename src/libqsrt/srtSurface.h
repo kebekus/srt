@@ -76,7 +76,7 @@ class Surface : public QObject
   * equation() and setEquation() to access the property. The signal changed()
   * is emitted whenever this property changes.
   */
-  Q_PROPERTY(QString equation READ equation WRITE setEquation NOTIFY changed);
+  Q_PROPERTY(QString equation READ equation WRITE setEquation NOTIFY equationChanged);
 
  /**
   * \brief Constant used in the polynomial equation
@@ -87,7 +87,7 @@ class Surface : public QObject
   * methods a() and setA() to access the property. The signal changed() is
   * emitted whenever this property changes.
   */
-  Q_PROPERTY(qreal a READ a WRITE setA NOTIFY changed);
+  Q_PROPERTY(qreal a READ a WRITE setA NOTIFY aChanged);
 
  public:
   /**
@@ -241,7 +241,8 @@ class Surface : public QObject
    * \brief Restore surface properties
    * 
    * This method reads previously saved surface properties and sets these
-   * properties in the present object. The signal changed() might be emitted.
+   * properties in the present object.  The signal changed() will not be
+   * emitted, nor will any other signal.
    *
    * On error, the surface is clear()ed, and an error condition is set.
    *
@@ -253,7 +254,8 @@ class Surface : public QObject
    * \brief Restore previously saved surface attributes
    * 
    * This method reads previously saved surface properties and sets these
-   * properties in the present object. The signal changed() might be emitted.
+   * properties in the present object.  The signal changed() will not be
+   * emitted, nor will any other signal.
    *
    * On error, the surface is clear()ed, and an error condition is set.
    *
@@ -266,7 +268,8 @@ class Surface : public QObject
    * \brief Sets all properties to default values
    * 
    * This methodd sets all properties to default values. Afterwards, the surface
-   * is empty. The signal changed() might be emitted.
+   * is empty.  The signal changed() will not be emitted, nor will any other
+   * signal.
    */
   void clear();
 
@@ -327,8 +330,26 @@ class Surface : public QObject
    */
   void changed();
 
+  /**
+   * \brief Emitted whenever the 'equation' property of this class changes its value
+   *
+   * This signal is emitted whenever the 'equation' property of this class
+   * changes its value.
+   */
+  void aChanged();
+
+  /**
+   * \brief Emitted whenever the 'equation' property of this class changes its value
+   *
+   * This signal is emitted whenever the 'equation' property of this class
+   * changes its value.
+   */
+  void equationChanged();
+
  private:
-  friend class srtScene;
+  void touchEquation() {emit equationChanged();}
+
+  friend class ::srtScene;
   friend bool operator== (Surface& s1, Surface& s2);
   friend bool operator!= (Surface& s1, Surface& s2);
   friend QDataStream & operator<< (QDataStream& out, Surface& surface);
@@ -393,7 +414,8 @@ QDataStream & operator<< (QDataStream& out, Surface& surface);
  * \brief Read surface properties from a QDataStream
  * 
  * This method reads previously saved surface properties and sets these
- * properties in the present object. The signal changed() might be emitted.
+ * properties in the present object. The signal changed() will not be emitted,
+ * nor will any other signal.
  *
  * On error, the surface is clear()ed, and an error condition is set.
  */
