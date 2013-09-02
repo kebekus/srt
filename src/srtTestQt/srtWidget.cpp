@@ -27,11 +27,17 @@
 
 
 srtWidget::srtWidget(QWidget *parent)
-  : QFrame(parent)
+  : QFrame(parent), rotationTimer(this)
 {
-  //  setAttribute(Qt::WA_AcceptTouchEvents);
+  // Initialize Members
+  angle = 0;
+  axis  = QVector3D(0,1,0);
+
+  connect(&rotationTimer, SIGNAL(timeout()), this, SLOT(rotate()));
 
   // Test only
+  grabGesture(Qt::TapGesture);
+  grabGesture(Qt::TapAndHoldGesture);
   grabGesture(Qt::PanGesture);
   grabGesture(Qt::PinchGesture);
   grabGesture(Qt::SwipeGesture);
@@ -50,6 +56,7 @@ void srtWidget::setScene(srtScene *_scene)
     return;
 
   connect(scene, SIGNAL(changed()), this, SLOT(update()));
+  connect(&scene->surface, SIGNAL(equationChanged()), &rotationTimer, SLOT(stop()));
 }
 
 
@@ -75,10 +82,10 @@ void srtWidget::paintEvent(QPaintEvent *event)
       int width  = frameRect().width()-2*frameWidth();
       int height = frameRect().height()-2*frameWidth();
 
-      QImage img = scene->draw( QSize(2*width, 2*height) );
+      QImage img = scene->draw( QSize(width, height) );
       if (!img.isNull()) {
-	QImage scaled = img.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-	painter.drawImage( QPoint(frameWidth(), frameWidth()), scaled);
+	//	QImage scaled = img.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+	painter.drawImage( QPoint(frameWidth(), frameWidth()), img);
       }
     }
 
@@ -92,8 +99,13 @@ void srtWidget::mousePressEvent(QMouseEvent *event )
   if (event->button() != Qt::LeftButton) 
     return;
 
-  originalXPos = event->globalX();
-  originalYPos = event->globalY();
+  rotationTimer.stop();
+  stopWatch.start();
+
+  originalXPos    = event->globalX();
+  originalYPos    = event->globalY();
+  angle           = 0.0;
+  rotationalSpeed = 0.0;
 
   event->accept();
 }
@@ -109,16 +121,41 @@ void srtWidget::mouseMoveEvent(QMouseEvent *event )
   originalXPos = event->globalX();
   originalYPos = event->globalY();
 
-
   if ((deltaX == 0) && (deltaY == 0))
     return;
 
-  double angle = -sqrt(deltaX*deltaX + deltaY*deltaY);
-  
-  if (scene) {
-    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle( deltaX*scene->camera.upwardDirection() + deltaY*scene->camera.rightDirection(), angle) );
+  // Now rotate
+  angle = -0.3*sqrt(deltaX*deltaX + deltaY*deltaY);
+  axis  = deltaX*scene->camera.upwardDirection() + deltaY*scene->camera.rightDirection();
+  int elapsed = stopWatch.restart();
+  if (elapsed > 0) {
+    rotationalSpeed = angle/elapsed;
+  } else
+    rotationalSpeed = angle;
+
+  if (scene)
+    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle(axis, angle) );
+}
+
+
+void srtWidget::mouseReleaseEvent(QMouseEvent *event )
+{
+  event->accept();
+
+  // Start rotation if the last mouse move is no longer than 100msec ago.
+  if (stopWatch.elapsed() < 100) {
+    stopWatch.start();
+    rotationTimer.start(50);
   }
 }
 
+
+void srtWidget::rotate()
+{
+  angle = stopWatch.restart()*rotationalSpeed;
+
+  if (scene)
+    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle(axis, angle) );
+}
 
 #warning set minimum size (100x100)

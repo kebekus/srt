@@ -23,12 +23,14 @@
 
 #include <QFrame>
 #include <QPointer>
+#include <QTime>
+#include <QTimer>
 
 #include "srtScene.h"
 
 class srtWidget : public QFrame
 {
-    Q_OBJECT
+  Q_OBJECT
 
  public:
   srtWidget(QWidget *parent = 0);
@@ -37,11 +39,17 @@ class srtWidget : public QFrame
 
   void setScene(srtScene *_scene);
 
+
   // Re-implemented event handlers
   bool event(QEvent *event);
-  void paintEvent (QPaintEvent * event );
-  void mousePressEvent(QMouseEvent *event );
-  void mouseMoveEvent(QMouseEvent *event );
+  void paintEvent (QPaintEvent * event);
+  void mousePressEvent(QMouseEvent *event);
+  void mouseMoveEvent(QMouseEvent *event);
+  void mouseReleaseEvent(QMouseEvent *event);
+
+ private slots:
+  // Rotates about 'axis', with angle equals to 'angle'
+  void rotate();
 
  private:
   QPointer<srtScene> scene;
@@ -49,6 +57,11 @@ class srtWidget : public QFrame
   // Used in mouse rotation
   int originalXPos;
   int originalYPos;
+  qreal angle;
+  qreal rotationalSpeed; // in angle/msec
+  QVector3D axis;
+  QTimer rotationTimer;
+  QTime  stopWatch;
 };
 
 #endif
