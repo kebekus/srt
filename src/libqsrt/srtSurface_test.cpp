@@ -178,7 +178,7 @@ void Surface_test::serialization()
 
   // The two should now be equal
   QVERIFY( s1 == s2 );
-  QVERIFY( counter == 1 );
+  QVERIFY( counter == 0 );
   counter = 0;
 
   // Read s2 again, check that counter did not change
@@ -201,7 +201,7 @@ void Surface_test::serialization()
   QVERIFY( s1 != s2 );
   QVERIFY( s2.hasError() );
   QVERIFY( s2.errorIndex() == -1 );
-  QVERIFY( counter == 1 );
+  QVERIFY( counter == 0 );
 }
 
 
@@ -219,7 +219,7 @@ void Surface_test::conversionQByteArray()
   QByteArray ar=s1;
   s2.load(ar);
   QVERIFY( s1 == s2 );
-  QVERIFY( counter == 1 );
+  QVERIFY( counter == 0 );
 }
 
 
@@ -237,5 +237,5 @@ void Surface_test::conversionQVariant()
   QVariant var=s1;
   s2.load(var);
   QVERIFY( s1 == s2 );
-  QVERIFY( counter == 1 );
+  QVERIFY( counter == 0 );
 }

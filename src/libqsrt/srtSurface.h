@@ -45,7 +45,7 @@ namespace qsrt {
  * equation. Once set, highly optimized machine code is created, which is used
  * to evaluate the equation and its derivaties.
  *
- * Surfaces may have special states.
+ * Surfaces may have special states, which are not exclusive.
  *
  * - Surfaces are empty if no equation has been set, or if an empty equation has
  *   been set. Empty surfaces can be rendered, but nothing will show. Use the

@@ -20,8 +20,6 @@ class srtScene : public QObject
    */
   srtScene(QObject *parent=0);
 
-#warning destructor missing
-
  
  signals:
   void changed();
@@ -30,7 +28,7 @@ class srtScene : public QObject
 
   QImage draw(QSize size);
   int use_aabb;
-  srtCamera camera;
+  qsrt::Camera camera;
   qsrt::Surface surface;
 };
 

@@ -60,6 +60,7 @@ mainWindow::mainWindow(QWidget *parent)
 
   // Initialize scene
   scene.surface.load(settings.value("mainWindow/surface"));
+  scene.camera.load(settings.value("mainWindow/camera"));
   if (scene.surface.isEmpty() || scene.surface.hasError())
     setSampleSurface8();
   else {
@@ -78,6 +79,7 @@ void mainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("mainWindow/geometry", saveGeometry());
     settings.setValue("mainWindow/windowState", saveState());
     settings.setValue("mainWindow/surface", scene.surface );
+    settings.setValue("mainWindow/camera", scene.camera );
   }
   
   event->accept();

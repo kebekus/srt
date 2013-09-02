@@ -2,6 +2,7 @@ project(qsrt)
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../libsrt ${CMAKE_CURRENT_BINARY_DIR}/../libsrt ${SDL_INCLUDE_DIR} )
 
+
 # libqsrt
 add_library(qsrt SHARED
   srtCamera.cpp
@@ -16,6 +17,7 @@ set_target_properties(qsrt PROPERTIES AUTOMOC TRUE)
 ADD_EXECUTABLE( qsrt_tests
   qsrt_tests.cpp
   srt_test.cpp
+  srtCamera_test.cpp
   srtSurface_test.cpp
   )
 TARGET_LINK_LIBRARIES( qsrt_tests qsrt ${QT_QTTEST_LIBRARY} ${QT_LIBRARIES} )

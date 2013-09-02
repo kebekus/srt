@@ -40,8 +40,6 @@ Surface::Surface(QObject *parent)
   : QObject(parent), privateMemberLock(QReadWriteLock::Recursive)
 {
   construct();
-  connect(this, SIGNAL(equationChanged()), this, SIGNAL(changed()));
-  connect(this, SIGNAL(aChanged()), this, SIGNAL(changed()));
 }
 
 
@@ -285,6 +283,10 @@ void Surface::construct()
   deriv_tree[0] = parser_alloc_tree(8192);
   deriv_tree[1] = parser_alloc_tree(8192);
   deriv_tree[2] = parser_alloc_tree(8192);
+
+  // Wire up signals
+  connect(this, SIGNAL(equationChanged()), this, SIGNAL(changed()));
+  connect(this, SIGNAL(aChanged()), this, SIGNAL(changed()));
 }
 
 
@@ -323,7 +325,6 @@ QDataStream & operator>> (QDataStream& in, qsrt::Surface& surface)
     surface._clear();
     surface._errorString = "bad file format";
     surface._errorIndex  = -1;
-    surface.touch();
     return in;
   }
 
@@ -337,7 +338,6 @@ QDataStream & operator>> (QDataStream& in, qsrt::Surface& surface)
     surface._clear();
     surface._errorString = "file format too new";
     surface._errorIndex  = -1;
-    surface.touch();
     return in;
   }
   

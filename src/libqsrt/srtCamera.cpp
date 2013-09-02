@@ -18,41 +18,89 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <math.h>
+#include <QMap>
+
+extern "C" {
+#include "camera.h"
+}
 #include "srtCamera.h"
 
+namespace qsrt {
 
-srtCamera::srtCamera(QObject *parent)
+Camera::Camera(QObject *parent)
   : QObject(parent)
 {
   reset();
 }
 
 
-QVector3D srtCamera::position()
+QVector3D Camera::position()
 {
+  QReadLocker locker(&privateMemberLock);
   return _position;
 }
 
 
-QVector3D srtCamera::viewDirection()
+QVector3D Camera::viewDirection()
 {
+  QReadLocker locker(&privateMemberLock);
   return _viewDirection;
 }
 
 
-QVector3D srtCamera::upwardDirection()
+QVector3D Camera::upwardDirection()
 {
+  QReadLocker locker(&privateMemberLock);
   return _upwardDirection;
 }
 
 
-QVector3D srtCamera::rightDirection()
+QVector3D Camera::rightDirection()
 {
+  QReadLocker locker(&privateMemberLock);
   return QVector3D::crossProduct(_upwardDirection,_viewDirection);
 }
 
 
-void srtCamera::reset()
+Camera::operator QVariant()
+{
+  QReadLocker locker(&privateMemberLock);
+
+  QVariantMap map;
+  map["position"]        = _position;
+  map["viewDirection"]   = _viewDirection;
+  map["upwardDirection"] = _upwardDirection;
+
+  return map;
+}
+
+
+bool Camera::load(QVariant var)
+{
+  QVariantMap map = var.value<QVariantMap>();
+  if (map.isEmpty())
+    return false;
+
+  // Check existence of most important members
+  if ( !map.contains("position") || !map.contains("viewDirection") || !map.contains("upwardDirection") )
+    return false;
+
+  QVector3D n_position = map["position"].value<QVector3D>();
+  QVector3D n_viewDirection  = map["viewDirection"].value<QVector3D>();
+  QVector3D n_upwardDirection = map["upwardDirection"].value<QVector3D>();
+  if ( fabs( QVector3D::crossProduct(n_viewDirection, n_upwardDirection).length() - 1.0) > 1e-6 )
+    return false;
+
+  QWriteLocker locker(&privateMemberLock);
+  _position        = n_position;
+  _viewDirection   = n_viewDirection;
+  _upwardDirection = n_upwardDirection;
+  return true;
+}
+
+
+void Camera::reset()
 {
   QVector3D n_position        = QVector3D(0,0,10);
   QVector3D n_viewDirection   = QVector3D(0,0,-1);
@@ -61,68 +109,190 @@ void srtCamera::reset()
   if ( (n_position == _position) && (n_viewDirection == _viewDirection) && (n_upwardDirection == _upwardDirection) )
     return;
 
+  privateMemberLock.lockForWrite();
   _position        = n_position;
-  _viewDirection   =  n_viewDirection;
-  _upwardDirection =  n_upwardDirection;
+  _viewDirection   = n_viewDirection;
+  _upwardDirection = n_upwardDirection;
+  privateMemberLock.unlock();
 
   emit changed();
 }
 
 
-void srtCamera::setPosition(QVector3D pos)
+void Camera::setPosition(QVector3D pos)
 {
   if (pos == _position)
     return;
 
+  privateMemberLock.lockForWrite();
   _position = pos;
+  privateMemberLock.unlock();
+
+  emit changed();
+}
+  
+  
+void Camera::setViewDirection(QVector3D dir)
+{
+  // Paranoid safety checks
+  if (qFuzzyCompare(dir, QVector3D()))
+    return;
+  if (qFuzzyCompare(dir, _viewDirection))
+    return;
+
+  // Normalize direction vector and set '_viewDirection'
+  QVector3D n_viewDirection = dir.normalized();
+
+  // Make sure '_upwardDirection' and '_viewDirection' are linearly independent
+  QVector3D n_upwardDirection = _upwardDirection;
+  if (qFuzzyCompare(QVector3D::crossProduct(n_viewDirection, n_upwardDirection), QVector3D()))
+    n_upwardDirection = QVector3D(1,0,0);
+  if (qFuzzyCompare(QVector3D::crossProduct(n_viewDirection, n_upwardDirection), QVector3D()))
+    n_upwardDirection = QVector3D(0,1,0);
+  // Now make them ortonormal
+  n_upwardDirection = (n_upwardDirection - QVector3D::dotProduct(n_viewDirection, n_upwardDirection)*n_viewDirection).normalized();
+  
+  // Write out both directions
+  privateMemberLock.lockForWrite();
+  _viewDirection   = n_viewDirection;
+  _upwardDirection = n_upwardDirection;
+  privateMemberLock.unlock();
+
+  // Emit signal 'changed'
   emit changed();
 }
 
 
-void srtCamera::setView(QVector3D dir, QVector3D up)
+void Camera::setUpwardDirection(QVector3D up)
+{
+  // Paranoid safety checks
+  if (qFuzzyCompare(up, QVector3D()))
+    return;
+  if (qFuzzyCompare(up, _upwardDirection))
+    return;
+
+  // Normalize direction vector and set '_viewDirection'
+  QVector3D n_upwardDirection = up.normalized();
+
+  // Make sure '_upwardDirection' and '_viewDirection' are linearly independent
+  QVector3D n_viewDirection = _viewDirection;
+  if (qFuzzyCompare(QVector3D::crossProduct(n_viewDirection, n_upwardDirection), QVector3D()))
+    n_viewDirection = QVector3D(1,0,0);
+  if (qFuzzyCompare(QVector3D::crossProduct(n_viewDirection, n_upwardDirection), QVector3D()))
+    n_viewDirection = QVector3D(0,1,0);
+  // Now make them ortonormal
+  n_viewDirection = (n_viewDirection - QVector3D::dotProduct(n_viewDirection, n_upwardDirection)*n_upwardDirection).normalized();
+
+  // Write out both directions
+  privateMemberLock.lockForWrite();
+  _viewDirection   = n_viewDirection;
+  _upwardDirection = n_upwardDirection;
+  privateMemberLock.unlock();
+
+  // Emit signal 'changed'
+  emit changed();
+}
+
+
+void Camera::setView(QVector3D dir, QVector3D up)
 {
   if (qFuzzyCompare(QVector3D::crossProduct(dir, up), QVector3D()))
     return;
 
   QVector3D n_viewDirection   = dir.normalized();
-  QVector3D n_upwardDirection = up - QVector3D::dotProduct(n_viewDirection, up)*n_viewDirection;
+  QVector3D n_upwardDirection = (up - QVector3D::dotProduct(n_viewDirection, up)*n_viewDirection).normalized();
 
   if ( (n_viewDirection == _viewDirection) && (n_upwardDirection == _upwardDirection) )
     return;
 
+  privateMemberLock.lockForWrite();
   _viewDirection   = n_viewDirection;
   _upwardDirection = n_upwardDirection;
+  privateMemberLock.unlock();
+
   emit changed();
 }
 
 
-void srtCamera::translate(QVector3D displacement)
+void Camera::translate(QVector3D displacement)
 {
   if (qFuzzyCompare(displacement, QVector3D()))
     return;
 
+  privateMemberLock.lockForWrite();
   _position += displacement;
+  privateMemberLock.unlock();
+
   emit changed();
 }
 
-void srtCamera::rotateView(QQuaternion rot)
+
+void Camera::rotateView(QQuaternion rot)
 {
   if (rot.isIdentity())
     return;
 
+  privateMemberLock.lockForWrite();
   _viewDirection   = rot.rotatedVector(_viewDirection);
   _upwardDirection = rot.rotatedVector(_upwardDirection);
+  privateMemberLock.unlock();
+
   emit changed();
 }
 
 
-void srtCamera::rotateCamera(QQuaternion rot)
+void Camera::rotateCamera(QQuaternion rot)
 {
   if (rot.isIdentity())
     return;
 
+  privateMemberLock.lockForWrite();
   _position        = rot.rotatedVector(_position);
   _viewDirection   = rot.rotatedVector(_viewDirection);
   _upwardDirection = rot.rotatedVector(_upwardDirection);
+  privateMemberLock.unlock();
+
   emit changed();
 }
+
+
+QDataStream & operator<< (QDataStream& out, Camera& camera)
+{
+  out << QVariant(camera);
+  return out;
+}
+
+
+QDataStream & operator>> (QDataStream& in, Camera& camera)
+{
+  QVariant var;
+  in >> var;
+  camera.load(var);
+  return in;
+}
+
+
+bool operator== (Camera& s1, Camera& s2)
+{
+  // Get read access to private members
+  QReadLocker privatMemberLocker1(&s1.privateMemberLock);
+  QReadLocker privatMemberLocker2(&s2.privateMemberLock);
+  
+  if (s1._position != s2._position)
+    return false;
+  if (s1._viewDirection != s2._viewDirection)
+    return false;
+  if (s1._upwardDirection != s2._upwardDirection)
+    return false;
+
+  return true;
+}
+
+
+bool operator!= (Camera& s1, Camera& s2)
+{
+  return !(s1 == s2);
+}
+
+
+} // end of namespace qsrt

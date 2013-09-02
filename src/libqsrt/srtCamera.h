@@ -23,35 +23,78 @@
 
 #include <QObject>
 #include <QQuaternion>
+#include <QReadWriteLock>
+#include <QVariant>
 #include <QVector3D>
 
 
-#warning thread safety?
+#warning documentation
 
-#warning This is a seriously flawed design. The user of libqsrt should never include this.
-extern "C" {
-#include "camera.h"
-}
+namespace qsrt {
 
-class srtCamera : public QObject
+/**
+ * \brief Camear object used to render a scene
+ *
+ * This class represents a camera in a given scene. The main properties stored
+ * are the position of the camera and the direction of view.
+ *
+ * All methods of the class are reentrant and thread-safe.
+ *
+ * @author Stefan Kebekus 
+ */
+
+
+class Camera : public QObject
 {
   Q_OBJECT;
 
+ /**
+  * \brief Position of the camera
+  *
+  * This vector specifies the position of the camera in space. The signal
+  * changed() is emitted whenever this property changes.
+  */
+  Q_PROPERTY(QVector3D position READ position WRITE setPosition NOTIFY changed);
+
+ /**
+  * \brief Direction of view
+  *
+  * This vector specifies in which direction the camera is pointing. The signal
+  * changed() is emitted whenever this property changes.
+  *
+  * @note This vector should always be normalized, and orthogonal to the
+  * 'upwardDirection'. 
+  */
+  Q_PROPERTY(QVector3D viewDirection READ viewDirection WRITE setViewDirection NOTIFY changed);
+
+ /**
+  * \brief Direction of view
+  *
+  * This vector specifies in which direction the camera is pointing. The signal
+  * changed() is emitted whenever this property changes.
+  *
+  * @note This vector should always be normalized, and orthogonal to the
+  * 'upwardDirection'. 
+  */
+  Q_PROPERTY(QVector3D upwardDirection READ upwardDirection WRITE setUpwardDirection NOTIFY changed);
+
  public:
-  srtCamera(QObject *parent = 0);
+  Camera(QObject *parent = 0);
 
   QVector3D position();
   QVector3D viewDirection();
   QVector3D upwardDirection();
   QVector3D rightDirection();
 
-#warning serialisation and i/o missing
-  struct camera _camera;
+  operator QVariant();
+  bool load(QVariant var);
 
  public slots:
   void reset();
 
   void setPosition(QVector3D pos);
+  void setViewDirection(QVector3D dir);
+  void setUpwardDirection(QVector3D up);
   void setView(QVector3D dir, QVector3D up);
 
   void translate(QVector3D displacement);
@@ -66,11 +109,42 @@ class srtCamera : public QObject
    */
   void changed();
 
- public:
+ private:
+  friend bool operator== (Camera& s1, Camera& s2);
+  friend bool operator!= (Camera& s1, Camera& s2);
+
+  // Read-Write lock, to be used for all private members that are defined below
+  // this point
+  QReadWriteLock privateMemberLock;
+
   QVector3D _position;
   QVector3D _viewDirection;
   QVector3D _upwardDirection;
-
 };
+
+QDataStream & operator<< (QDataStream& out, Camera& camera);
+QDataStream & operator>> (QDataStream& in, Camera& camera);
+
+/**
+ * \brief Check two cameras for equality
+ *
+ * Two cameras are considered equal if all their properties agree.
+ *
+ * @returns true on equality
+ */
+bool operator== (Camera& s1, Camera& s2);
+
+/**
+ * \brief Check two cameras for inequality
+ *
+ * Two cameras are considered unequal if one property disagrees.
+ *
+ * @returns true on inequality
+ */
+bool operator!= (Camera& s1, Camera& s2);
+
+
+} // namespace qsrt
+
 
 #endif
