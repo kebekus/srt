@@ -66,5 +66,5 @@ class mainWindow : public QMainWindow
   Ui::mainWindow ui;
 
   // The central scene that is rendered in the widget
-  srtScene scene;
+  qsrt::Scene scene;
 };

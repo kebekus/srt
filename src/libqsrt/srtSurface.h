@@ -27,14 +27,16 @@
 #include <QString>
 #include <QVariant>
 
-// srt classes used by private members
-class srtScene;
+// Declare a number of classes
 namespace parser{class jit;}
 struct stripe_data;
 struct parser_tree;
 
 
 namespace qsrt {
+
+  //class Scene;
+
 
 /**
  * \brief Algebraic surface in three-dimensional Euclidean space.
@@ -349,7 +351,7 @@ class Surface : public QObject
  private:
   void touchEquation() {emit equationChanged();}
 
-  friend class ::srtScene;
+  friend class Scene;
   friend bool operator== (Surface& s1, Surface& s2);
   friend bool operator!= (Surface& s1, Surface& s2);
   friend QDataStream & operator<< (QDataStream& out, Surface& surface);

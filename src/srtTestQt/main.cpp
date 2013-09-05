@@ -1,20 +1,27 @@
-
-/*
-srt - SIMD Ray Tracing
-Written in 2013 by <Ahmet Inan> <xdsopl@googlemail.com>
-To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
-You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
-*/
-
+/***************************************************************************
+ *   Copyright (C) 2013 Stefan Kebekus                                     *
+ *   stefan.kebekus@math.uni-freiburg.de                                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #include <QApplication>
-#include <QDebug>
-#include <QElapsedTimer>
-#include <QImage>
 
 #include "srtScene.h"
 #include "mainWindow.h"
-
 
 
 int main(int argc, char **argv)
@@ -29,27 +36,4 @@ int main(int argc, char **argv)
 
   mW.show();
   return app.exec();
-
-
-  QElapsedTimer timer;
-  timer.start();
-  srtScene scene;
-
-  // Create a surface and check if the surface could be generated without
-  // errors. If an error occurred, write output to the command line.
-  scene.surface.setEquation("4*((a*(1+sqrt(5))/2)^2*x^2-1*y^2)*((a*(1+sqrt(5))/2)^2*y^2-1*z^2)*((a*(1+sqrt(5))/2)^2*z^2-1*x^2)-1*(1+2*(a*(1+sqrt(5))/2))*(x^2+y^2+z^2-1*1)^2");
-  if (scene.surface.hasError()) {
-    qDebug() << scene.surface.errorString() << endl
-	     << "Index: " << scene.surface.errorIndex();
-    exit(1);
-  }
-  
-  QImage img;
-  for(int i=0; i<100; i++)
-    img = scene.draw( QSize(900, 900));
-  qDebug() << "The slow operation took" << timer.elapsed() << "milliseconds";
-  
-  img.save("test.png");
-  
-  return 0;
 }

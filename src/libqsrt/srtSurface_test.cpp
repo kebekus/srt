@@ -50,7 +50,7 @@ void Surface_test::benchmark_JITcompilation()
 
 void Surface_test::specialStates()
 {
-  srtScene scene;
+  qsrt::Scene scene;
   QVERIFY( scene.surface.isEmpty() );
   QSize size(50, 50);
   QImage img1 = scene.draw( size );

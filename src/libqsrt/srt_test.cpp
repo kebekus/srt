@@ -48,7 +48,7 @@ void srt_test::parser_floatParsing()
 {
   // At one point, the equation parser was not able to distinguish between the
   // constants 0 and 0.5. Check that this works correctly now.
-  srtScene scene;
+  qsrt::Scene scene;
   scene.surface.setEquation("x^2+z^2-y^2+0");
   QImage img1 = scene.draw( QSize(100,100) );
   scene.surface.setEquation("x^2+z^2-y^2+0.5");
@@ -65,7 +65,7 @@ void srt_test::parser_constantA()
 {
   // At one point, the equation parser was not able to distinguish between the
   // constants 0 and 0.5. Check that this works correctly now.
-  srtScene scene;
+  qsrt::Scene scene;
   scene.surface.setEquation("x^2+z^2-y^2+1");
   QImage img1 = scene.draw( QSize(100,100) );
 
@@ -83,11 +83,11 @@ void srt_test::parser_constantA()
 
 void srt_test::multipleSurfaces()
 {
-  srtScene scene1;
+  qsrt::Scene scene1;
   scene1.surface.setEquation("x^2+z^2-y^2+1");
   QImage img1 = scene1.draw( QSize(100,100) );
 
-  srtScene scene2;
+  qsrt::Scene scene2;
   scene2.surface.setEquation("x^2+z^2-y^2+2");
   QImage img2 = scene1.draw( QSize(100,100) );
   

@@ -56,7 +56,7 @@ srtWidget::~srtWidget()
 }
 
 
-void srtWidget::setScene(srtScene *_scene)
+void srtWidget::setScene(qsrt::Scene *_scene)
 {
   scene = _scene;
   if (scene.isNull())
@@ -128,6 +128,7 @@ void srtWidget::mousePressEvent(QMouseEvent *event )
 
   // Stop any rotation movement
   setRotation(false);
+  _manipulationRotationalSpeed = 0.0;
 
   // Record current mouse position, start timer in order to record mouse speed
   stopWatch.start();
@@ -138,7 +139,7 @@ void srtWidget::mousePressEvent(QMouseEvent *event )
 
 void srtWidget::mouseMoveEvent(QMouseEvent *event )
 {
-  if (!_manipulationEnabled) {
+  if (!_manipulationEnabled || scene.isNull()) {
     event->ignore();
     return;
   }
@@ -152,13 +153,13 @@ void srtWidget::mouseMoveEvent(QMouseEvent *event )
   originalXPos = event->globalX();
   originalYPos = event->globalY();
   int elapsed = stopWatch.restart();
-  _manipulationAngle = -0.3*sqrt(deltaX*deltaX + deltaY*deltaY);
+  _manipulationAngle = -0.2*sqrt(deltaX*deltaX + deltaY*deltaY);
   _manipulationAxis  = deltaX*scene->camera.upwardDirection() + deltaY*scene->camera.rightDirection();
   _manipulationRotationalSpeed = (elapsed > 0) ? _manipulationAngle/elapsed : _manipulationAngle;
 
   // Now rotate
   if ((scene) && (_manipulationAngle != 0))
-    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle(_manipulationAxis, _manipulationAngle) );
+    scene->camera.rotateAboutOrigin( QQuaternion::fromAxisAndAngle(_manipulationAxis, _manipulationAngle) );
 }
 
 
@@ -176,7 +177,21 @@ void srtWidget::mouseReleaseEvent(QMouseEvent *event )
 
   setRotationAxis(_manipulationAxis);
   setRotationSpeed(_manipulationRotationalSpeed);
-  setRotation(true);
+  if (_manipulationRotationalSpeed != 0.0)
+    setRotation(true);
+}
+
+
+void srtWidget::wheelEvent(QWheelEvent * event )
+{
+  if (!_manipulationEnabled || scene.isNull()) {
+    event->ignore();
+    return;
+  }
+  event->accept();
+
+  qreal zoom = scene->camera.zoom() * exp(event->delta() / (8.0*360.0));
+  scene->camera.setZoom( zoom );
 }
 
 
@@ -185,5 +200,5 @@ void srtWidget::performRotation()
   qreal angle = stopWatch.restart()*_rotationSpeed;
 
   if (scene)
-    scene->camera.rotateCamera( QQuaternion::fromAxisAndAngle(_rotationAxis, angle) );
+    scene->camera.rotateAboutOrigin( QQuaternion::fromAxisAndAngle(_rotationAxis, angle) );
 }

@@ -31,7 +31,11 @@ extern "C" {
 }
 
 
-srtScene::srtScene(QObject *parent) 
+
+namespace qsrt {
+
+
+Scene::Scene(QObject *parent) 
   : QObject(parent)
 {
   use_aabb = 0;
@@ -56,7 +60,7 @@ void runTask(task &tsk)
 }
 
 
-QImage srtScene::draw(QSize size)
+QImage Scene::draw(QSize size)
 {
   // Paranoia check: if size is empty or invalid, return a null image.
   if (size.isEmpty())
@@ -106,10 +110,11 @@ QImage srtScene::draw(QSize size)
     ow = 1;
     oh = (float)h / (float)w;
   }
-  v4sf dU = v4sf_set1(dw) * _camera.right;
-  v4sf dV = v4sf_set1(dh) * _camera.up;
-  v4sf oU = v4sf_set1(ow) * _camera.right;
-  v4sf oV = v4sf_set1(oh) * _camera.up;
+  float zoom = 2.8*camera.zoom();
+  v4sf dU = v4sf_set1(dw / zoom) * _camera.right;
+  v4sf dV = v4sf_set1(dh / zoom) * _camera.up;
+  v4sf oU = v4sf_set1(ow / zoom) * _camera.right;
+  v4sf oV = v4sf_set1(oh / zoom) * _camera.up;
   m34sf zU = m34sf_set(v4sf_set1(0), dU, v4sf_set1(0), dU);
   m34sf zV = m34sf_set(v4sf_set1(0), v4sf_set1(0), dV, dV);
   m34sf U = m34sf_subv(zU, oU);
@@ -136,3 +141,5 @@ QImage srtScene::draw(QSize size)
   QtConcurrent::blockingMap(tskList, runTask);
   return img;
 }
+
+} // namespace qsrt

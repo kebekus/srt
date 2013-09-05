@@ -33,7 +33,8 @@ mainWindow::mainWindow(QWidget *parent)
   // Setup GUI
   ui.setupUi(this);
   ui.actionQuit->setShortcut(QKeySequence::Quit);
-  
+  ui.sceneWidget->addAction(ui.actionReset_View);
+
   // Restore size of main window
   restoreGeometry(settings.value("mainWindow/geometry").toByteArray());
   restoreState(settings.value("mainWindow/windowState").toByteArray());
@@ -44,6 +45,7 @@ mainWindow::mainWindow(QWidget *parent)
   sliderMoved( ui.aSlider->value() );
 
   // Wire up actions
+  connect( ui.actionReset_View, SIGNAL(triggered(bool)), &(scene.camera), SLOT(reset()) );
   connect( ui.actionSurface_1, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface1()) );
   connect( ui.actionSurface_2, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface2()) );
   connect( ui.actionSurface_3, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface3()) );

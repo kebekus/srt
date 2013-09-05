@@ -28,6 +28,7 @@
 
 #include "srtScene.h"
 
+
 class srtWidget : public QFrame
 {
   Q_OBJECT
@@ -42,7 +43,7 @@ class srtWidget : public QFrame
 
   ~srtWidget();
 
-  void setScene(srtScene *_scene);
+  void setScene(qsrt::Scene *_scene);
 
   bool manipulationEnabled() const { return _manipulationEnabled; }
   void setManipulationEnabled(bool enabled) {_manipulationEnabled = enabled; }
@@ -62,6 +63,7 @@ class srtWidget : public QFrame
   void mousePressEvent(QMouseEvent *event);
   void mouseMoveEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent *event);
+  void wheelEvent(QWheelEvent *event);
 
  private slots:
   // Rotates about '_rotationAxis', with an angle determined by '_rotationSpeed'
@@ -69,7 +71,7 @@ class srtWidget : public QFrame
   void performRotation();
 
  private:
-  QPointer<srtScene> scene;
+  QPointer<qsrt::Scene> scene;
 
   // Used in mouse manipulation
   bool      _manipulationEnabled;
