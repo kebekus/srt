@@ -53,6 +53,7 @@ add_definitions( -msse2 -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MA
 #
 # Add subprojects
 #
+add_subdirectory(examples)
 add_subdirectory(libsrt)
 add_subdirectory(libqsrt)
 add_subdirectory(srtTestSDL)

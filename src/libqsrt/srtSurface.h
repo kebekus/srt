@@ -35,9 +35,6 @@ struct parser_tree;
 
 namespace qsrt {
 
-  //class Scene;
-
-
 /**
  * \brief Algebraic surface in three-dimensional Euclidean space.
  *
@@ -205,52 +202,15 @@ class Surface : public QObject
   int errorIndex();
 
   /**
-   * \brief Write surface properties into a QByteArray
-   *
-   * This method writes all properties of the surface into a QByteArray. The
-   * data can be loaded back into a surface object using the method load().
-   *
-   * @see load()
-   */
-  operator QByteArray();
-
-  /**
    * \brief Write surface properties into a QVariant object
    *
    * This method writes all properties of the surface into a QVariant
    * object. The data can be loaded back into a surface object using the method
-   * load(). This allows to conveniently store a surface into an application's
-   * settings.
-   *
-   * @code
-   * // Save surface surf
-   * QSettings settings;
-   * settings.setValue("mainWindow/surface", surface );
-   * ...
-   * @endcode
-   * @code
-   * // Restore surface surf
-   * QSettings settings;
-   * surface.load(settings.value("mainWindow/surface"));
-   * ...
-   * @endcode
+   * load().
    *
    * @see load()
    */
-  operator QVariant() {return QVariant( QByteArray(*this));}; 
-
-  /**
-   * \brief Restore surface properties
-   * 
-   * This method reads previously saved surface properties and sets these
-   * properties in the present object.  The signal changed() will not be
-   * emitted, nor will any other signal.
-   *
-   * On error, the surface is clear()ed, and an error condition is set.
-   *
-   * @param array A QByteArrary, as produced by the operator QByteArray().
-   */
-  void load(QByteArray array);
+  operator QVariant();
 
   /**
    * \brief Restore previously saved surface attributes
@@ -261,9 +221,9 @@ class Surface : public QObject
    *
    * On error, the surface is clear()ed, and an error condition is set.
    *
-   * @param var A QVariant, as produced by the operator QVariant().
+   * @param variant A QVariant, as produced by the operator QVariant().
    */
-  void load(QVariant var) {load(var.toByteArray());};
+  bool load(QVariant variant);
 
  public slots:
   /**
@@ -273,7 +233,7 @@ class Surface : public QObject
    * is empty.  The signal changed() will not be emitted, nor will any other
    * signal.
    */
-  void clear();
+  void reset();
 
   /**
    * \brief Specifies the constant a
@@ -354,15 +314,13 @@ class Surface : public QObject
   friend class Scene;
   friend bool operator== (Surface& s1, Surface& s2);
   friend bool operator!= (Surface& s1, Surface& s2);
-  friend QDataStream & operator<< (QDataStream& out, Surface& surface);
-  friend QDataStream & operator>> (QDataStream& in, Surface& Surface);
 
   // These methods implement the functionality for setEquation, setA, etc, but
   // do not emit the signal changed() and do use the privateMember lock. They
   // return 'true' if the properties of the surface really did change.
   bool _setEquation(const QString &equation);
   bool _setA(qreal a);
-  bool _clear();
+  bool _reset();
 
   // Default constructor. I have implemented this as a separate, private method
   // so that more than one constructor implementation can use method --calling
@@ -403,25 +361,6 @@ class Surface : public QObject
   int64_t (*stripe)(struct stripe_data *sd, int j);
 };
 
-
-/**
- * \brief Write surface properties into a QDataStream
- *
- * This method writes all properties of the surface into a QDataStream. The data
- * can be loaded back into a surface object using the operator >>.
- */
-QDataStream & operator<< (QDataStream& out, Surface& surface);
-
-/**
- * \brief Read surface properties from a QDataStream
- * 
- * This method reads previously saved surface properties and sets these
- * properties in the present object. The signal changed() will not be emitted,
- * nor will any other signal.
- *
- * On error, the surface is clear()ed, and an error condition is set.
- */
-QDataStream & operator>> (QDataStream& in, Surface& Surface);
 
 /**
  * \brief Check two Surfaces for equality

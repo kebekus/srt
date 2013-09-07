@@ -89,13 +89,11 @@ Camera::operator QVariant()
 }
 
 
-bool Camera::load(QVariant var)
+bool Camera::load(QVariant variant)
 {
-  QVariantMap map = var.value<QVariantMap>();
-  if (map.isEmpty())
-    return false;
+  QVariantMap map = variant.value<QVariantMap>();
 
-  // Check existence of most important members
+  // Check existence of the most important members
   if ( !map.contains("position") || !map.contains("viewDirection") || !map.contains("upwardDirection") || !map.contains("zoom") )
     return false;
 

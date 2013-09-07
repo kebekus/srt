@@ -61,8 +61,7 @@ mainWindow::mainWindow(QWidget *parent)
   ui.sceneWidget->setScene(&scene);
 
   // Initialize scene
-  scene.surface.load(settings.value("mainWindow/surface"));
-  scene.camera.load(settings.value("mainWindow/camera"));
+  scene.load(settings.value("mainWindow/scene"));
   if (scene.surface.isEmpty() || scene.surface.hasError())
     setSampleSurface8();
   else {
@@ -80,8 +79,7 @@ void mainWindow::closeEvent(QCloseEvent *event)
   if (!isFullScreen()) {
     settings.setValue("mainWindow/geometry", saveGeometry());
     settings.setValue("mainWindow/windowState", saveState());
-    settings.setValue("mainWindow/surface", scene.surface );
-    settings.setValue("mainWindow/camera", scene.camera );
+    settings.setValue("mainWindow/scene", scene );
   }
   
   event->accept();

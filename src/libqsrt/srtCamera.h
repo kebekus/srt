@@ -31,7 +31,7 @@
 namespace qsrt {
 
 /**
- * \brief Camera object used to render a scene
+ * \brief Represents a camera in a given scene
  *
  * This class represents a camera in a given scene. The main properties stored
  * are the position of the camera and the direction of view.
@@ -141,24 +141,7 @@ class Camera : public QObject
    * \brief Write properties into a QVariant object
    *
    * This method writes all properties into a QVariant object. The data can be
-   * loaded back into a camera object using the method load(). This allows to
-   * conveniently store a surface into an application's settings.
-   *
-   * @code
-   * // Save camera
-   * QSettings settings;
-   * settings.setValue("mainWindow/camera", camera );
-   * ...
-   * @endcode
-   * @code
-   * // Restore camera
-   * QSettings settings;
-   * if (camera.load(settings.value("mainWindow/camera")))
-   *   ..success..
-   * else
-   *   ..no success..
-   * ...
-   * @endcode
+   * loaded back into a camera object using the method load().
    *
    * @see load()
    */

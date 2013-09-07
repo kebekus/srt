@@ -18,25 +18,24 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <QtTest/QtTest>
+#include "srtScene.h"
 
- class Surface_test : public QObject
- {
-   Q_OBJECT
-   
-public slots:
-   void increaseCounter();
-  
-private slots:
-   void benchmark_JITinitialization();
-   void benchmark_JITcompilation();
+int main(int argc, char **argv)
+{
+  // Construct a scene object. By default, the camera is placed in the z-axis
+  // and pointed towards the origin.
+  qsrt::Scene scene;
 
-   void specialStates();
-   void constructor();
-   void equationProperty();
-   void aProperty();
-   void conversionQVariant();
+  // Give the equation of the surface that we would like to draw. In the
+  // example, the Clebsch Cubic Surface has been chosen, which is a nice-looking
+  // surface that admits a rotational symmetry of order three.
+  scene.surface.setEquation("81*(x^3+y^3+z^3) - 189*(x^2*y+x^2*z+y^2*x+y^2*z+z^2*x+z^2*y) + 54*(x*y*z) + 126*(x*y+x*z+y*z) - 9*(x^2+y^2+z^2) - 9*(x+y+z) + 1");
 
- private:
-   int counter;
- };
+  // Render the surface into a QImage of size 500x500
+  QImage img = scene.draw( QSize(500,500) );
+
+  // Save the image file.
+  img.save("test.png");
+
+  return 0;
+}

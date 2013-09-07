@@ -65,18 +65,18 @@ Surface::~Surface()
 }
 
 
-void Surface::clear()
+void Surface::reset()
 {
   // Get write access to private members
   privateMemberLock.lockForWrite();
-  _clear();
+  _reset();
   privateMemberLock.unlock();
 
   return;
 }
 
 
-bool Surface::_clear()
+bool Surface::_reset()
 {
   bool changed = false;
 
@@ -246,26 +246,32 @@ int Surface::errorIndex()
 }
 
 
-Surface::operator QByteArray()
+Surface::operator QVariant()
 {
-  QByteArray byteArray;
-  QBuffer buffer(&byteArray);
-  buffer.open(QIODevice::WriteOnly);
+  // Get read access to private members
+  QReadLocker locker(&privateMemberLock);
 
-  QDataStream out(&buffer);
-  out << *this;
+  QVariantMap map;
+  map["equation"] = _equation;
+  map["a"]        = _a;
 
-  return byteArray;
+  return map;
 }
 
 
-void Surface::load(QByteArray ar)
+bool Surface::load(QVariant variant)
 {
-  QBuffer buffer(&ar);
-  buffer.open(QIODevice::ReadOnly);
+  QVariantMap map = variant.value<QVariantMap>();
 
-  QDataStream in(&buffer);
-  in >> *this;
+  // Check existence of the most important members
+  if ( !map.contains("equation") || !map.contains("a") )
+    return false;
+
+  QWriteLocker locker(&privateMemberLock);
+  _setEquation( map["equation"].value<QString>() );
+  _setA( map["a"].value<qreal>() );
+  
+  return true;
 }
 
 
@@ -287,96 +293,6 @@ void Surface::construct()
   // Wire up signals
   connect(this, SIGNAL(equationChanged()), this, SIGNAL(changed()));
   connect(this, SIGNAL(aChanged()), this, SIGNAL(changed()));
-}
-
-
-QDataStream & operator<< (QDataStream& out, qsrt::Surface& surface)
-{
-  // Write a header with a "magic number" and a version
-  out << (quint16)1341;
-  out << (quint16)1;
-  
-  // Set I/O version, remember original version number
-  int oldVersion = out.version();
-  out.setVersion(QDataStream::Qt_4_8);
-
-  // Get read access to private members, then write them to the stream
-  QReadLocker privatMemberLocker1(&surface.privateMemberLock);
-  out << surface._equation;
-  out << surface._errorString;
-  out << surface._errorIndex;
-  out << surface._a;
-
-  // Restore I/O version
-  out.setVersion(oldVersion);
-  return out;
-}
-
-
-QDataStream & operator>> (QDataStream& in, qsrt::Surface& surface)
-{
-  // Read and check the header
-  quint16 magic;
-  in >> magic;
-  if (magic != 1341) {
-    // Get write access to private members, then write them to the stream
-    QWriteLocker privatMemberLocker(&surface.privateMemberLock);
-
-    surface._clear();
-    surface._errorString = "bad file format";
-    surface._errorIndex  = -1;
-    return in;
-  }
-
-  // Read the version
-  quint16 version;
-  in >> version;
-  if (version > 1) {
-    // Get write access to private members, then write them to the stream
-    QWriteLocker privatMemberLocker(&surface.privateMemberLock);
-
-    surface._clear();
-    surface._errorString = "file format too new";
-    surface._errorIndex  = -1;
-    return in;
-  }
-  
-  int oldVersion = in.version();
-  in.setVersion(QDataStream::Qt_4_8);
-  
-  // Read the data
-  QString n_equation;
-  QString n_errorString;
-  int     n_errorIndex;
-  qreal   n_a;
-
-  in >> n_equation;
-  in >> n_errorString;
-  in >> n_errorIndex;
-  in >> n_a;
-
-  if (in.status() != QDataStream::Ok) {
-    // Get write access to private members, then write them to the stream
-    QWriteLocker privatMemberLocker(&surface.privateMemberLock);
-
-    surface._clear();
-    surface._errorString = "I/O error";
-    surface._errorIndex  = -1;
-    surface.touch();
-    return in;
-  }
-
-  // Get write access to private members and apply changes
-  surface.privateMemberLock.lockForWrite();
-  surface._setEquation(n_equation);
-  surface._errorString = n_errorString;
-  surface._errorIndex  = n_errorIndex;
-  surface._setA(n_a);
-  surface.privateMemberLock.unlock();
-
-  in.setVersion(oldVersion);
-
-  return in;
 }
 
 

@@ -142,4 +142,37 @@ QImage Scene::draw(QSize size)
   return img;
 }
 
+
+Scene::operator QVariant()
+{
+  QVariantMap map;
+  map["camera"]  = camera;
+  map["surface"] = surface;
+
+  return map;
+}
+
+
+bool Scene::load(QVariant var)
+{
+  QVariantMap map = var.value<QVariantMap>();
+
+  // Now load the members and check for errors
+  if ( !camera.load(map["camera"]) ||
+       !surface.load(map["surface"])) {
+    reset();
+    return false;
+  }
+
+  return true;
+}
+
+
+void Scene::reset()
+{
+  camera.reset();
+  surface.reset();
+}
+
+
 } // namespace qsrt
