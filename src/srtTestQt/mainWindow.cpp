@@ -20,6 +20,8 @@
 
 #include <math.h>
 #include <QCloseEvent>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QSettings>
 
 #include "mainWindow.h"
@@ -32,6 +34,8 @@ mainWindow::mainWindow(QWidget *parent)
   
   // Setup GUI
   ui.setupUi(this);
+  ui.actionOpen->setShortcut(QKeySequence::Open);
+  ui.actionSave->setShortcut(QKeySequence::Save);
   ui.actionQuit->setShortcut(QKeySequence::Quit);
   ui.sceneWidget->addAction(ui.actionReset_View);
 
@@ -45,6 +49,8 @@ mainWindow::mainWindow(QWidget *parent)
   sliderMoved( ui.aSlider->value() );
 
   // Wire up actions
+  connect( ui.actionOpen, SIGNAL(triggered(bool)), this, SLOT(open()) );
+  connect( ui.actionSave, SIGNAL(triggered(bool)), this, SLOT(save()) );
   connect( ui.actionReset_View, SIGNAL(triggered(bool)), &(scene.camera), SLOT(reset()) );
   connect( ui.actionSurface_1, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface1()) );
   connect( ui.actionSurface_2, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface2()) );
@@ -61,6 +67,7 @@ mainWindow::mainWindow(QWidget *parent)
   ui.sceneWidget->setScene(&scene);
 
   // Initialize scene
+  ui.sceneWidget->load(settings.value("mainWindow/sceneWidget"));
   scene.load(settings.value("mainWindow/scene"));
   if (scene.surface.isEmpty() || scene.surface.hasError())
     setSampleSurface8();
@@ -68,6 +75,7 @@ mainWindow::mainWindow(QWidget *parent)
     aChanged();
     equationChanged();
   }
+
 }
 
 
@@ -79,9 +87,11 @@ void mainWindow::closeEvent(QCloseEvent *event)
   if (!isFullScreen()) {
     settings.setValue("mainWindow/geometry", saveGeometry());
     settings.setValue("mainWindow/windowState", saveState());
-    settings.setValue("mainWindow/scene", scene );
   }
   
+  settings.setValue("mainWindow/scene", scene );
+  settings.setValue("mainWindow/sceneWidget", ui.sceneWidget->settings() );
+
   event->accept();
 }
 
@@ -180,4 +190,60 @@ void mainWindow::equationChanged()
   bool aExists = scene.surface.equation().contains('a');
   ui.aSlider->setEnabled(aExists);
   ui.aLabel->setEnabled(aExists);
+}
+
+
+void mainWindow::open()
+{
+  QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QString::null, tr("srt Scene Files (*.ssc)"));
+  if (fileName.isEmpty())
+    return;
+
+  QString magicID;
+  QVariantMap map;
+
+  QFile file(fileName);
+  file.open(QIODevice::ReadOnly);
+  QDataStream in(&file);
+  in.setVersion(QDataStream::Qt_4_8);
+  in >> magicID;
+  in >> map;
+  file.close();
+
+  QString titleLine("Error Opening File");
+  if (in.status() != QDataStream::Ok) {
+    QMessageBox::warning(this, titleLine, tr("There was an error reading from the file <b>%1</b>.").arg(fileName));
+    return;
+  }
+  if ((magicID != "srtScene") || !map.contains("scene")) {
+    QMessageBox::warning(this, titleLine, tr("There was an error reading from the file <b>%1</b>. The file does not seem to be of the right format.").arg(fileName));
+    return;
+  }
+
+  scene.load(map["scene"]);
+  if (map.contains("srtTestQt/sceneWidget"))
+    ui.sceneWidget->load(map["srtTestQt/sceneWidget"]);
+}
+
+
+void mainWindow::save()
+{
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QString::null, tr("srt Scene Files (*.ssc)"));
+  if (fileName.isEmpty())
+    return;
+
+  QVariantMap map;
+  map["scene"]  = scene;
+  map["srtTestQt/sceneWidget"] = ui.sceneWidget->settings();
+  
+  QFile file(fileName);
+  file.open(QIODevice::WriteOnly);
+  QDataStream out(&file);
+  out.setVersion(QDataStream::Qt_4_8);
+  out << QString("srtScene");
+  out << map;
+  file.close();
+
+  if (out.status() != QDataStream::Ok)
+    QMessageBox::warning(this, tr("Error Saving File"), tr("There was an error writing to the file <b>%1</b>. No useful data has been written.").arg(fileName));
 }

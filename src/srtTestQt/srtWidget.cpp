@@ -118,6 +118,36 @@ void srtWidget::setRotation(bool rotate)
 }
 
 
+QVariant srtWidget::settings() const
+{
+  QVariantMap map;
+
+  map["manipulationEnabled"] = manipulationEnabled();
+  map["rotationAxis"] = rotationAxis();
+  map["rotationSpeed"] = rotationSpeed();
+  map["rotation"] = rotation();
+  
+  return map;
+}
+
+
+void srtWidget::load(QVariant variant)
+{
+  QVariantMap map = variant.value<QVariantMap>();
+
+  if (map.contains("manipulationEnabled"))
+    setManipulationEnabled(map["manipulationEnabled"].value<bool>());
+  if (map.contains("rotationAxis"))
+    setRotationAxis(map["rotationAxis"].value<QVector3D>());
+  if (map.contains("rotationSpeed"))
+    setRotationSpeed(map["rotationSpeed"].value<qreal>());
+  if (map.contains("rotation"))
+    setRotation(map["rotation"].value<bool>());
+
+  return;
+}
+
+
 void srtWidget::mousePressEvent(QMouseEvent *event )
 {
   if ((!_manipulationEnabled) || (event->button() != Qt::LeftButton)) {

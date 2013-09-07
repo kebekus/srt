@@ -69,7 +69,8 @@ QImage Scene::draw(QSize size)
   // Paranoia check: if surface has an error, return a null image.
   if (surface.hasError()) 
     return QImage();
-    
+
+  // Problem here: the height needs to be an even number
   QImage img(size, QImage::Format_ARGB32);
 
   // Paranoia check: if surface is empty, return a transparent image.

@@ -60,6 +60,8 @@ class mainWindow : public QMainWindow
  private slots:
   void aChanged();
   void equationChanged();
+  void open();
+  void save();
 
  private:
   // GUI, as construced with the Qt designer

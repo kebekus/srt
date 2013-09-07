@@ -57,6 +57,9 @@ class srtWidget : public QFrame
   bool rotation() const { return _rotationTimer.isActive(); }
   void setRotation(bool rotate);
 
+  QVariant settings() const;
+  void load(QVariant variant);
+
   // Re-implemented event handlers
   bool event(QEvent *event);
   void paintEvent (QPaintEvent * event);

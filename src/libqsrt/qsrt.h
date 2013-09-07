@@ -37,8 +37,8 @@
    \subsection S1a A minimal surface rendering application
    
    Using libqsrt in your code is extremely easy. A minimal surface rendering
-   application which computes an image of the Clebsch cubic surface might look
-   like this.
+   application which computes an image of the Clebsch cubic surface requires
+   only 4-5 lines of code and might look like this.
 
    @code
 #include "srtScene.h"
@@ -80,8 +80,57 @@ int main(int argc, char **argv)
    \subsection S2b Compilation with cmake
 
 
-   \subsection S2c Supporting the ssc file format.
+   \subsection S2c Supporting the ssc file format
 
+   The example programs read and write scene in a simple, but effective
+   'srtScene' format, with file ending '.ssc'. We feel that this format might be
+   useful elsewhere and encourage you to support it in your application. Files
+   of this format are written using a QDataStream of version
+   QDataStream::Qt_4_8, contain an identifier string, and a single QVariantMap
+   object, which maps the key 'scene' to a QVariant where a Scene is stored. The
+   QVariantMap can contain an arbitrary number of other entries which your
+   application may either use or ignore.
+
+   To write an SSC file, the following code can be used.
+   @code
+  qsrt::Scene scene;
+  // ...fill the scene with lots of interesting data...
+
+  QVariantMap map;
+  map["scene"]  = scene;
+  // ...add more entries to the map if required...
+
+  QFile file(fileName);
+  file.open(QIODevice::WriteOnly);
+  QDataStream out(&file);
+  out.setVersion(QDataStream::Qt_4_8);
+  out << QString("srtScene");
+  out << map;
+  file.close();
+   @endcode
+
+   An SSC file can be read as follows.
+   @code
+  qsrt::Scene scene;
+
+  QString magicID;
+  QVariantMap map;
+
+  QFile file(fileName);
+  file.open(QIODevice::ReadOnly);
+  QDataStream in(&file);
+  in.setVersion(QDataStream::Qt_4_8);
+  in >> magicID;
+  in >> map;
+  file.close();
+
+  // ...check for file errors...
+  // ...check that magicID contains the string "srtScene"...
+  // ...check that map.contains("scene") is true...
+  scene.load(map["scene"]);
+  // ...perhaps check the return value of scene.load()...
+  // ...check map for more entries which may be useful...
+@endcode
 
  */
 
