@@ -18,15 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <QMainWindow>
-#include "srtScene.h"
+#include <QDialog>
+#include <srtScene.h>
 
-#include "ui_mainWindow.h"
+#include "ui_exportDialog.h"
 
 
-class mainWindow : public QMainWindow
+class exportDialog : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT;
 
  public:
   /**
@@ -38,40 +38,17 @@ class mainWindow : public QMainWindow
    * @param parent This parameter is passed on to the constructor of the
    * QMainWindow
    */
-  mainWindow(QWidget *parent = 0);
-
- public slots:
-  void equationTextFieldChanged();
-  void sliderMoved(int value);
-
-  void setSampleSurface1();
-  void setSampleSurface2();
-  void setSampleSurface3();
-  void setSampleSurface4();
-  void setSampleSurface5();
-  void setSampleSurface6();
-  void setSampleSurface7();
-  void setSampleSurface8();
+  exportDialog(QWidget *parent, qsrt::Scene *scene, QSize defaultSize);
 
  protected:
-  // Re-implemented from QWidget
-  void closeEvent(QCloseEvent *event);
+  void accept();
 
  private slots:
-  void aChanged();
-  void equationChanged();
-  void exportImage();
-  void open();
-  void save();
-  void saveAs();
+  void resizeEvent(QResizeEvent *event);
+  void scaleAndCenterPreview();
 
  private:
-  // Stored file name, used by the 'save()' method
-  QString fileName;
-
   // GUI, as construced with the Qt designer
-  Ui::mainWindow ui;
-
-  // The central scene that is rendered in the widget
-  qsrt::Scene scene;
+  Ui::exportDialog ui;
+  QPointer<qsrt::Scene> _scene;
 };

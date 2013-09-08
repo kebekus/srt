@@ -111,9 +111,11 @@ void srtWidget::setRotationAxis(QVector3D axis)
 
 void srtWidget::setRotation(bool rotate)
 {
-  if (rotate)
+  if (rotate) {
+    stopWatch.start();
+#warning maybe use smarter adaptive frame rate
     _rotationTimer.start(50);
-  else
+  } else
     _rotationTimer.stop();
 }
 

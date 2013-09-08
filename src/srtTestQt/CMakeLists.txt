@@ -1,11 +1,13 @@
 project(srtTestQt)
 
 SET(srtTestQt_SOURCES 
+  exportDialog.cpp
   main.cpp
   mainWindow.cpp
   srtWidget.cpp)
 
 SET(srtTestQt_FORMS 
+  exportDialog.ui
   mainWindow.ui)
 
 SET(srtTestQt_RESOURCES

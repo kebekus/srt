@@ -24,6 +24,7 @@
 #include <QMessageBox>
 #include <QSettings>
 
+#include "exportDialog.h"
 #include "mainWindow.h"
 
 
@@ -36,6 +37,7 @@ mainWindow::mainWindow(QWidget *parent)
   ui.setupUi(this);
   ui.actionOpen->setShortcut(QKeySequence::Open);
   ui.actionSave->setShortcut(QKeySequence::Save);
+  ui.actionSaveAs->setShortcut(QKeySequence::SaveAs);
   ui.actionQuit->setShortcut(QKeySequence::Quit);
   ui.sceneWidget->addAction(ui.actionReset_View);
 
@@ -51,6 +53,8 @@ mainWindow::mainWindow(QWidget *parent)
   // Wire up actions
   connect( ui.actionOpen, SIGNAL(triggered(bool)), this, SLOT(open()) );
   connect( ui.actionSave, SIGNAL(triggered(bool)), this, SLOT(save()) );
+  connect( ui.actionSaveAs, SIGNAL(triggered(bool)), this, SLOT(saveAs()) );
+  connect( ui.actionExport, SIGNAL(triggered(bool)), this, SLOT(exportImage()) );
   connect( ui.actionReset_View, SIGNAL(triggered(bool)), &(scene.camera), SLOT(reset()) );
   connect( ui.actionSurface_1, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface1()) );
   connect( ui.actionSurface_2, SIGNAL(triggered(bool)), this, SLOT(setSampleSurface2()) );
@@ -158,6 +162,20 @@ void mainWindow::equationTextFieldChanged()
 }
 
 
+void mainWindow::exportImage()
+{
+  // switch off rotation, but remember rotation status
+  bool rot = ui.sceneWidget->rotation();
+  ui.sceneWidget->setRotation(false);
+
+  exportDialog dialog(this, &scene, ui.sceneWidget->size());
+  dialog.exec();
+
+  // Restore rotation
+  ui.sceneWidget->setRotation(rot);
+}
+
+
 void mainWindow::sliderMoved(int val)
 {
   qreal a = val/100.0;
@@ -195,14 +213,14 @@ void mainWindow::equationChanged()
 
 void mainWindow::open()
 {
-  QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QString::null, tr("srt Scene Files (*.ssc)"));
-  if (fileName.isEmpty())
+  QString nfileName = QFileDialog::getOpenFileName(this, tr("Open File"), QString::null, tr("srt Scene Files (*.ssc)"));
+  if (nfileName.isEmpty())
     return;
 
   QString magicID;
   QVariantMap map;
 
-  QFile file(fileName);
+  QFile file(nfileName);
   file.open(QIODevice::ReadOnly);
   QDataStream in(&file);
   in.setVersion(QDataStream::Qt_4_8);
@@ -212,13 +230,16 @@ void mainWindow::open()
 
   QString titleLine("Error Opening File");
   if (in.status() != QDataStream::Ok) {
-    QMessageBox::warning(this, titleLine, tr("There was an error reading from the file <b>%1</b>.").arg(fileName));
+    QMessageBox::warning(this, titleLine, tr("There was an error reading from the file <b>%1</b>.").arg(nfileName));
     return;
   }
   if ((magicID != "srtScene") || !map.contains("scene")) {
-    QMessageBox::warning(this, titleLine, tr("There was an error reading from the file <b>%1</b>. The file does not seem to be of the right format.").arg(fileName));
+    QMessageBox::warning(this, titleLine, tr("There was an error reading from the file <b>%1</b>. The file does not seem to be of the right format.").arg(nfileName));
     return;
   }
+
+  fileName = nfileName;
+  ui.actionSave->setEnabled(true);
 
   scene.load(map["scene"]);
   if (map.contains("srtTestQt/sceneWidget"))
@@ -228,7 +249,6 @@ void mainWindow::open()
 
 void mainWindow::save()
 {
-  QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QString::null, tr("srt Scene Files (*.ssc)"));
   if (fileName.isEmpty())
     return;
 
@@ -246,4 +266,21 @@ void mainWindow::save()
 
   if (out.status() != QDataStream::Ok)
     QMessageBox::warning(this, tr("Error Saving File"), tr("There was an error writing to the file <b>%1</b>. No useful data has been written.").arg(fileName));
+}
+
+
+void mainWindow::saveAs()
+{
+  bool rot = ui.sceneWidget->rotation();
+  ui.sceneWidget->setRotation(false);
+  QString nfileName = QFileDialog::getSaveFileName(this, tr("Save File"), QString::null, tr("srt Scene Files (*.ssc)"));
+  if (nfileName.isEmpty()) {
+    ui.sceneWidget->setRotation(rot);
+    return;
+  }
+
+  fileName = nfileName;
+  ui.actionSave->setEnabled(true);
+  save();
+  ui.sceneWidget->setRotation(rot);
 }
