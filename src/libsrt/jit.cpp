@@ -78,8 +78,12 @@ inline parser::jit::impl::impl(char *code, int len) :
 		module = new llvm::Module("jit", context);
 	}
 
+	llvm::EngineBuilder engine_builder(module);
+	engine_builder.setEngineKind(llvm::EngineKind::JIT);
 	std::string error;
-	engine = llvm::ExecutionEngine::createJIT(module, &error, 0, llvm::CodeGenOpt::Aggressive);
+	engine_builder.setErrorStr(&error);
+	engine_builder.setOptLevel(llvm::CodeGenOpt::Aggressive);
+	engine = engine_builder.create();
 	if (!engine) {
 		std::cerr << error << std::endl;
 		abort();
