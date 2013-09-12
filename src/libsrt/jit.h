@@ -14,8 +14,8 @@ namespace parser
 {
 	class jit
 	{
-		struct data;
-		struct data *data;
+		struct impl;
+		struct impl *impl;
 		jit(const class jit &);
 		class jit& operator=(const class jit &);
 	public:
