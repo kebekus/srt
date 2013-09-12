@@ -23,7 +23,7 @@ if(NOT LLVM_CONFIG_EXECUTABLE)
   message(FATAL_ERROR "The programm 'llvm-config' could not be found. Aborting.")
 endif()
 execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs ipo jit native bitreader
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs ipo mcjit native bitreader
   OUTPUT_VARIABLE LLVM_LIBS
   OUTPUT_STRIP_TRAILING_WHITESPACE
   )

@@ -6,14 +6,17 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+#include <llvm/Analysis/Verifier.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/PassManager.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/IPO.h>
-#include <llvm/ExecutionEngine/JIT.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
 
 #include <iostream>
 #include "jit.h"
@@ -41,32 +44,7 @@ struct parser::jit::impl {
 
 inline void parser::jit::impl::reset()
 {
-	engine->removeModule(module);
-	delete module;
-	if (bitcode) {
-		std::string error;
-		module = llvm::ParseBitcodeFile(bitcode, context, &error);
-		if (!module) {
-			std::cerr << error << std::endl;
-			abort();
-		}
-	} else {
-		module = new llvm::Module("jit", context);
-	}
-	engine->addModule(module);
-}
-
-inline parser::jit::impl::impl(char *code, int len) :
-	context(),
-	builder(context),
-	pass_man()
-{
-	LLVMLinkInJIT();
-	LLVMInitializeNativeTarget();
-	bitcode = 0;
-	if (code && len)
-		bitcode = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(code, len), "", false);
-
+	delete engine;
 	if (bitcode) {
 		std::string error;
 		module = llvm::ParseBitcodeFile(bitcode, context, &error);
@@ -82,12 +60,31 @@ inline parser::jit::impl::impl(char *code, int len) :
 	engine_builder.setEngineKind(llvm::EngineKind::JIT);
 	std::string error;
 	engine_builder.setErrorStr(&error);
+	engine_builder.setUseMCJIT(true);
 	engine_builder.setOptLevel(llvm::CodeGenOpt::Aggressive);
 	engine = engine_builder.create();
 	if (!engine) {
 		std::cerr << error << std::endl;
 		abort();
 	}
+}
+
+inline parser::jit::impl::impl(char *code, int len) :
+	module(0),
+	engine(0),
+	bitcode(0),
+	context(),
+	builder(context),
+	pass_man()
+{
+	llvm::InitializeNativeTarget();
+	llvm::InitializeNativeTargetAsmPrinter();
+	llvm::InitializeNativeTargetAsmParser();
+
+	if (code && len)
+		bitcode = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(code, len), "", false);
+
+	reset();
 
 	// TODO: get type from bitcode
 	scalar_type = llvm::Type::getFloatTy(context);
@@ -181,6 +178,7 @@ inline void parser::jit::impl::link()
 #endif
 
 	pass_man.run(*module);
+	engine->finalizeObject();
 //	module->dump();
 #if 0
 	std::string error;
