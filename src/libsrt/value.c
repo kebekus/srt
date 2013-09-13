@@ -194,7 +194,7 @@ int64_t stripe(struct stripe_data *sd, int j)
 	int use_aabb = sd->use_aabb;
 	v4sf jdV = v4sf_set1(j) * dV;
 	int64_t pixels = 0;
-	for (int i = 0; i < w; i += 2) {
+	for (int i = 0; i < (w & ~1); i += 2) {
 		v4sf idU = v4sf_set1(i) * dU;
 		m34sf scr = m34sf_addv(UV, jdV + idU);
 		m34sf dir = m34sf_normal(m34sf_addv(scr, camera.dir));
