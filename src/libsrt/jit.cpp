@@ -27,7 +27,7 @@ struct parser::jit::impl {
 	llvm::MemoryBuffer *bitcode;
 	llvm::Value *x, *y, *z, *a;
 	llvm::Type *scalar_type;
-	llvm::Type *vector_type;
+	llvm::VectorType *vector_type;
 	llvm::FunctionType *function_type;
 	llvm::LLVMContext context;
 	llvm::IRBuilder<> builder;
@@ -162,7 +162,7 @@ inline void parser::jit::impl::build(struct parser_tree *tree, const char *name)
 	a->setName("a");
 	llvm::BasicBlock *entry = llvm::BasicBlock::Create(context, "entry", func);
 	builder.SetInsertPoint(entry);
-	a = builder.CreateVectorSplat(4, a, "a");
+	a = builder.CreateVectorSplat(vector_type->getNumElements(), a, "a");
 	builder.CreateRet(emit(tree->root));
 }
 
