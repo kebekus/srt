@@ -141,7 +141,7 @@ class Scene : public QObject
   void changed();
 
  private:
-#warning I do not know what that means
+// TODO: I do not know what that means
   int use_aabb;
 };
 
