@@ -22,12 +22,10 @@
 #include <QDebug>
 #include "srtSurface.h"
 
-extern "C" {
 #include "error.h"
 #include "deriv.h"
 #include "reduce.h"
 #include "value_bc.h"
-}
 #include "jit.h"
 
 namespace qsrt {

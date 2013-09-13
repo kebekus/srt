@@ -20,8 +20,8 @@ struct parser_node *node_set_err_str(const char *what)
 
 struct parser_tree *parser_alloc_tree(int size)
 {
-	struct parser_tree *tree = malloc(sizeof(struct parser_tree));
-	tree->begin = malloc(sizeof(struct parser_node)*size);
+	struct parser_tree *tree = (struct parser_tree *)malloc(sizeof(struct parser_tree));
+	tree->begin = (struct parser_node *)malloc(sizeof(struct parser_node)*size);
 	tree->cur = tree->begin;
 	tree->end = tree->begin + size;
 	tree->root = 0;

@@ -14,7 +14,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #include "edit.h"
 #include "ppm.h"
-extern "C" {
 #include "vector.h"
 #include "matrix.h"
 #include "ray.h"
@@ -27,7 +26,6 @@ extern "C" {
 #include "reduce.h"
 #include "stripe_data.h"
 #include "value_bc.h"
-}
 #include "jit.h"
 
 int64_t (*stripe)(struct stripe_data *sd, int j);

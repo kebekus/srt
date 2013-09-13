@@ -11,13 +11,13 @@ add_custom_command(
   )
 
 add_library(srt SHARED
-  copy.c
-  deriv.c
-  error.c
-  eval.c
+  copy.cpp
+  deriv.cpp
+  error.cpp
+  eval.cpp
   jit.cpp
-  parser.c
-  reduce.c
+  parser.cpp
+  reduce.cpp
   value_bc.h
 )
 target_link_libraries( srt ${LLVM_LIBS} ${LLVM_LDFLAGS} )
