@@ -19,18 +19,13 @@
  ***************************************************************************/
 
 #include <QtCore>
-#include <SDL.h>
 
 #include "srtScene.h"
 
-extern "C" {
 #include "aabb.h"
 #include "camera.h"
 #include "sphere.h"
 #include "stripe_data.h"
-}
-
-
 
 namespace qsrt {
 
