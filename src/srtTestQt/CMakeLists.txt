@@ -1,28 +1,41 @@
+cmake_minimum_required(VERSION 2.8.6)
+
 project(srtTestQt)
 
-SET(srtTestQt_SOURCES 
-  exportDialog.cpp
-  main.cpp
-  mainWindow.cpp
-  srtWidget.cpp)
+set(CMAKE_BUILD_TYPE Debug)
 
-SET(srtTestQt_FORMS 
-  exportDialog.ui
-  mainWindow.ui)
+find_package(Qt4 REQUIRED QtCore QtGui QtTest)
+include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
 
-SET(srtTestQt_RESOURCES
-  srtTestQt.qrc)
+set(srtTestQt_SOURCES
+	exportDialog.cpp
+	main.cpp
+	mainWindow.cpp
+	srtWidget.cpp
+)
 
-QT4_ADD_RESOURCES(srtTestQt_RESOURCES_RCC ${srtTestQt_RESOURCES})
-QT4_WRAP_UI(srtTestQt_FORMS_HEADERS ${srtTestQt_FORMS})
+set(srtTestQt_FORMS
+	exportDialog.ui
+	mainWindow.ui
+)
 
-ADD_EXECUTABLE(srtTestQt
-    ${srtTestQt_SOURCES} 
-    ${srtTestQt_FORMS_HEADERS}
-    ${srtTestQt_RESOURCES_RCC})
+set(srtTestQt_RESOURCES
+	srtTestQt.qrc
+)
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt ${CMAKE_CURRENT_SOURCE_DIR}/../srtTestQt ${CMAKE_CURRENT_BINARY_DIR})
+qt4_add_resources(srtTestQt_RESOURCES_RCC ${srtTestQt_RESOURCES})
+qt4_wrap_ui(srtTestQt_FORMS_HEADERS ${srtTestQt_FORMS})
 
-TARGET_LINK_LIBRARIES(srtTestQt qsrt ${QT_LIBRARIES})
+add_executable(srtTestQt
+	${srtTestQt_SOURCES}
+	${srtTestQt_FORMS_HEADERS}
+	${srtTestQt_RESOURCES_RCC}
+)
 
-SET_TARGET_PROPERTIES(srtTestQt PROPERTIES AUTOMOC TRUE)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt ${CMAKE_CURRENT_SOURCE_DIR}/../srtTestQt ${CMAKE_CURRENT_BINARY_DIR})
+
+target_link_libraries(srtTestQt -L../libqsrt qsrt -L../libsrt srt ${QT_LIBRARIES})
+
+set_target_properties(srtTestQt PROPERTIES AUTOMOC TRUE)
+

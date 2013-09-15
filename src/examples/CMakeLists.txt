@@ -1,9 +1,16 @@
+cmake_minimum_required(VERSION 2.8.6)
+
 project(examples)
 
-ADD_EXECUTABLE(minimalExample
-  minimalExample.cpp)
+set(CMAKE_BUILD_TYPE Debug)
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt  ${CMAKE_CURRENT_BINARY_DIR})
+find_package(Qt4 REQUIRED QtCore QtGui QtTest)
+include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
 
-TARGET_LINK_LIBRARIES(minimalExample qsrt ${QT_LIBRARIES})
+add_executable(minimalExample minimalExample.cpp)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt  ${CMAKE_CURRENT_BINARY_DIR})
+
+target_link_libraries(minimalExample -L../libqsrt qsrt -L../libsrt srt ${QT_LIBRARIES})
 
