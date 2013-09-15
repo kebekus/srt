@@ -33,7 +33,8 @@ execute_process(
 add_custom_command(
 	OUTPUT value_bc.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	COMMAND clang -o value.bc ${CMAKE_CURRENT_SOURCE_DIR}/value.c -c -std=c99 -W -Wall -Wextra -O3 -fPIC -emit-llvm
+	COMMAND clang -o value.bc ${CMAKE_CURRENT_SOURCE_DIR}/value.c
+		-c -std=c99 -W -Wall -Wextra -Wno-unused-function -O3 -fPIC -emit-llvm
 	COMMAND xxd -i value.bc value_bc.h
 	DEPENDS value.c
 )
