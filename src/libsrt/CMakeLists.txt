@@ -9,7 +9,7 @@ if (NOT CLANG_EXECUTABLE)
 	message(FATAL_ERROR "clang not found")
 endif()
 
-find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "Path to llvm-config.")
+find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config-3.4 llvm-config-3.3 llvm-config DOC "Path to llvm-config.")
 if (NOT LLVM_CONFIG_EXECUTABLE)
 	message(FATAL_ERROR "llvm-config not found.")
 endif()
