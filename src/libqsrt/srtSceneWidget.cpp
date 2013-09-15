@@ -23,10 +23,12 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-#include "srtWidget.h"
+#include "srtSceneWidget.h"
 
 
-srtWidget::srtWidget(QWidget *parent)
+namespace qsrt {
+
+SceneWidget::SceneWidget(QWidget *parent)
   : QFrame(parent), _rotationTimer(this)
 {
   // Initialize Members
@@ -51,12 +53,7 @@ srtWidget::srtWidget(QWidget *parent)
 }
 
 
-srtWidget::~srtWidget()
-{
-}
-
-
-void srtWidget::setScene(qsrt::Scene *_scene)
+void SceneWidget::setScene(qsrt::Scene *_scene)
 {
   scene = _scene;
   if (scene.isNull())
@@ -66,7 +63,7 @@ void srtWidget::setScene(qsrt::Scene *_scene)
 }
 
 
-bool srtWidget::event(QEvent *event)
+bool SceneWidget::event(QEvent *event)
 {
   if (event->type() == QEvent::Gesture) {
     qDebug() << "A Gesture!  Hallelujah!";
@@ -76,7 +73,7 @@ bool srtWidget::event(QEvent *event)
 }
 
 
-void srtWidget::paintEvent(QPaintEvent *event)
+void SceneWidget::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
   
@@ -95,12 +92,33 @@ void srtWidget::paintEvent(QPaintEvent *event)
       }
     }
 
+  /*
+  QVector3D xAxis(100,0,0);
+  QVector3D yAxis(0,100,0);
+  QVector3D zAxis(0,0,100);
+  
+  QVector3D up   = scene->camera.upwardDirection();
+  QVector3D right= scene->camera.rightDirection();
+
+  QPointF xAxisTip(right.x(), up.x());
+  QPointF yAxisTip(right.y(), up.y());
+  QPointF zAxisTip(right.z(), up.z());
+
+  QPoint origin(100,100);
+  painter.setPen(Qt::blue);
+  painter.drawLine( origin, origin+100*xAxisTip);
+  painter.drawText( origin+110*xAxisTip, "x");
+  painter.drawLine( origin, origin+100*yAxisTip);
+  painter.drawText( origin+110*yAxisTip, "y");
+  painter.drawLine( origin, origin+100*zAxisTip);
+  painter.drawText( origin+110*zAxisTip, "z");
+  */
   painter.end();
   QFrame::paintEvent(event);
 }
 
 
-void srtWidget::setRotationAxis(QVector3D axis)
+void SceneWidget::setRotationAxis(QVector3D axis)
 {
   if (qFuzzyCompare(axis, QVector3D()))
     return;
@@ -109,7 +127,7 @@ void srtWidget::setRotationAxis(QVector3D axis)
 }
 
 
-void srtWidget::setRotation(bool rotate)
+void SceneWidget::setRotation(bool rotate)
 {
   if (rotate) {
     stopWatch.start();
@@ -120,7 +138,7 @@ void srtWidget::setRotation(bool rotate)
 }
 
 
-QVariant srtWidget::settings() const
+QVariant SceneWidget::settings() const
 {
   QVariantMap map;
 
@@ -133,7 +151,7 @@ QVariant srtWidget::settings() const
 }
 
 
-void srtWidget::load(QVariant variant)
+void SceneWidget::load(QVariant variant)
 {
   QVariantMap map = variant.value<QVariantMap>();
 
@@ -150,7 +168,7 @@ void srtWidget::load(QVariant variant)
 }
 
 
-void srtWidget::mousePressEvent(QMouseEvent *event )
+void SceneWidget::mousePressEvent(QMouseEvent *event )
 {
   if ((!_manipulationEnabled) || (event->button() != Qt::LeftButton)) {
     event->ignore();
@@ -169,7 +187,7 @@ void srtWidget::mousePressEvent(QMouseEvent *event )
 }
 
 
-void srtWidget::mouseMoveEvent(QMouseEvent *event )
+void SceneWidget::mouseMoveEvent(QMouseEvent *event )
 {
   if (!_manipulationEnabled || scene.isNull()) {
     event->ignore();
@@ -195,7 +213,7 @@ void srtWidget::mouseMoveEvent(QMouseEvent *event )
 }
 
 
-void srtWidget::mouseReleaseEvent(QMouseEvent *event )
+void SceneWidget::mouseReleaseEvent(QMouseEvent *event )
 {
   if (!_manipulationEnabled) {
     event->ignore();
@@ -214,7 +232,7 @@ void srtWidget::mouseReleaseEvent(QMouseEvent *event )
 }
 
 
-void srtWidget::wheelEvent(QWheelEvent * event )
+void SceneWidget::wheelEvent(QWheelEvent * event )
 {
   if (!_manipulationEnabled || scene.isNull()) {
     event->ignore();
@@ -227,10 +245,13 @@ void srtWidget::wheelEvent(QWheelEvent * event )
 }
 
 
-void srtWidget::performRotation()
+void SceneWidget::performRotation()
 {
   qreal angle = stopWatch.restart()*_rotationSpeed;
 
   if (scene)
     scene->camera.rotateAboutOrigin( QQuaternion::fromAxisAndAngle(_rotationAxis, angle) );
 }
+
+
+} // namespace qsrt

@@ -19,33 +19,10 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0" colspan="2">
-     <widget class="srtWidget" name="sceneWidget">
-      <property name="contextMenuPolicy">
-       <enum>Qt::ActionsContextMenu</enum>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="equation"/>
-    </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
        <string>Surface Equation</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="aLabel">
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;a&lt;/span&gt; = -9.9&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </item>
@@ -61,6 +38,19 @@
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="equation"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="aLabel">
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;a&lt;/span&gt; = -9.9&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="2">
+     <widget class="qsrt::SceneWidget" name="sceneWidget"/>
     </item>
    </layout>
   </widget>
@@ -113,8 +103,11 @@
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
    <attribute name="toolBarArea">
-    <enum>RightToolBarArea</enum>
+    <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
@@ -261,7 +254,9 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset theme="document-save"/>
+    <iconset theme="document-save">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Save...</string>
@@ -270,9 +265,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>srtWidget</class>
+   <class>qsrt::SceneWidget</class>
    <extends>QFrame</extends>
-   <header location="global">srtWidget.h</header>
+   <header>srtSceneWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

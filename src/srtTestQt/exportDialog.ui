@@ -28,20 +28,14 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QWidget" name="containerWidget" native="true">
-        <widget class="srtWidget" name="sceneWidget">
+        <widget class="qsrt::SceneWidget" name="sceneWidget">
          <property name="geometry">
           <rect>
-           <x>20</x>
-           <y>20</y>
-           <width>211</width>
-           <height>171</height>
+           <x>60</x>
+           <y>30</y>
+           <width>321</width>
+           <height>191</height>
           </rect>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
          </property>
         </widget>
        </widget>
@@ -139,10 +133,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>srtWidget</class>
+   <class>qsrt::SceneWidget</class>
    <extends>QFrame</extends>
-   <header location="global">srtWidget.h</header>
-   <container>1</container>
+   <header>srtSceneWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

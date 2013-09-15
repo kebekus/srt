@@ -31,7 +31,8 @@
 namespace qsrt {
 
 /**
- * \brief Compound of camera object, algebraic surface and other data required to render a picture
+ * \brief Compound of a camera object, an algebraic surface, and other data
+ * required to render a picture
  *
  * A scene consists of a camera object and an algebraic surface, and thus holds
  * all data required to create an image. Scenes can be rendered into a QImage

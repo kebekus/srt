@@ -3,10 +3,13 @@ project(qsrt)
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../libsrt ${CMAKE_CURRENT_BINARY_DIR}/../libsrt ${SDL_INCLUDE_DIR} )
 
 
+#
 # libqsrt
+#
 add_library(qsrt SHARED
   srtCamera.cpp
   srtScene.cpp
+  srtSceneWidget.cpp
   srtSurface.cpp
 )
 target_link_libraries( qsrt srt )
@@ -39,3 +42,5 @@ ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
+
+add_subdirectory(QtDesignerPlugin)

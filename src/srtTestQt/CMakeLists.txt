@@ -3,8 +3,7 @@ project(srtTestQt)
 SET(srtTestQt_SOURCES 
   exportDialog.cpp
   main.cpp
-  mainWindow.cpp
-  srtWidget.cpp)
+  mainWindow.cpp)
 
 SET(srtTestQt_FORMS 
   exportDialog.ui

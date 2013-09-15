@@ -36,7 +36,7 @@ execute_process(
   )
 
 # Qt
-FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtTest)
+FIND_PACKAGE(Qt4 REQUIRED QtCore QtDesigner QtGui QtTest)
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
