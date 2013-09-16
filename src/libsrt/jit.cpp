@@ -89,8 +89,7 @@ inline parser::jit::impl::impl(char *code, int len) :
 	// TODO: get type from bitcode
 	scalar_type = llvm::Type::getFloatTy(context);
 	vector_type = llvm::VectorType::get(scalar_type, 4);
-	llvm::Type *tmp[4] = { vector_type, vector_type, vector_type, scalar_type };
-	llvm::ArrayRef<llvm::Type *> args(tmp, 4);
+	llvm::Type *args[4] = { vector_type, vector_type, vector_type, scalar_type };
 	function_type = llvm::FunctionType::get(vector_type, args, 0);
 
 	pass_man.add(new llvm::DataLayout(*engine->getDataLayout()));
