@@ -22,9 +22,7 @@
 #include <QMap>
 #include <QtGlobal>
 
-extern "C" {
 #include "camera.h"
-}
 #include "srtCamera.h"
 
 namespace qsrt {

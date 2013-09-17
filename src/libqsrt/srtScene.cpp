@@ -19,18 +19,13 @@
  ***************************************************************************/
 
 #include <QtCore>
-#include <SDL.h>
 
 #include "srtScene.h"
 
-extern "C" {
 #include "aabb.h"
 #include "camera.h"
 #include "sphere.h"
 #include "stripe_data.h"
-}
-
-
 
 namespace qsrt {
 
@@ -76,13 +71,13 @@ QImage Scene::draw(QSize size)
   // Paranoia check: if surface is empty, return a transparent image.
   if (surface.isEmpty()) {
     img.fill(Qt::black);
-#warning return transparent image instead
+// TODO: return transparent image instead
     return img;
   }
 
   struct sphere sphere = { v4sf_set3(0, 0, 0), 3 };
   struct aabb aabb = { v4sf_set3(-3, -3, -3), v4sf_set3(3, 3, 3) };
-#warning This is WRONG.
+// TODO: This is WRONG.
   uint32_t *fb = (uint32_t *)img.scanLine(0);
 
   struct camera _camera = init_camera();

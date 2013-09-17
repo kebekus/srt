@@ -22,12 +22,10 @@
 #include <QDebug>
 #include "srtSurface.h"
 
-extern "C" {
 #include "error.h"
 #include "deriv.h"
 #include "reduce.h"
 #include "value_bc.h"
-}
 #include "jit.h"
 
 namespace qsrt {
@@ -144,14 +142,14 @@ bool Surface::_setEquation(const QString &equation)
   _errorString = QString::null;
   _errorIndex  = 0;
   _equation    = equation;
-#warning reset and delete stripe etc.
+// TODO: reset and delete stripe etc.
  
   // Paranoia check: do not JIT compile if the new equation is empty
   if (_equation.isEmpty())
     return true;
 
   // Now the real work starts
-#warning This is really bad. A better solution should be found.
+// TODO: This is really bad. A better solution should be found.
   QMutexLocker parserLocker(&parserSerialization);
   if (!parser_parse(curve_tree, equation.toLatin1().constData())) {
     _errorString = get_err_str();

@@ -53,7 +53,7 @@ void exportDialog::accept()
   if (fileName.isEmpty())
     return;
 
-#warning show progress dialog
+// TODO: show progress dialog
   QImage img = _scene->draw(  QSize(ui.width->value(), ui.height->value()) );
   img.save(fileName);
 }

@@ -131,7 +131,7 @@ void SceneWidget::setRotation(bool rotate)
 {
   if (rotate) {
     stopWatch.start();
-#warning maybe use smarter adaptive frame rate
+// TODO: maybe use smarter adaptive frame rate
     _rotationTimer.start(50);
   } else
     _rotationTimer.stop();

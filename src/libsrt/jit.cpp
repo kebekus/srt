@@ -6,130 +6,114 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#include <llvm-c/Core.h>
-#include <llvm-c/Analysis.h>
-#include <llvm-c/ExecutionEngine.h>
-#include <llvm-c/Target.h>
-#include <llvm-c/BitReader.h>
-#include <llvm-c/Transforms/Scalar.h>
-#include <llvm-c/Transforms/IPO.h>
+#include <llvm/Analysis/Verifier.h>
+#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/PassManager.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
 #include <llvm/Support/MemoryBuffer.h>
-#include <llvm/ExecutionEngine/ExecutionEngine.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
+
+#include <iostream>
 #include "jit.h"
 
-struct parser::jit::data {
-	LLVMModuleRef module;
-	LLVMBuilderRef builder;
-	LLVMPassManagerRef pass;
-	LLVMExecutionEngineRef engine;
-	LLVMMemoryBufferRef bc;
+struct parser::jit::impl {
+	llvm::Module *module;
+	llvm::ExecutionEngine *engine;
+	llvm::MemoryBuffer *bitcode;
+	llvm::Value *x, *y, *z, *a;
+	llvm::Type *scalar_type;
+	llvm::VectorType *vector_type;
+	llvm::FunctionType *function_type;
+	llvm::LLVMContext context;
+	llvm::IRBuilder<> builder;
+	llvm::PassManager pass_man;
+	impl(char *code, int len);
+	~impl();
+	void reset();
+	llvm::Value *emit_pow(llvm::Value *base, int exp);
+	llvm::Value *emit(struct parser_node *node);
+	void build(struct parser_tree *tree, const char *name);
+	void link();
+	void *func(const char *name);
 };
 
-LLVMMemoryBufferRef LLVMGetMemoryBufferFromArray(const char *Array, unsigned Length)
+inline void parser::jit::impl::reset()
 {
-	assert(Array);
-	assert(Length);
-	return llvm::wrap(llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(Array, Length), "", false));
-}
-
-void *LLVMGetPointerToFunction(LLVMExecutionEngineRef EE, LLVMValueRef F)
-{
-	return llvm::unwrap(EE)->getPointerToFunction(llvm::unwrap<llvm::Function>(F));
-}
-
-void parser::jit::reset()
-{
-	char *error = 0;
-	if (LLVMRemoveModule(data->engine, data->module, &data->module, &error)) {
-		fprintf(stderr, "LLVMRemoveModule:\n%s\n", error);
-		LLVMDisposeMessage(error);
-		abort();
-	}
-	LLVMDisposeMessage(error);
-	LLVMDisposeModule(data->module);
-	error = 0;
-	if (data->bc) {
-		if (LLVMParseBitcode(data->bc, &data->module, &error)) {
-			fprintf(stderr, "LLVMParseBitcode:\n%s\n", error);
-			LLVMDisposeMessage(error);
+	delete engine;
+	if (bitcode) {
+		std::string error;
+		module = llvm::ParseBitcodeFile(bitcode, context, &error);
+		if (!module) {
+			std::cerr << error << std::endl;
 			abort();
 		}
 	} else {
-		data->module = LLVMModuleCreateWithName("jit");
+		module = new llvm::Module("jit", context);
 	}
-	LLVMDisposeMessage(error);
-	LLVMAddModule(data->engine, data->module);
+
+	llvm::EngineBuilder engine_builder(module);
+	engine_builder.setEngineKind(llvm::EngineKind::JIT);
+	std::string error;
+	engine_builder.setErrorStr(&error);
+	engine_builder.setUseMCJIT(true);
+	engine_builder.setOptLevel(llvm::CodeGenOpt::Aggressive);
+	engine = engine_builder.create();
+	if (!engine) {
+		std::cerr << error << std::endl;
+		abort();
+	}
 }
 
-parser::jit::jit(char *code, int len)
+inline parser::jit::impl::impl(char *code, int len) :
+	module(0),
+	engine(0),
+	bitcode(0),
+	context(),
+	builder(context),
+	pass_man()
 {
-	LLVMLinkInJIT();
-	LLVMInitializeNativeTarget();
-	data = new struct data;
+	llvm::InitializeNativeTarget();
+	llvm::InitializeNativeTargetAsmPrinter();
+	llvm::InitializeNativeTargetAsmParser();
 
-	data->bc = 0;
 	if (code && len)
-		data->bc = LLVMGetMemoryBufferFromArray(code, len);
+		bitcode = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(code, len), "", false);
 
-	char *error = 0;
-	if (data->bc) {
-		if (LLVMParseBitcode(data->bc, &data->module, &error)) {
-			fprintf(stderr, "LLVMParseBitcode:\n%s\n", error);
-			LLVMDisposeMessage(error);
-			abort();
-		}
-	} else {
-		data->module = LLVMModuleCreateWithName("jit");
-	}
-	LLVMDisposeMessage(error);
+	reset();
 
-	error = 0;
-	if (LLVMCreateJITCompilerForModule(&data->engine, data->module, 2, &error)) {
-		fprintf(stderr, "LLVMCreateJITCompilerForModule:\n%s\n", error);
-		LLVMDisposeMessage(error);
-		abort();
-	}
-	LLVMDisposeMessage(error);
+	// TODO: get type from bitcode
+	scalar_type = llvm::Type::getFloatTy(context);
+	vector_type = llvm::VectorType::get(scalar_type, 4);
+	llvm::Type *args[4] = { vector_type, vector_type, vector_type, scalar_type };
+	function_type = llvm::FunctionType::get(vector_type, args, 0);
 
-	data->builder = LLVMCreateBuilder();
-	data->pass = LLVMCreatePassManager();
-
-	LLVMAddTargetData(LLVMGetExecutionEngineTargetData(data->engine), data->pass);
-	LLVMAddConstantPropagationPass(data->pass);
-	LLVMAddInstructionCombiningPass(data->pass);
-	LLVMAddPromoteMemoryToRegisterPass(data->pass);
-//	LLVMAddDemoteMemoryToRegisterPass(data->pass);
-	LLVMAddGVNPass(data->pass);
-	LLVMAddCFGSimplificationPass(data->pass);
-	LLVMAddFunctionInliningPass(data->pass);
-
+	pass_man.add(new llvm::DataLayout(*engine->getDataLayout()));
+	pass_man.add(llvm::createConstantPropagationPass());
+	pass_man.add(llvm::createInstructionCombiningPass());
+	pass_man.add(llvm::createPromoteMemoryToRegisterPass());
+	pass_man.add(llvm::createGVNPass());
+	pass_man.add(llvm::createCFGSimplificationPass());
+	pass_man.add(llvm::createFunctionInliningPass());
 }
 
-static LLVMValueRef splat(LLVMBuilderRef builder, LLVMValueRef elem)
-{
-	LLVMValueRef zero = LLVMConstInt(LLVMInt32Type(), 0, 0);
-	LLVMValueRef zeros[4] = { zero, zero, zero, zero };
-	LLVMValueRef mask = LLVMConstVector(zeros, 4);
-	LLVMValueRef vector = LLVMGetUndef(LLVMVectorType(LLVMFloatType(), 4));
-	vector = LLVMBuildInsertElement(builder, vector, elem, zero, "");
-	return LLVMBuildShuffleVector(builder, vector, vector, mask, "");
-}
-
-static LLVMValueRef emit_pow(LLVMBuilderRef builder, LLVMValueRef base, int exp)
+inline llvm::Value *parser::jit::impl::emit_pow(llvm::Value *base, int exp)
 {
 	if (0 == exp)
-		return splat(builder, LLVMConstReal(LLVMFloatType(), 1));
+		return llvm::ConstantFP::get(vector_type, 1);
 	else if (1 == exp)
 		return base;
 	else if (exp & 1)
-		return LLVMBuildFMul(builder, base, emit_pow(builder, LLVMBuildFMul(builder, base, base, ""), (exp - 1) / 2), "");
+		return builder.CreateFMul(base, emit_pow(builder.CreateFMul(base, base, ""), (exp - 1) / 2), "");
 	else
-		return emit_pow(builder, LLVMBuildFMul(builder, base, base, ""), exp / 2);
+		return emit_pow(builder.CreateFMul(base, base, ""), exp / 2);
 }
 
-static LLVMValueRef emit(LLVMBuilderRef builder, struct parser_node *node, LLVMValueRef x, LLVMValueRef y, LLVMValueRef z, LLVMValueRef a)
+inline llvm::Value *parser::jit::impl::emit(struct parser_node *node)
 {
 	switch (node->token) {
 		case token_x:
@@ -141,90 +125,97 @@ static LLVMValueRef emit(LLVMBuilderRef builder, struct parser_node *node, LLVMV
 		case token_a:
 			return a;
 		case token_num:
-			return splat(builder, LLVMConstReal(LLVMFloatType(), node->value));
+			return llvm::ConstantFP::get(vector_type, node->value);
 		case token_pow:
-			return emit_pow(builder, emit(builder, node->left, x, y, z, a), node->value);
+			return emit_pow(emit(node->left), node->value);
 		case token_mul:
-			return LLVMBuildFMul(builder, emit(builder, node->left, x, y, z, a), emit(builder, node->right, x, y, z, a), "");
+			return builder.CreateFMul(emit(node->left), emit(node->right), "");
 		case token_div:
-			return LLVMBuildFDiv(builder, emit(builder, node->left, x, y, z, a), emit(builder, node->right, x, y, z, a), "");
+			return builder.CreateFDiv(emit(node->left), emit(node->right), "");
 		case token_add:
-			return LLVMBuildFAdd(builder, emit(builder, node->left, x, y, z, a), emit(builder, node->right, x, y, z, a), "");
+			return builder.CreateFAdd(emit(node->left), emit(node->right), "");
 		case token_sub:
-			return LLVMBuildFSub(builder, emit(builder, node->left, x, y, z, a), emit(builder, node->right, x, y, z, a), "");
+			return builder.CreateFSub(emit(node->left), emit(node->right), "");
 		case token_neg:
-			return LLVMBuildFNeg(builder,  emit(builder, node->right, x, y, z, a), "");
+			return builder.CreateFNeg(emit(node->right), "");
 		default:
 			return 0;
 	}
 }
 
-void parser::jit::build(struct parser_tree *tree, const char *name)
+inline void parser::jit::impl::build(struct parser_tree *tree, const char *name)
 {
-	LLVMValueRef func;
-	if (LLVMFindFunction(data->engine, name, &func)) {
-		LLVMTypeRef args[] = {
-			LLVMVectorType(LLVMFloatType(), 4),
-			LLVMVectorType(LLVMFloatType(), 4),
-			LLVMVectorType(LLVMFloatType(), 4),
-			LLVMFloatType()
-		};
-		func = LLVMAddFunction(data->module, name, LLVMFunctionType(LLVMVectorType(LLVMFloatType(), 4), args, 4, 0));
-		LLVMSetFunctionCallConv(func, LLVMCCallConv);
+	llvm::Function *func = engine->FindFunctionNamed(name);
+	if (!func) {
+		func = llvm::Function::Create(function_type, llvm::GlobalValue::ExternalLinkage, name, module);
+		func->setCallingConv(llvm::CallingConv::C);
 	}
-	LLVMValueRef x = LLVMGetParam(func, 0);
-	LLVMSetValueName(x, "x");
-	LLVMValueRef y = LLVMGetParam(func, 1);
-	LLVMSetValueName(y, "y");
-	LLVMValueRef z = LLVMGetParam(func, 2);
-	LLVMSetValueName(z, "z");
-	LLVMValueRef a = LLVMGetParam(func, 3);
-	LLVMSetValueName(a, "a");
-	LLVMBasicBlockRef entry = LLVMAppendBasicBlock(func, "entry");
-	LLVMPositionBuilderAtEnd(data->builder, entry);
-	LLVMBuildRet(data->builder, emit(data->builder, tree->root, x, y, z, splat(data->builder, a)));
+	llvm::Function::arg_iterator AI = func->arg_begin();
+	x = AI++;
+	x->setName("x");
+	y = AI++;
+	y->setName("y");
+	z = AI++;
+	z->setName("z");
+	a = AI++;
+	a->setName("a");
+	llvm::BasicBlock *entry = llvm::BasicBlock::Create(context, "entry", func);
+	builder.SetInsertPoint(entry);
+	a = builder.CreateVectorSplat(vector_type->getNumElements(), a, "a");
+	builder.CreateRet(emit(tree->root));
 }
 
-void parser::jit::link()
+inline void parser::jit::impl::link()
 {
-	char *error = 0;
-	if (LLVMVerifyModule(data->module, LLVMReturnStatusAction, &error)) {
-		fprintf(stderr, "LLVMVerifyModule:\n%s\n", error);
-		LLVMDisposeMessage(error);
-		abort();
-	}
-	LLVMDisposeMessage(error);
-
-	LLVMRunPassManager(data->pass, data->module);
-//	LLVMDumpModule(data->module);
+//	module->dump();
 #if 0
-	error = 0;
-	if (LLVMPrintModuleToFile(data->module, "module.ll", &error)) {
-		fprintf(stderr, "LLVMPrintModuleToFile:\n%s\n", error);
-		LLVMDisposeMessage(error);
+	std::string error;
+	if (llvm::verifyModule(*module, llvm::ReturnStatusAction, &error)) {
+		std::cerr << error << std::endl;
 		abort();
 	}
-	LLVMDisposeMessage(error);
+#endif
+
+	pass_man.run(*module);
+	engine->finalizeObject();
+//	module->dump();
+#if 0
+	std::string error;
+	llvm::raw_fd_ostream dest("module.ll", error);
+	if (!error.empty()) {
+		std::cerr << error << std::endl;
+		abort();
+	}
+	module->print(dest, 0);
+	if (!error.empty()) {
+		std::cerr << error << std::endl;
+		abort();
+	}
+	dest.flush();
 #endif
 }
 
-void *parser::jit::func(const char *name)
+inline void *parser::jit::impl::func(const char *name)
 {
-	LLVMValueRef func;
-	if (LLVMFindFunction(data->engine, name, &func)) {
-		fprintf(stderr, "LLVMFindFunction\n");
+	llvm::Function *func = engine->FindFunctionNamed(name);
+	if (!func) {
+		std::cerr << "LLVMFindFunction: function \"" << name << "\" not found" << std::endl;
 		abort();
 	}
-	return LLVMGetPointerToFunction(data->engine, func);
+	return engine->getPointerToFunction(func);
 }
 
-parser::jit::~jit()
+inline parser::jit::impl::~impl()
 {
-	LLVMDisposeMemoryBuffer(data->bc);
-	LLVMDisposeExecutionEngine(data->engine);
-	LLVMDisposePassManager(data->pass);
-	LLVMDisposeBuilder(data->builder);
-//	LLVMDisposeModule(data->module); engine owns module ..
-	delete data;
+	delete bitcode;
+	delete engine;
+//	delete module; engine owns module ..
 }
+
+void parser::jit::reset() { impl->reset(); }
+parser::jit::~jit() { delete impl; }
+void *parser::jit::func(const char *name) { return impl->func(name); }
+void parser::jit::link() { impl->link(); }
+void parser::jit::build(struct parser_tree *tree, const char *name) { impl->build(tree, name); }
+parser::jit::jit(char *code, int len) { impl = new struct impl(code, len); }
 

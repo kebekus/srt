@@ -9,6 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef STRIPE_DATA_H
 #define STRIPE_DATA_H
 
+#include <stdint.h>
 #include "sphere.h"
 #include "aabb.h"
 #include "camera.h"
