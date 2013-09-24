@@ -31,6 +31,10 @@ namespace qsrt {
 SceneWidget::SceneWidget(QWidget *parent)
   : QFrame(parent), _rotationTimer(this)
 {
+  // Speed up painting. This widget is opaque, so no need to render a fancy
+  // background which is never survive the day.
+  setAttribute(Qt::WA_OpaquePaintEvent);
+
   // Initialize Members
   _manipulationEnabled = true;
   originalXPos = 0;

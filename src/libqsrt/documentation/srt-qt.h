@@ -29,17 +29,35 @@
    This software package provides a C++/Qt interface to the surface rendering
    library libsrt. It allows to create photo-realistic images of algebraic
    surfaces in three-dimensional space easily and with minimal programming
-   effort. Currently, the package contains the following pieces of software.
+   effort.  The libraries make use of the vector extensions available in modern
+   processors. They automatically detect and use multi-core processors and scale
+   well with the number of processor cores available. Surface equations are
+   just-in-time compiled to optimized machine code, in order to speed up the
+   rendering process as much as possible.
 
-   - The library 'libqsrt' contains the Qt bindings for the srt library. It
-     makes use of the vector extensions available in modern processors. It
-     automatically detects and uses multi-core processors and scales well with
-     the number of processor cores available. Surface equations are just-in-time
-     compiled to optimized machine code, in order to speed up the rendering
-     process as much as possible.
+   Currently, the package contains the following pieces of software.
 
-   - A Qt Designer plugin allows to easily construct user interfaces containing
+   - The libraries 'libsrt-qt4core' and 'libsrt-qt5core' contain the Qt4/Qt5
+     bindings for the srt library. Using the core libraries, scenes can be set
+     up and rendered into a QImage.
+
+   - The libraries 'libsrt-qt4widgets' and 'libsrt-qt5widget' contain widgets
+     that can be used in GUI applications. The 'SceneWidget' displays a scene
+     and allows the user to manipulate the camera position with the mouse or
+     touchpad.
+
+   - Qt Designer plugins allow to easily construct user interfaces containing
      SceneWidgets in Qt Designer.
+
+   The APIs for Qt4 and Qt5 are identical.  However, because of compiler
+   problems, not all components are currently available for all versions of
+   Qt. The table below gives an overview.
+
+   Component       |Qt4                      | Qt5
+   ----------------|-------------------------|----------------
+   Core Library    |libsrt-qt4core           | libsrt-qt5core
+   Widgets Library |libsrt-qt4widgets        | -
+   Designer Plugin |libscenewidgetplugin-qt4 | -
 
    \subsection S1a Two minimal surface rendering applications
    

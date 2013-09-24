@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <QtCore>
+#include <QtConcurrentMap>
 
 #include "srtScene.h"
 
@@ -122,7 +122,7 @@ QImage Scene::draw(QSize size)
 
   struct stripe_data sdata = { fb, w, h, dU, dV, UV, sphere, aabb, _camera, (float) surface._a, use_aabb };
 
-  int numTasks = qMax(1, QThread::idealThreadCount());
+  //  int numTasks = qMax(1, QThread::idealThreadCount());
 
 
   QVector<task> tskList(h/2);

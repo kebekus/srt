@@ -40,7 +40,8 @@ namespace qsrt {
  * and hence further serialized. If any member of the scene changes in any way,
  * the signal changed() will be emitted.
  *
- * All methods of the class are reentrant and thread-safe.
+ * All methods of the class are reentrant and thread-safe. This class is
+ * contained in the libraries 'libsrt-qt4core' and 'libsrt-qt5core'.
  */
 
 class Scene : public QObject

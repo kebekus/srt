@@ -1,8 +1,11 @@
 #! /bin/bash
-rm -rf build
-mkdir build
-cd build
+rm -rf build/linux
+mkdir build/linux
+cd build/linux
+
 export CC=clang
 export CXX=clang++
-cmake ../src/
+export Qt5Core_DIR=$HOME/software/buildsystems/Qt/5.1.0/gcc_64/lib/cmake/Qt5Core
+
+cmake ../../src/
 make

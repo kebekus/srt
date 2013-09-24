@@ -58,7 +58,8 @@ namespace qsrt {
  *   and use the methods errorString() and errorIndex() to obtain a description
  *   of the error.
  *
- * All methods of the class are reentrant and thread-safe.
+ * All methods of the class are reentrant and thread-safe. This class is
+ * contained in the libraries 'libsrt-qt4core' and 'libsrt-qt5core'.
  *
  * @author Stefan Kebekus 
  */

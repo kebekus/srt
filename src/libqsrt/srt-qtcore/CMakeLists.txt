@@ -1,0 +1,13 @@
+SET(srt-qtcore_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/srtCamera.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/srtScene.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/srtSurface.h
+  )
+SET(srt-qtcore_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/srtCamera.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/srtScene.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/srtSurface.cpp
+  )
+
+ADD_SUBDIRECTORY(qt4)
+ADD_SUBDIRECTORY(qt5)

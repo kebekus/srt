@@ -50,7 +50,8 @@ namespace qsrt {
  *
  * * Movement of the mouse wheel results in a change of the zoom factor.
  *
- * The methods of the class are reentrant, but not thread-safe.
+ * The methods of the class are reentrant, but not thread-safe. This class is
+ * contained in the libraries 'libsrt-qt4widgets' and 'libsrt-qt5widgets'.
  *
  * @author Stefan Kebekus 
  */
@@ -87,7 +88,6 @@ class SceneWidget : public QFrame
    * user modify this property with mouse gestures.
    */
   Q_PROPERTY(QVector3D rotationAxis READ rotationAxis WRITE setRotationAxis);
-
 
   /**
    * \brief Angular speed for the rotation animation

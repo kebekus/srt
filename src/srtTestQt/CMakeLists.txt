@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 2.8.6)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt/srt-qtcore
+  ${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt/srt-qtwidgets)
 
 project(srtTestQt)
 
-set(CMAKE_BUILD_TYPE Debug)
 
-find_package(Qt4 REQUIRED QtCore QtGui QtTest)
-include(${QT_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
+# Find Qt4
+FIND_PACKAGE(Qt4 4.8.0 REQUIRED)
 
 set(srtTestQt_SOURCES
 	exportDialog.cpp
@@ -31,10 +31,10 @@ add_executable(srtTestQt
 	${srtTestQt_FORMS_HEADERS}
 	${srtTestQt_RESOURCES_RCC}
 )
+QT4_USE_MODULES(srtTestQt Core Gui)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt ${CMAKE_CURRENT_SOURCE_DIR}/../srtTestQt ${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(srtTestQt -L../libqsrt qsrt -L../libsrt srt ${QT_LIBRARIES})
+target_link_libraries(srtTestQt -L../libqsrt srt-qt4core srt-qt4widgets -L../libsrt srt ${QT_LIBRARIES})
 
 set_target_properties(srtTestQt PROPERTIES AUTOMOC TRUE)
-

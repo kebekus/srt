@@ -1,4 +1,0 @@
-* I/O for srtSurface
-
-* implicit sharing for srtSurface
-
