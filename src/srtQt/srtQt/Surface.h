@@ -36,6 +36,8 @@ struct parser_tree;
 namespace srtQt {
 
 /**
+ * \class srtQt::Surface Surface.h srtQt/Surface.h
+ *
  * \brief Algebraic surface in three-dimensional Euclidean space.
  *
  * This class represents an algebraic surface in the three-dimensional Euclidean
@@ -59,7 +61,7 @@ namespace srtQt {
  *   of the error.
  *
  * All methods of the class are reentrant and thread-safe. This class is
- * contained in the libraries 'libsrt-qt4core' and 'libsrt-qt5core'.
+ * contained in the libraries 'libsrtQt4Core' and 'libsrtQt5Core'.
  *
  * @author Stefan Kebekus 
  */

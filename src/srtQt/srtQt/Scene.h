@@ -31,6 +31,8 @@
 namespace srtQt {
 
 /**
+ * \class srtQt::Scene Scene.h srtQt/Scene.h
+ * 
  * \brief Compound of a camera object, an algebraic surface, and other data
  * required to render a picture
  *
@@ -41,7 +43,7 @@ namespace srtQt {
  * the signal changed() will be emitted.
  *
  * All methods of the class are reentrant and thread-safe. This class is
- * contained in the libraries 'libsrt-qt4core' and 'libsrt-qt5core'.
+ * contained in the libraries 'libsrtQt4Core' and 'libsrtQt5Core'.
  */
 
 class Scene : public QObject
