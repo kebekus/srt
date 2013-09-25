@@ -1,6 +1,6 @@
 #! /bin/bash
 rm -rf build/linux
-mkdir build/linux
+mkdir -p build/linux
 cd build/linux
 
 export CC=clang
