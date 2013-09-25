@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.6)
 
 add_subdirectory(libsrt)
-add_subdirectory(libqsrt)
+add_subdirectory(srtQt)
 add_subdirectory(srtTestSDL)
 add_subdirectory(srtTestQt)
 

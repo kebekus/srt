@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include <QDialog>
-#include <srtScene.h>
+#include <srtQt/Scene.h>
 
 #include "ui_exportDialog.h"
 
@@ -38,7 +38,7 @@ class exportDialog : public QDialog
    * @param parent This parameter is passed on to the constructor of the
    * QMainWindow
    */
-  exportDialog(QWidget *parent, qsrt::Scene *scene, QSize defaultSize);
+  exportDialog(QWidget *parent, srtQt::Scene *scene, QSize defaultSize);
 
  protected:
   void accept();
@@ -50,5 +50,5 @@ class exportDialog : public QDialog
  private:
   // GUI, as construced with the Qt designer
   Ui::exportDialog ui;
-  QPointer<qsrt::Scene> _scene;
+  QPointer<srtQt::Scene> _scene;
 };

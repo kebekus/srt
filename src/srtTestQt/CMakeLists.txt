@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8.6)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt/srt-qtcore
-  ${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt/srt-qtwidgets)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../srtQt)
 
 project(srtTestQt)
 
@@ -35,6 +34,6 @@ QT4_USE_MODULES(srtTestQt Core Gui)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqsrt ${CMAKE_CURRENT_SOURCE_DIR}/../srtTestQt ${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(srtTestQt -L../libqsrt srt-qt4core srt-qt4widgets -L../libsrt srt ${QT_LIBRARIES})
+target_link_libraries(srtTestQt -L../libqsrt srtQt4Core srtQt4Widgets -L../libsrt srt ${QT_LIBRARIES})
 
 set_target_properties(srtTestQt PROPERTIES AUTOMOC TRUE)

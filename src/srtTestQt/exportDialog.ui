@@ -28,7 +28,7 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QWidget" name="containerWidget" native="true">
-        <widget class="qsrt::SceneWidget" name="sceneWidget">
+        <widget class="srtQt::SceneWidget" name="sceneWidget">
          <property name="geometry">
           <rect>
            <x>60</x>
@@ -133,9 +133,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>qsrt::SceneWidget</class>
+   <class>srtQt::SceneWidget</class>
    <extends>QFrame</extends>
-   <header>srtSceneWidget.h</header>
+   <header>srtQt/SceneWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -19,21 +19,27 @@
  ***************************************************************************/
 
 #include <QApplication>
-#include <srtQt/Scene.h>
-
-#include "mainWindow.h"
-
+#include "srtQt/SceneWidget.h"
 
 int main(int argc, char **argv)
 {
+  // Set up the QApplication object, which we use later to start the event loop
   QApplication app(argc, argv);
-  app.setApplicationName("srtTestQt");
-  app.setOrganizationName("Albert-Ludwigs-Universität Freiburg");
-  app.setOrganizationName("uni-freiburg.de");
 
-  // Now start the GUI
-  mainWindow mW;
+  // Construct a scene object. By default, the camera is placed in the z-axis
+  // and pointed towards the origin.
+  srtQt::Scene scene;
 
-  mW.show();
+  // Give the equation of the surface that we would like to draw. In the
+  // example, the Clebsch Cubic Surface has been chosen, which is a nice-looking
+  // surface that admits a rotational symmetry of order three.
+  scene.surface.setEquation("81*(x^3+y^3+z^3) - 189*(x^2*y+x^2*z+y^2*x+y^2*z+z^2*x+z^2*y) + 54*(x*y*z) + 126*(x*y+x*z+y*z) - 9*(x^2+y^2+z^2) - 9*(x+y+z) + 1");
+
+  // Set up a scene widget and show this widget
+  srtQt::SceneWidget widget;
+  widget.setScene(&scene);
+  widget.show();
+
+  // Start the event loop
   return app.exec();
 }

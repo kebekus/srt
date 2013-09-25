@@ -18,22 +18,35 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <QApplication>
-#include <srtQt/Scene.h>
-
-#include "mainWindow.h"
-
+#include <QFile>
+#include "srtQt/Scene.h"
 
 int main(int argc, char **argv)
 {
-  QApplication app(argc, argv);
-  app.setApplicationName("srtTestQt");
-  app.setOrganizationName("Albert-Ludwigs-Universität Freiburg");
-  app.setOrganizationName("uni-freiburg.de");
+  if (argc == 1)
+    return -1;
 
-  // Now start the GUI
-  mainWindow mW;
+  // Construct a scene object. By default, the camera is placed in the z-axis
+  // and pointed towards the origin.
+  srtQt::Scene scene;
 
-  mW.show();
-  return app.exec();
+  // Read scene
+  QString magicID;
+  QVariantMap map;
+  QFile file(argv[1]);
+  file.open(QIODevice::ReadOnly);
+  QDataStream in(&file);
+  in.setVersion(QDataStream::Qt_4_8);
+  in >> magicID;
+  in >> map;
+  file.close();
+  scene.load(map["scene"]);
+
+
+  // Render the surface into a QImage of size 128500x500
+  QImage img = scene.draw( QSize(128,128) );
+  // Save the image file.
+  img.save("logo128.png");
+
+  return 0;
 }

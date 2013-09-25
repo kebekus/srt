@@ -50,7 +50,7 @@
      </widget>
     </item>
     <item row="0" column="0" colspan="2">
-     <widget class="qsrt::SceneWidget" name="sceneWidget"/>
+     <widget class="srtQt::SceneWidget" name="sceneWidget"/>
     </item>
    </layout>
   </widget>
@@ -265,9 +265,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>qsrt::SceneWidget</class>
+   <class>srtQt::SceneWidget</class>
    <extends>QFrame</extends>
-   <header>srtSceneWidget.h</header>
+   <header>srtQt/SceneWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

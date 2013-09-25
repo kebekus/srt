@@ -18,22 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <QApplication>
-#include <srtQt/Scene.h>
+#include "srt-qt.h"
+#include "srtQt/Camera.h"
+#include "srtQt/Scene.h"
+#include "srtQt/Surface.h"
 
-#include "mainWindow.h"
-
+#include "srtQt/SceneWidget.h"
 
 int main(int argc, char **argv)
 {
-  QApplication app(argc, argv);
-  app.setApplicationName("srtTestQt");
-  app.setOrganizationName("Albert-Ludwigs-Universität Freiburg");
-  app.setOrganizationName("uni-freiburg.de");
-
-  // Now start the GUI
-  mainWindow mW;
-
-  mW.show();
-  return app.exec();
+  return 0;
 }

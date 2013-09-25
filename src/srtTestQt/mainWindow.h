@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include <QMainWindow>
-#include "srtScene.h"
+#include <srtQt/Scene.h>
 
 #include "ui_mainWindow.h"
 
@@ -73,5 +73,5 @@ class mainWindow : public QMainWindow
   Ui::mainWindow ui;
 
   // The central scene that is rendered in the widget
-  qsrt::Scene scene;
+  srtQt::Scene scene;
 };

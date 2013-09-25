@@ -24,7 +24,7 @@
 #include "exportDialog.h"
 
 
-exportDialog::exportDialog(QWidget *parent, qsrt::Scene *scene, QSize defaultSize)
+exportDialog::exportDialog(QWidget *parent, srtQt::Scene *scene, QSize defaultSize)
   : QDialog(parent), _scene(scene)
 {
   // Setup GUI
