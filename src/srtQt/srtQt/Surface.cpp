@@ -55,10 +55,10 @@ Surface::~Surface()
   // Get write access to private members. Wait till the last reader has finished
   QWriteLocker locker(&privateMemberLock);
   
-  parser_free_tree(curve_tree);
-  parser_free_tree(deriv_tree[0]);
-  parser_free_tree(deriv_tree[1]);
-  parser_free_tree(deriv_tree[2]);
+  parser::free_tree(curve_tree);
+  parser::free_tree(deriv_tree[0]);
+  parser::free_tree(deriv_tree[1]);
+  parser::free_tree(deriv_tree[2]);
   delete jit;
 }
 
@@ -151,20 +151,20 @@ bool Surface::_setEquation(const QString &equation)
   // Now the real work starts
 // TODO: This is really bad. A better solution should be found.
   QMutexLocker parserLocker(&parserSerialization);
-  if (!parser_parse(curve_tree, equation.toLatin1().constData())) {
+  if (!parser::parse(curve_tree, equation.toLatin1().constData())) {
     _errorString = get_err_str();
     _errorIndex  = get_err_pos();
     return true;
   }
   
-  if (!parser_reduce(curve_tree)) {
+  if (!parser::reduce(curve_tree)) {
     _errorString = get_err_str();
     _errorIndex  = get_err_pos();
     return true;
   }
 
   for (int j = 0; j < 3; j++) {
-    if (!parser_deriv(deriv_tree[j], curve_tree, token_x + j) || !parser_reduce(deriv_tree[j])) {
+    if (!parser::deriv(deriv_tree[j], curve_tree, parser::token_x + j) || !parser::reduce(deriv_tree[j])) {
       _errorString = get_err_str();
       _errorIndex  = get_err_pos();
       return true;
@@ -283,10 +283,10 @@ void Surface::construct()
 
   // Initialize JIT parser interna. 
   jit           = new parser::jit((char *)value_bc, value_bc_len);
-  curve_tree    = parser_alloc_tree(8192);
-  deriv_tree[0] = parser_alloc_tree(8192);
-  deriv_tree[1] = parser_alloc_tree(8192);
-  deriv_tree[2] = parser_alloc_tree(8192);
+  curve_tree    = parser::alloc_tree(8192);
+  deriv_tree[0] = parser::alloc_tree(8192);
+  deriv_tree[1] = parser::alloc_tree(8192);
+  deriv_tree[2] = parser::alloc_tree(8192);
 
   // Wire up signals
   connect(this, SIGNAL(equationChanged()), this, SIGNAL(changed()));

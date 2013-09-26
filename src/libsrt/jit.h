@@ -22,7 +22,7 @@ namespace parser
 		jit(char *code, int len);
 		~jit();
 		void reset();
-		void build(struct parser_tree *tree, const char *name);
+		void build(struct tree *tree, const char *name);
 		void *func(const char *name);
 		void link();
 	};

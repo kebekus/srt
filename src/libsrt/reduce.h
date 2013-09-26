@@ -9,6 +9,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef REDUCE_H
 #define REDUCE_H
 #include "parser.h"
-int parser_reduce(struct parser_tree *tree);
-struct parser_node *parser_reduce_branch(struct parser_node *node);
+namespace parser
+{
+	int reduce(struct tree *tree);
+	struct node *reduce_branch(struct node *node);
+}
 #endif

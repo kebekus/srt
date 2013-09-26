@@ -9,48 +9,51 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef PARSER_H
 #define PARSER_H
 
-enum {
-	token_err = 0,
-	token_x,
-	token_y,
-	token_z,
-	token_a,
-	token_add,
-	token_sub,
-	token_mul,
-	token_div,
-	token_neg,
-	token_num,
-	token_pow,
-	token_sqrt,
-	token_sin,
-	token_cos,
-	token_paran,
-};
+namespace parser
+{
+	enum {
+		token_err = 0,
+		token_x,
+		token_y,
+		token_z,
+		token_a,
+		token_add,
+		token_sub,
+		token_mul,
+		token_div,
+		token_neg,
+		token_num,
+		token_pow,
+		token_sqrt,
+		token_sin,
+		token_cos,
+		token_paran,
+	};
 
-struct parser_node {
-	struct parser_node *left;
-	struct parser_node *right;
-	int token;
-	float value;
-};
+	struct node {
+		struct node *left;
+		struct node *right;
+		int token;
+		float value;
+	};
 
-struct parser_tree {
-	struct parser_node *begin;
-	struct parser_node *end;
-	struct parser_node *cur;
-	struct parser_node *root;
-};
+	struct tree {
+		struct node *begin;
+		struct node *end;
+		struct node *cur;
+		struct node *root;
+	};
 
-struct parser_node *parser_new_node(struct parser_tree *tree, struct parser_node *left, int token, struct parser_node *right);
-struct parser_node *parser_new_pow(struct parser_tree *tree, struct parser_node *left, float exponent);
-struct parser_node *parser_new_num(struct parser_tree *tree, float value);
-struct parser_node *parser_new_var(struct parser_tree *tree, int token);
-int parser_token_prio(int token);
-int parser_parse(struct parser_tree *tree, const char *str);
-struct parser_tree *parser_alloc_tree(int size);
-void parser_free_tree(struct parser_tree *tree);
-void parser_reset_tree(struct parser_tree *tree);
+	struct node *new_node(struct tree *tree, struct node *left, int token, struct node *right);
+	struct node *new_pow(struct tree *tree, struct node *left, float exponent);
+	struct node *new_num(struct tree *tree, float value);
+	struct node *new_var(struct tree *tree, int token);
+	int token_prio(int token);
+	int parse(struct tree *tree, const char *str);
+	struct tree *alloc_tree(int size);
+	void free_tree(struct tree *tree);
+	void reset_tree(struct tree *tree);
+}
 
 #endif
 

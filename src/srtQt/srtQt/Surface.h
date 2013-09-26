@@ -28,10 +28,8 @@
 #include <QVariant>
 
 // Declare a number of classes
-namespace parser{class jit;}
+namespace parser { class jit; struct tree; }
 struct stripe_data;
-struct parser_tree;
-
 
 namespace srtQt {
 
@@ -357,8 +355,8 @@ class Surface : public QObject
   // Pointer to parser interna. 
 // TODO: I do not properly understand what that is.
   parser::jit *jit;
-  struct parser_tree *curve_tree;
-  struct parser_tree *deriv_tree[3];
+  struct parser::tree *curve_tree;
+  struct parser::tree *deriv_tree[3];
   int64_t (*stripe)(struct stripe_data *sd, int j);
 };
 
