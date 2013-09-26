@@ -31,13 +31,15 @@
 namespace srtQt {
 
 /**
+ * \class srtQt::Camera Camera.h srtQt/Camera.h
+ *
  * \brief Represents a camera in a given scene
  *
  * This class represents a camera in a given scene. The main properties stored
  * are the position of the camera and the direction of view.
  *
  * All methods of the class are reentrant and thread-safe. This class is
- * contained in the libraries 'libsrt-qt4core' and 'libsrt-qt5core'.
+ * contained in the libraries 'libsrtQt4Core' and 'libsrtQt5Core'.
  *
  * @author Stefan Kebekus 
  */

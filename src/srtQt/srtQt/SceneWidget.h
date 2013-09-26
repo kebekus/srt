@@ -31,6 +31,8 @@
 namespace srtQt {
 
 /**
+ * \class srtQt::SceneWidget SceneWidget.h srtQt/SceneWidget.h
+ *
  * \brief Displays a scene and allows the user to manipulate the camera position
  * with the mouse or touchpad
  *
@@ -51,7 +53,7 @@ namespace srtQt {
  * * Movement of the mouse wheel results in a change of the zoom factor.
  *
  * The methods of the class are reentrant, but not thread-safe. This class is
- * contained in the libraries 'libsrt-qt4widgets' and 'libsrt-qt5widgets'.
+ * contained in the libraries 'libsrtQt4Widgets' and 'libsrtQt5Widgets'.
  *
  * @author Stefan Kebekus 
  */

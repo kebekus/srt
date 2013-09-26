@@ -36,6 +36,8 @@ struct parser_tree;
 namespace srtQt {
 
 /**
+ * \class srtQt::Surface Surface.h srtQt/Surface.h
+ *
  * \brief Algebraic surface in three-dimensional Euclidean space.
  *
  * This class represents an algebraic surface in the three-dimensional Euclidean
@@ -59,7 +61,7 @@ namespace srtQt {
  *   of the error.
  *
  * All methods of the class are reentrant and thread-safe. This class is
- * contained in the libraries 'libsrt-qt4core' and 'libsrt-qt5core'.
+ * contained in the libraries 'libsrtQt4Core' and 'libsrtQt5Core'.
  *
  * @author Stefan Kebekus 
  */
@@ -330,7 +332,7 @@ class Surface : public QObject
   void construct();
 
   // Mutex used to serialize access to the parser and the methods get_err_str()
-// TODO: flawed design
+#warning TODO: flawed design
   static QMutex parserSerialization;
   
   // Read-Write lock, to be used for all private members that are defined below
@@ -344,7 +346,7 @@ class Surface : public QObject
   
   // If not empty, then an error occured in the method setEquation(). This
   // string describes the error in natural language
-// TODO: This is flawed design and will lead to problems with translations. Error codes should be used or translations provided.
+#warning TODO: This is flawed design and will lead to problems with translations. Error codes should be used or translations provided.
   QString _errorString;
   
   // If _errorString is not empty, then this member points to the index in
@@ -355,7 +357,7 @@ class Surface : public QObject
   qreal _a;
 
   // Pointer to parser interna. 
-// TODO: I do not properly understand what that is.
+  // TODO: I do not properly understand what that is.
   parser::jit *jit;
   struct parser_tree *curve_tree;
   struct parser_tree *deriv_tree[3];
