@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "srt-qt.h"
+#include "srtQt.h"
 #include "srtQt/Camera.h"
 #include "srtQt/Scene.h"
 #include "srtQt/Surface.h"
