@@ -18,22 +18,23 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-
-# Find Qt4
-FIND_PACKAGE(Qt4 4.8.0 REQUIRED)
-
-
 #
-# Qt Designer plugin for Qt4
+# Config file for the srtQt4 package
 #
-QT4_ADD_RESOURCES(srtQt4SceneWidgetPlugin_RESOURCES_RCC 
-  ../SceneWidgetPlugin.qrc)
-ADD_LIBRARY(srtQt4SceneWidgetPlugin
-  SHARED
-  ../SceneWidgetPlugin.cpp
-  ${srtQt4SceneWidgetPlugin_RESOURCES_RCC}
-)
-QT4_USE_MODULES(srtQt4SceneWidgetPlugin Core Designer Gui)
-TARGET_LINK_LIBRARIES(srtQt4SceneWidgetPlugin srtQt4Widgets)
-SET_TARGET_PROPERTIES(srtQt4SceneWidgetPlugin PROPERTIES AUTOMOC TRUE)
-INSTALL(TARGETS srtQt4SceneWidgetPlugin DESTINATION ${QT_PLUGINS_DIR}/designer)
+# The following variables will be defined.
+#
+# srtQt4_FOUND .. set to "1"
+# srtQt4_INCLUDE_DIRS .. 
+# srtQt4Core_LIBRARY
+# srtQt4Widget_LIBRARY
+
+
+# Get directory where this file is installed
+GET_FILENAME_COMPONENT(srtQt4_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+# Set variables
+SET(srtQt4_FOUND 1)
+SET(srtQt4_INCLUDE_DIRS "${srtQt4_CMAKE_DIR}/../../include/srtQt/Qt4")
+SET(srtQt4_LINK_DIRS "${srtQt4_CMAKE_DIR}/..")
+SET(srtQt4Core_LIBRARY srtQt4Core)
+SET(srtQt4Widget_LIBRARY srtQt4Widgets)

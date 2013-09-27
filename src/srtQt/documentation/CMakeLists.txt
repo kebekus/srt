@@ -2,7 +2,6 @@
 # Find Doxygen and configure 'Doxyfile'
 #
 FIND_PACKAGE(Doxygen REQUIRED)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
 
 #
@@ -13,6 +12,8 @@ FIND_PACKAGE(Qt4 4.8.0 REQUIRED)
 
 #
 # logoMaker
+#
+# This is a little program that is used to render the logo of the srtQt project.
 #
 ADD_EXECUTABLE(logoMaker
   logoMaker.cpp
@@ -29,6 +30,7 @@ TARGET_LINK_LIBRARIES(logoMaker srtQt4Core)
 # files from srt-qt4core and srt-qt5core. Generating the documentation with
 # doxygen is part of its build process.
 #
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 ADD_EXECUTABLE(doc
   dummy.cpp)
 QT4_USE_MODULES(doc Core Gui)
@@ -39,5 +41,12 @@ ADD_CUSTOM_COMMAND(TARGET doc POST_BUILD
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating API documentation with Doxygen"
   )
-INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/apidoc/html DESTINATION share/doc/srt-qt-${srt-qt_VERSION_STRING}
+INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/apidoc/html DESTINATION share/doc/srtQt-${srtQt_VERSION_STRING}
+  )
+
+
+#
+# Example Projects
+#
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/examples DESTINATION share/doc/srtQt-${srtQt_VERSION_STRING}
   )
