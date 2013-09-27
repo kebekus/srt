@@ -36,8 +36,8 @@ struct parser::jit::impl {
 	~impl();
 	void reset();
 	llvm::Value *emit_pow(llvm::Value *base, int exp);
-	llvm::Value *emit(struct parser_node *node);
-	void build(struct parser_tree *tree, const char *name);
+	llvm::Value *emit(struct parser::node *node);
+	void build(struct parser::tree *tree, const char *name);
 	void link();
 	void *func(const char *name);
 };
@@ -113,7 +113,7 @@ inline llvm::Value *parser::jit::impl::emit_pow(llvm::Value *base, int exp)
 		return emit_pow(builder.CreateFMul(base, base, ""), exp / 2);
 }
 
-inline llvm::Value *parser::jit::impl::emit(struct parser_node *node)
+inline llvm::Value *parser::jit::impl::emit(struct parser::node *node)
 {
 	switch (node->token) {
 		case token_x:
@@ -143,7 +143,7 @@ inline llvm::Value *parser::jit::impl::emit(struct parser_node *node)
 	}
 }
 
-inline void parser::jit::impl::build(struct parser_tree *tree, const char *name)
+inline void parser::jit::impl::build(struct parser::tree *tree, const char *name)
 {
 	llvm::Function *func = engine->FindFunctionNamed(name);
 	if (!func) {
@@ -216,6 +216,6 @@ void parser::jit::reset() { impl->reset(); }
 parser::jit::~jit() { delete impl; }
 void *parser::jit::func(const char *name) { return impl->func(name); }
 void parser::jit::link() { impl->link(); }
-void parser::jit::build(struct parser_tree *tree, const char *name) { impl->build(tree, name); }
+void parser::jit::build(struct parser::tree *tree, const char *name) { impl->build(tree, name); }
 parser::jit::jit(char *code, int len) { impl = new struct impl(code, len); }
 
