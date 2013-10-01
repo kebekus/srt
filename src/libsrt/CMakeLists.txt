@@ -53,4 +53,4 @@ add_library(srt SHARED
 )
 
 target_link_libraries(srt ${LLVM_LDFLAGS} ${LLVM_LIBS})
-
+INSTALL(TARGETS srt DESTINATION lib)
