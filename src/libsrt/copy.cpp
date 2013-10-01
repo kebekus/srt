@@ -39,7 +39,7 @@ namespace parser
 			case token_err:
 				return 0;
 			default:
-				set_err_str("unknown token");
+				error::set_num(error::unknown_token);
 				return 0;
 		}
 	}
@@ -47,7 +47,7 @@ namespace parser
 
 	int copy(struct tree *dst, struct tree *src)
 	{
-		set_err_str_pos("empty expression", 0);
+		error::set_num_pos(error::empty_expression, 0);
 		reset_tree(dst);
 		dst->root = copy_branch(dst, src->root);
 		return 0 != dst->root;

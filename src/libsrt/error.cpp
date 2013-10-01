@@ -6,37 +6,74 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+#include <stdlib.h>
 #include "error.h"
 
-static const char *error_string = 0;
-static int error_position = 0;
-
-const char *get_err_str()
+namespace parser
 {
-	return error_string;
-}
+	namespace error
+	{
+		static int number = 0;
+		static int position = 0;
 
-int get_err_pos()
-{
-	return error_position;
-}
+		static const char *strings[] = {
+			"ok",
+			"argument does not reduce to number",
+			"argument is negative",
+			"closing parenthese missing",
+			"divisor does not reduce to number",
+			"divisor is zero",
+			"empty expression",
+			"exponent does not reduce to number",
+			"exponent is negative",
+			"exponent not integer",
+			"incomplete expression",
+			"not enough nodes",
+			"number to long",
+			"opening parenthese missing",
+			"stack overflow",
+			"syntax error",
+			"there can be only one",
+			"unknown",
+			"unknown char",
+			"unknown token"
+		};
 
-int set_err_str(const char *what)
-{
-	error_string = what;
-	return 0;
-}
+		int get_num()
+		{
+			return number;
+		}
 
-int set_err_pos(int pos)
-{
-	error_position = pos;
-	return 0;
-}
+		const char *get_str()
+		{
+			return strings[number];
+		}
 
-int set_err_str_pos(const char *what, int pos)
-{
-	error_string = what;
-	error_position = pos;
-	return 0;
+		int get_pos()
+		{
+			return position;
+		}
+
+		int set_num(int num)
+		{
+			if (num < 0 || num >= sizeof(strings) / sizeof(*strings))
+				abort();
+			number = num;
+			return 0;
+		}
+
+		int set_pos(int pos)
+		{
+			position = pos;
+			return 0;
+		}
+
+		int set_num_pos(int num, int pos)
+		{
+			set_num(num);
+			position = pos;
+			return 0;
+		}
+	}
 }
 
