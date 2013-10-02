@@ -219,21 +219,21 @@ namespace parser
 			case token_err:
 				return 0;
 			default:
-				set_err_str("unknown token");
+				error::set_num(error::unknown_token);
 				return 0;
 		}
 	}
 
 	int reduce(struct tree *tree)
 	{
-		set_err_str_pos("empty expression", 0);
+		error::set_num_pos(error::empty_expression, 0);
 		tree->root = reduce(tree->root);
 		return 0 != tree->root;
 	}
 
 	struct node *reduce_branch(struct node *node)
 	{
-		set_err_str_pos("empty expression", 0);
+		error::set_num_pos(error::empty_expression, 0);
 		return reduce(node);
 	}
 }

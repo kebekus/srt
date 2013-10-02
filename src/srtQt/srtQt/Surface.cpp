@@ -152,21 +152,21 @@ bool Surface::_setEquation(const QString &equation)
 // TODO: This is really bad. A better solution should be found.
   QMutexLocker parserLocker(&parserSerialization);
   if (!parser::parse(curve_tree, equation.toLatin1().constData())) {
-    _errorString = get_err_str();
-    _errorIndex  = get_err_pos();
+    _errorString = parser::error::get_str();
+    _errorIndex  = parser::error::get_pos();
     return true;
   }
   
   if (!parser::reduce(curve_tree)) {
-    _errorString = get_err_str();
-    _errorIndex  = get_err_pos();
+    _errorString = parser::error::get_str();
+    _errorIndex  = parser::error::get_pos();
     return true;
   }
 
   for (int j = 0; j < 3; j++) {
     if (!parser::deriv(deriv_tree[j], curve_tree, parser::token_x + j) || !parser::reduce(deriv_tree[j])) {
-      _errorString = get_err_str();
-      _errorIndex  = get_err_pos();
+      _errorString = parser::error::get_str();
+      _errorIndex  = parser::error::get_pos();
       return true;
     }
   }

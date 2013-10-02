@@ -14,9 +14,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 namespace parser
 {
-	struct node *node_set_err_str(const char *what)
+	struct node *node_error_set_num(int num)
 	{
-		set_err_str(what);
+		error::set_num(num);
 		return 0;
 	}
 
@@ -47,7 +47,7 @@ namespace parser
 		if (!token)
 			return 0;
 		if (tree->cur >= tree->end)
-			return node_set_err_str("not enough nodes");
+			return node_error_set_num(error::not_enough_nodes);
 		tree->cur->left = left;
 		tree->cur->right = right;
 		tree->cur->token = token;
@@ -58,7 +58,7 @@ namespace parser
 	struct node *new_num(struct tree *tree, float value)
 	{
 		if (tree->cur >= tree->end)
-			return node_set_err_str("not enough nodes");
+			return node_error_set_num(error::not_enough_nodes);
 		tree->cur->left = 0;
 		tree->cur->right = 0;
 		tree->cur->token = token_num;
@@ -69,7 +69,7 @@ namespace parser
 	struct node *new_pow(struct tree *tree, struct node *left, float exponent)
 	{
 		if (tree->cur >= tree->end)
-			return node_set_err_str("not enough nodes");
+			return node_error_set_num(error::not_enough_nodes);
 		tree->cur->left = left;
 		tree->cur->right = 0;
 		tree->cur->token = token_pow;
@@ -82,7 +82,7 @@ namespace parser
 		if (!token)
 			return 0;
 		if (tree->cur >= tree->end)
-			return node_set_err_str("not enough nodes");
+			return node_error_set_num(error::not_enough_nodes);
 		tree->cur->left = 0;
 		tree->cur->right = 0;
 		tree->cur->token = token;
@@ -124,11 +124,11 @@ namespace parser
 		if (token_num != right->token)
 			right = reduce_branch(right);
 		if (token_num != right->token)
-			return node_set_err_str("exponent does not reduce to number");
+			return node_error_set_num(error::exponent_does_not_reduce_to_number);
 		if (token_num != left->token && !integer(right->value))
-			return node_set_err_str("exponent not integer");
+			return node_error_set_num(error::exponent_not_integer);
 		if (right->value < 0)
-			return node_set_err_str("exponent is negative");
+			return node_error_set_num(error::exponent_is_negative);
 		right->left = left;
 		right->right = 0;
 		right->token = token_pow;
@@ -140,9 +140,9 @@ namespace parser
 		if (token_num != right->token)
 			right = reduce_branch(right);
 		if (token_num != right->token)
-			return node_set_err_str("divisor does not reduce to number");
+			return node_error_set_num(error::divisor_does_not_reduce_to_number);
 		if (0 == right->value)
-			return node_set_err_str("divisor is zero");
+			return node_error_set_num(error::divisor_is_zero);
 		return new_node(tree, left, token_div, right);
 	}
 
@@ -151,9 +151,9 @@ namespace parser
 		if (token_num != right->token)
 			right = reduce_branch(right);
 		if (token_num != right->token)
-			return node_set_err_str("argument does not reduce to number");
+			return node_error_set_num(error::argument_does_not_reduce_to_number);
 		if (0 > right->value)
-			return node_set_err_str("argument is negative");
+			return node_error_set_num(error::argument_is_negative);
 		return new_node(tree, 0, token_sqrt, right);
 	}
 
@@ -162,7 +162,7 @@ namespace parser
 		if (token_num != right->token)
 			right = reduce_branch(right);
 		if (token_num != right->token)
-			return node_set_err_str("argument does not reduce to number");
+			return node_error_set_num(error::argument_does_not_reduce_to_number);
 		return new_node(tree, 0, token_sin, right);
 	}
 
@@ -171,7 +171,7 @@ namespace parser
 		if (token_num != right->token)
 			right = reduce_branch(right);
 		if (token_num != right->token)
-			return node_set_err_str("argument does not reduce to number");
+			return node_error_set_num(error::argument_does_not_reduce_to_number);
 		return new_node(tree, 0, token_cos, right);
 	}
 
@@ -211,10 +211,10 @@ namespace parser
 		int dot = 0;
 		while (*pos < len && ('.' == str[*pos] || ('0' <= str[*pos] && str[*pos] <= '9'))) {
 			if ('.' == str[*pos] && ++dot > 1)
-				return node_set_err_str("there can be only one");
+				return node_error_set_num(error::there_can_be_only_one);
 			tmp[i] = str[*pos];
 			if (++i >= 20)
-				return node_set_err_str("number to long");
+				return node_error_set_num(error::number_to_long);
 			(*pos)++;
 		}
 		(*pos)--;
@@ -226,7 +226,7 @@ namespace parser
 	{
 		int word_len = strlen(word);
 		if ((*pos + word_len) > len || strncmp(word, str + *pos, word_len))
-			return set_err_str("unknown");
+			return error::set_num(error::unknown);
 		*pos += word_len - 1;
 		return 1;
 	}
@@ -279,7 +279,7 @@ namespace parser
 	static int push(struct element e)
 	{
 		if (elements >= ELEMENTS)
-			return set_err_str("stack overflow");
+			return error::set_num(error::stack_overflow);
 		stack[elements] = e;
 		int res = ++elements;
 		print_stack();
@@ -295,7 +295,7 @@ namespace parser
 		} else if (op && !*right) {
 			*right = node;
 		} else {
-			return set_err_str("syntax error");
+			return error::set_num(error::syntax_error);
 		}
 		return 1;
 	}
@@ -321,7 +321,7 @@ namespace parser
 				return 1;
 			}
 		} else {
-			return set_err_str("syntax error");
+			return error::set_num(error::syntax_error);
 		}
 		while (!empty() && token_prio(top().token) >= token_prio(*op)) {
 			struct element e = pop();
@@ -346,7 +346,7 @@ namespace parser
 			*right = 0;
 			return 1;
 		} else {
-			return set_err_str("syntax error");
+			return error::set_num(error::syntax_error);
 		}
 	}
 
@@ -364,7 +364,7 @@ namespace parser
 			*op = 0;
 			*right = 0;
 		} else {
-			return set_err_str("syntax error");
+			return error::set_num(error::syntax_error);
 		}
 		return 1;
 	}
@@ -377,7 +377,7 @@ namespace parser
 			*op = 0;
 			*right = 0;
 		} else if (!*left) {
-			return set_err_str("syntax error");
+			return error::set_num(error::syntax_error);
 		}
 		while (!empty() && top().token != token_paran) {
 			struct element e = pop();
@@ -385,7 +385,7 @@ namespace parser
 				return 0;
 		}
 		if (empty())
-			return set_err_str("opening parenthese missing");
+			return error::set_num(error::opening_parenthese_missing);
 		pop();
 		if (!empty() && top().token != token_paran) {
 			struct element e = pop();
@@ -398,7 +398,7 @@ namespace parser
 
 	int parse(struct tree *tree, const char *str)
 	{
-		set_err_str_pos("empty expression", 0);
+		error::set_num_pos(error::empty_expression, 0);
 		reset_tree(tree);
 		elements = 0;
 		struct node *left = 0;
@@ -421,93 +421,93 @@ namespace parser
 				case '8':
 				case '9':
 					if (!operand(&left, op, &right, handle_num(tree, &pos, str, len)))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case 'x':
 					if (!operand(&left, op, &right, new_var(tree, token_x)))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case 'y':
 					if (!operand(&left, op, &right, new_var(tree, token_y)))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case 'z':
 					if (!operand(&left, op, &right, new_var(tree, token_z)))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case 'a':
 					if (!operand(&left, op, &right, new_var(tree, token_a)))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case 'c':
 					if (!cmp_word("cos", &pos, str, len) || !unary_operator(&left, &op, &right, token_cos))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case 's':
 					if (cmp_word("sqrt", &pos, str, len)) {
 						if (!unary_operator(&left, &op, &right, token_sqrt))
-							return set_err_pos(pos);
+							return error::set_pos(pos);
 					} else if (cmp_word("sin", &pos, str, len)) {
 						if (!unary_operator(&left, &op, &right, token_sin))
-							return set_err_pos(pos);
+							return error::set_pos(pos);
 					} else {
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					}
 					break;
 				case 'P':
 					if (!cmp_word("PI", &pos, str, len) || !operand(&left, op, &right, new_num(tree, 3.14159265358979323846)))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case '^':
 					if (!binary_operator(tree, &left, &op, &right, token_pow))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case '*':
 					if (!binary_operator(tree, &left, &op, &right, token_mul))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case '/':
 					if (!binary_operator(tree, &left, &op, &right, token_div))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case '+':
 					if (!binary_operator(tree, &left, &op, &right, token_add))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case '-':
 					if (left || op) {
 						if (!binary_operator(tree, &left, &op, &right, token_sub))
-							return set_err_pos(pos);
+							return error::set_pos(pos);
 					} else {
 						if (!unary_operator(&left, &op, &right, token_neg))
-							return set_err_pos(pos);
+							return error::set_pos(pos);
 					}
 					break;
 				case '(':
 					if (!opening_paran(&left, &op, &right))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				case ')':
 					if (!closing_paran(tree, &left, &op, &right))
-						return set_err_pos(pos);
+						return error::set_pos(pos);
 					break;
 				default:
-					return set_err_str_pos("unknown char", pos);
+					return error::set_num_pos(error::unknown_char, pos);
 			}
 		}
 		if (op && right) {
 			if (!(left = handle_node(tree, left, op, right)))
-				return set_err_pos(len-1);
+				return error::set_pos(len-1);
 		} else if (op || right) {
-			return set_err_str_pos("incomplete expression", len-1);
+			return error::set_num_pos(error::incomplete_expression, len-1);
 		}
 		while (!empty() && top().token != token_paran) {
 			struct element e = pop();
 			if (!(left = handle_node(tree, e.node, e.token, left)))
-				return set_err_pos(len-1);
+				return error::set_pos(len-1);
 		}
 		if (!empty())
-			return set_err_str_pos("closing parenthese missing", len-1);
+			return error::set_num_pos(error::closing_parenthese_missing, len-1);
 		tree->root = left;
 		return 0 != left;
 	}

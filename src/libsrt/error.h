@@ -9,10 +9,40 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef ERROR_H
 #define ERROR_H
 
-const char *get_err_str();
-int get_err_pos();
-int set_err_str(const char *what);
-int set_err_pos(int pos);
-int set_err_str_pos(const char *what, int pos);
+namespace parser
+{
+	namespace error
+	{
+		enum {
+			ok = 0,
+			argument_does_not_reduce_to_number,
+			argument_is_negative,
+			closing_parenthese_missing,
+			divisor_does_not_reduce_to_number,
+			divisor_is_zero,
+			empty_expression,
+			exponent_does_not_reduce_to_number,
+			exponent_is_negative,
+			exponent_not_integer,
+			incomplete_expression,
+			not_enough_nodes,
+			number_to_long,
+			opening_parenthese_missing,
+			stack_overflow,
+			syntax_error,
+			there_can_be_only_one,
+			unknown,
+			unknown_char,
+			unknown_token
+		};
+		int get_num();
+		const char *get_str();
+		int get_pos();
+		int set_num(int num);
+		int set_pos(int pos);
+		int set_num_pos(int num, int pos);
+	}
+
+}
 
 #endif
