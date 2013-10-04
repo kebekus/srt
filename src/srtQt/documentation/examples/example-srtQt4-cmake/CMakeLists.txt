@@ -36,7 +36,7 @@ LINK_DIRECTORIES(${srtQt4_LINK_DIRS})
 ADD_EXECUTABLE(minimalExampleCLI minimalExampleCLI.cpp)
 SET_TARGET_PROPERTIES(minimalExampleCLI PROPERTIES AUTOMOC TRUE)
 QT4_USE_MODULES(minimalExampleCLI Core Gui)
-TARGET_LINK_LIBRARIES(minimalExampleCLI ${srtQt4Core_LIBRARY})
+TARGET_LINK_LIBRARIES(minimalExampleCLI ${srtQt4_coreLibrary})
 
 
 #
@@ -48,4 +48,4 @@ TARGET_LINK_LIBRARIES(minimalExampleCLI ${srtQt4Core_LIBRARY})
 ADD_EXECUTABLE(minimalExampleGUI minimalExampleGUI.cpp )
 SET_TARGET_PROPERTIES(minimalExampleGUI PROPERTIES AUTOMOC TRUE)
 QT4_USE_MODULES(minimalExampleGUI Core Gui)
-TARGET_LINK_LIBRARIES(minimalExampleGUI ${srtQt4Core_LIBRARY} ${srtQt4Widget_LIBRARY})
+TARGET_LINK_LIBRARIES(minimalExampleGUI ${srtQt4_coreLibrary} ${srtQt4_widgetLibrary})

@@ -48,6 +48,8 @@
    - A Qt Designer plugin allows to easily construct user interfaces containing
      SceneWidgets in Qt Designer.
 
+   - Support files for the CMake build system.
+
    The APIs for Qt4 and Qt5 are identical.  However, because of compiler
    problems, not all components are currently available for all versions of
    Qt. The table below gives an overview.
@@ -57,6 +59,7 @@
    Core Library    |libsrtQt4Core              | libsrtQt5Core
    Widgets Library |libsrtQt4Widgets           | -
    Designer Plugin |libsrtQt4SceneWidgetPlugin | -
+   Auxiliary Files |CMake                      | -
 
    \subsection S1a Two minimal surface rendering applications
    
@@ -151,11 +154,19 @@ int main(int argc, char **argv)
 
    \subsection A Software requirements
 
+   \subsection S2a Build system support
 
-   \subsection S2a Compilation with qmake
+   Developing applications with Qt, we have made very good experiences with the
+   CMake build system. We have therefore included auxiliary files in this
+   software package which makes development with CMake very simple. For your convenience, we have also
+   included several [example projects](../examples "Example projects").
 
 
-   \subsection S2b Compilation with cmake
+   \subsubsection S2a1 Compilation with qmake
+
+
+
+   \subsubsection S2a2 Compilation with cmake
 
 
    \subsection S2c Supporting the ssc file format

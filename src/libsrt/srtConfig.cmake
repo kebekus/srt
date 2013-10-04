@@ -19,20 +19,14 @@
 #
 
 #
-# Config file for the srtQt4 package
+# Config file for the srt package
 #
 
-# Find required package 'srt'
-FIND_PACKAGE(srt REQUIRED)
-
 # Get directory where this file is installed, compute some other directories
-GET_FILENAME_COMPONENT(srtQt4_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-GET_FILENAME_COMPONENT(srtQt4_INC "${srtQt4_CMAKE_DIR}/../../include/srtQt/Qt4" ABSOLUTE)
-GET_FILENAME_COMPONENT(srtQt4_LNK "${srtQt4_CMAKE_DIR}/.." ABSOLUTE)
+GET_FILENAME_COMPONENT(srt_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+GET_FILENAME_COMPONENT(srt_LNK "${srt_CMAKE_DIR}/.." ABSOLUTE)
 
 # Set variables
-SET(srtQt4_FOUND true CACHE BOOL "Indicates that srtQt4 has been found.")
-SET(srtQt4_INCLUDE_DIRS "${srtQt4_INC}" CACHE PATH "Include path for srtQt4 header files.")
-SET(srtQt4_LINK_DIRS "${srtQt4_LNK};${srt_LINK_DIRS}" CACHE PATH "Path for srtQt4 libraries.")
-SET(srtQt4_coreLibrary srtQt4Core CACHE STRING "Name of the srtQt4 core library.")
-SET(srtQt4_widgetLibrary srtQt4Widgets CACHE STRING "Name of the srtQt4 widget library.")
+SET(srt_FOUND true CACHE BOOL "Indicates that srt has been found.")
+SET(srt_LINK_DIRS "${srt_LNK}" CACHE PATH "Path for srt libraries.")
+SET(srt_Library srt CACHE STRING "Name of the srt core library.")
