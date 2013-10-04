@@ -54,3 +54,8 @@ add_library(srt SHARED
 
 target_link_libraries(srt ${LLVM_LDFLAGS} ${LLVM_LIBS})
 INSTALL(TARGETS srt DESTINATION lib)
+
+#
+# CMake config file
+#
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/srtConfig.cmake DESTINATION lib/srt)

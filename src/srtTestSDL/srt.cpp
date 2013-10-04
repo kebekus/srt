@@ -47,16 +47,16 @@ int jit_curve(struct edit *edit)
 	}
 
 	if (!parser::parse(curve_tree, edit->str)) {
-		edit_msg(edit, get_err_str(), get_err_pos());
+		edit_msg(edit, parser::error::get_str(), parser::error::get_pos());
 		return 0;
 	}
 	if (!parser::reduce(curve_tree)) {
-		fprintf(stderr, "%s\n", get_err_str());
+		fprintf(stderr, "%s\n", parser::error::get_str());
 		return 0;
 	}
 	for (int j = 0; j < 3; j++) {
 		if (!parser::deriv(deriv_tree[j], curve_tree, parser::token_x + j) || !parser::reduce(deriv_tree[j])) {
-			fprintf(stderr, "%s\n", get_err_str());
+			fprintf(stderr, "%s\n", parser::error::get_str());
 			return 0;
 		}
 	}
@@ -397,9 +397,9 @@ int main(int argc, char **argv)
 	reset_edit(edit, str);
 	if (!jit_curve(edit)) {
 		fprintf(stderr, "\n%s\n", str);
-		for (int i = 0; i < get_err_pos(); i++)
+		for (int i = 0; i < parser::error::get_pos(); i++)
 			fprintf(stderr, " ");
-		fprintf(stderr, "~ %s\n\n", get_err_str());
+		fprintf(stderr, "~ %s\n\n", parser::error::get_str());
 		exit(1);
 	}
 	float a = 1.0;
