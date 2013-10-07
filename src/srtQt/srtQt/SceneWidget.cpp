@@ -29,13 +29,14 @@
 namespace srtQt {
 
 SceneWidget::SceneWidget(QWidget *parent)
-  : QFrame(parent), _rotationTimer(this)
+  : QFrame(parent), animationTimer(this), _opacityAnimation(this, "coordsOpacity", this)
 {
   // Speed up painting. This widget is opaque, so no need to render a fancy
   // background which is never survive the day.
   setAttribute(Qt::WA_OpaquePaintEvent);
 
   // Initialize Members
+  _coordsOpacity = 1.0;
   _manipulationEnabled = true;
   originalXPos = 0;
   originalYPos = 0;
@@ -46,7 +47,7 @@ SceneWidget::SceneWidget(QWidget *parent)
   _rotationAxis = QVector3D(0,1,0);
   _rotationSpeed = 0.0;
 
-  connect(&_rotationTimer, SIGNAL(timeout()), this, SLOT(performRotation()));
+  connect(&animationTimer, SIGNAL(timeout()), this, SLOT(animate()));
 
   // Test only
   grabGesture(Qt::TapGesture);
@@ -81,8 +82,7 @@ void SceneWidget::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
   
-  painter.fillRect( QRectF(frameRect().left()+frameWidth(), frameRect().top()+frameWidth(), frameRect().width()-2*frameWidth(), frameRect().height()-2*frameWidth()),
-		    Qt::black);
+  //  painter.fillRect( QRectF(frameRect().left()+frameWidth(), frameRect().top()+frameWidth(), frameRect().width()-2*frameWidth(), frameRect().height()-2*frameWidth()), Qt::black);
 
   if (!scene.isNull())
     if (!scene->surface.isEmpty() && !scene->surface.hasError()) {
@@ -96,29 +96,43 @@ void SceneWidget::paintEvent(QPaintEvent *event)
       }
     }
 
-  /*
-  QVector3D xAxis(100,0,0);
-  QVector3D yAxis(0,100,0);
-  QVector3D zAxis(0,0,100);
-  
-  QVector3D up   = scene->camera.upwardDirection();
-  QVector3D right= scene->camera.rightDirection();
 
-  QPointF xAxisTip(right.x(), up.x());
-  QPointF yAxisTip(right.y(), up.y());
-  QPointF zAxisTip(right.z(), up.z());
+  if (_coordsOpacity != 0.0) {
+    int x=100;
+    int y=100;
+    int w=100;
+    int h=100;
+    
+    painter.setOpacity(_coordsOpacity);
+    painter.setBrush(Qt::black);
+    painter.drawRect(x,y,w,h);
+    
+    QVector3D up   = scene->camera.upwardDirection();
+    QVector3D right= scene->camera.rightDirection();
+    
+    QPointF xAxisTip((w/3)*right.x(), (w/3)*up.x());
+    QPointF yAxisTip((w/3)*right.y(), (w/3)*up.y());
+    QPointF zAxisTip((w/3)*right.z(), (w/3)*up.z());
+    
+    QPoint origin(x+w/2,y+h/2);
+    painter.setPen(Qt::blue);
+    painter.drawLine( origin, origin+xAxisTip);
+    painter.drawText( origin+1.1*xAxisTip, "x");
+    painter.drawLine( origin, origin+yAxisTip);
+    painter.drawText( origin+1.1*yAxisTip, "y");
+    painter.drawLine( origin, origin+zAxisTip);
+    painter.drawText( origin+1.1*zAxisTip, "z");
+  }
 
-  QPoint origin(100,100);
-  painter.setPen(Qt::blue);
-  painter.drawLine( origin, origin+100*xAxisTip);
-  painter.drawText( origin+110*xAxisTip, "x");
-  painter.drawLine( origin, origin+100*yAxisTip);
-  painter.drawText( origin+110*yAxisTip, "y");
-  painter.drawLine( origin, origin+100*zAxisTip);
-  painter.drawText( origin+110*zAxisTip, "z");
-  */
   painter.end();
   QFrame::paintEvent(event);
+}
+
+  
+void SceneWidget::setCoordsOpacity(qreal coordsOpacity)
+{
+  _coordsOpacity = qBound(0.0, coordsOpacity, 1.0);
+  update();
 }
 
 
@@ -133,12 +147,13 @@ void SceneWidget::setRotationAxis(QVector3D axis)
 
 void SceneWidget::setRotation(bool rotate)
 {
+  animate_rotation = rotate;
+
   if (rotate) {
     stopWatch.start();
-// TODO: maybe use smarter adaptive frame rate
-    _rotationTimer.start(50);
+    animationTimer.start(0);
   } else
-    _rotationTimer.stop();
+    animationTimer.stop();
 }
 
 
@@ -188,6 +203,13 @@ void SceneWidget::mousePressEvent(QMouseEvent *event )
   stopWatch.start();
   originalXPos    = event->globalX();
   originalYPos    = event->globalY();
+
+  // start opacity animation: quickly fade in
+  _opacityAnimation.stop();
+  _opacityAnimation.setDuration(200);
+  _opacityAnimation.setStartValue(_coordsOpacity);
+  _opacityAnimation.setEndValue(0.8);
+  _opacityAnimation.start();
 }
 
 
@@ -225,6 +247,14 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event )
   }
   event->accept();
 
+  // start opacity animation: fade out
+  _opacityAnimation.stop();
+  _opacityAnimation.setDuration(800);
+  _opacityAnimation.setStartValue(_coordsOpacity);
+  _opacityAnimation.setEndValue(0.0);
+  _opacityAnimation.start();
+
+
   // Start rotation if the last mouse move is no longer than 100msec ago.
   if (stopWatch.elapsed() > 100)
     return;
@@ -233,6 +263,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event )
   setRotationSpeed(_manipulationRotationalSpeed);
   if (_manipulationRotationalSpeed != 0.0)
     setRotation(true);
+
 }
 
 
@@ -249,12 +280,13 @@ void SceneWidget::wheelEvent(QWheelEvent * event )
 }
 
 
-void SceneWidget::performRotation()
+void SceneWidget::animate()
 {
-  qreal angle = stopWatch.restart()*_rotationSpeed;
-
-  if (scene)
+  if (animate_rotation && scene) {
+    qreal angle = stopWatch.restart()*_rotationSpeed;
     scene->camera.rotateAboutOrigin( QQuaternion::fromAxisAndAngle(_rotationAxis, angle) );
+  }
+
 }
 
 

@@ -23,6 +23,7 @@
 
 #include <QFrame>
 #include <QPointer>
+#include <QPropertyAnimation>
 #include <QTime>
 #include <QTimer>
 
@@ -70,6 +71,16 @@ class SceneWidget : public QFrame
    * ignored.
    */
   Q_PROPERTY(bool manipulationEnabled READ manipulationEnabled WRITE setManipulationEnabled);
+
+  /**
+   * \brief Opacity for coordinate axis
+   *
+   * To help the user orient in space, the SceneWidget can overlay the central
+   * image with an openGL picture showing coordinate axis. This property defines
+   * the opacity of this picture. When set to 0.0, the coordinate axis are not
+   * drawn at all.
+   */
+  Q_PROPERTY(qreal coordsOpacity READ coordsOpacity WRITE setCoordsOpacity);
 
   /**
    * \brief Run or stop animation
@@ -145,6 +156,20 @@ class SceneWidget : public QFrame
   void setManipulationEnabled(bool enabled) {_manipulationEnabled = enabled; }
 
   /**
+   * \brief Getter method for the property 'coordsOpacity'
+   *
+   * @returns the current value of the coordsOpacity property
+   */
+  qreal coordsOpacity() const { return _coordsOpacity; }
+
+  /**
+   * \brief Setter method for the property 'coordsOpacity'
+   *
+   * @param coordsOpacity This value must be between 0.0 and 1.0.
+   */
+  void setCoordsOpacity(qreal coordsOpacity);
+  
+  /**
    * \brief Getter method for the property 'rotationAxis'
    *
    * @returns The axis about which the camera will rotate when the property
@@ -177,7 +202,7 @@ class SceneWidget : public QFrame
   /**
    * \brief Getter method for the property 'rotation'
    */
-  bool rotation() const { return _rotationTimer.isActive(); }
+  bool rotation() const { return animate_rotation; }
 
   /**
    * \brief Getter method for the property 'rotation'
@@ -220,9 +245,7 @@ class SceneWidget : public QFrame
   void load(QVariant variant);
 
  private slots:
-  // Rotates about '_rotationAxis', with an angle determined by '_rotationSpeed'
-  // and the elapsed time measured by '_rotationTimer'.
-  void performRotation();
+  void animate();
 
  private:
   // Re-implemented event handlers
@@ -235,6 +258,8 @@ class SceneWidget : public QFrame
 
   QPointer<srtQt::Scene> scene;
 
+  QTimer    animationTimer;
+
   // Used in mouse manipulation
   bool      _manipulationEnabled;
   int       originalXPos, originalYPos;
@@ -244,9 +269,13 @@ class SceneWidget : public QFrame
   QTime     stopWatch;
 
   // Used in the rotation animation
+  bool      animate_rotation; // If set to true, then animate() will modify the scene and thus issue a redraw
   QVector3D _rotationAxis;
   qreal     _rotationSpeed;
-  QTimer    _rotationTimer;
+
+  // Used in opacity animation
+  qreal     _coordsOpacity;
+  QPropertyAnimation _opacityAnimation;
 };
 
 } // namespace srtQt
