@@ -24,6 +24,7 @@
 #include <QPainter>
 
 #include "srtQt/SceneWidget.h"
+#include "srtQt/private/CoordinateWidget.h"
 
 
 namespace srtQt {
@@ -31,12 +32,15 @@ namespace srtQt {
 SceneWidget::SceneWidget(QWidget *parent)
   : QFrame(parent), animationTimer(this), _opacityAnimation(this, "coordsOpacity", this)
 {
+  coordWidget = new CoordinateWidget();
+  //  coordWidget->show();
+
   // Speed up painting. This widget is opaque, so no need to render a fancy
-  // background which is never survive the day.
+  // background which will never survive the day.
   setAttribute(Qt::WA_OpaquePaintEvent);
 
   // Initialize Members
-  _coordsOpacity = 1.0;
+  _coordsOpacity = 0.0;
   _manipulationEnabled = true;
   originalXPos = 0;
   originalYPos = 0;
@@ -55,6 +59,12 @@ SceneWidget::SceneWidget(QWidget *parent)
   grabGesture(Qt::PanGesture);
   grabGesture(Qt::PinchGesture);
   grabGesture(Qt::SwipeGesture);
+}
+
+
+SceneWidget::~SceneWidget()
+{
+  delete coordWidget;
 }
 
 
@@ -98,30 +108,15 @@ void SceneWidget::paintEvent(QPaintEvent *event)
 
 
   if (_coordsOpacity != 0.0) {
-    int x=100;
-    int y=100;
-    int w=100;
-    int h=100;
+    int w=(qMin(width(),height())-2*frameWidth())/4;
+    int h=w;
+    int x=width()-2*frameWidth()-w-w/5;
+    int y=height()-2*frameWidth()-w-w/5;
     
     painter.setOpacity(_coordsOpacity);
-    painter.setBrush(Qt::black);
-    painter.drawRect(x,y,w,h);
-    
-    QVector3D up   = scene->camera.upwardDirection();
-    QVector3D right= scene->camera.rightDirection();
-    
-    QPointF xAxisTip((w/3)*right.x(), (w/3)*up.x());
-    QPointF yAxisTip((w/3)*right.y(), (w/3)*up.y());
-    QPointF zAxisTip((w/3)*right.z(), (w/3)*up.z());
-    
-    QPoint origin(x+w/2,y+h/2);
-    painter.setPen(Qt::blue);
-    painter.drawLine( origin, origin+xAxisTip);
-    painter.drawText( origin+1.1*xAxisTip, "x");
-    painter.drawLine( origin, origin+yAxisTip);
-    painter.drawText( origin+1.1*yAxisTip, "y");
-    painter.drawLine( origin, origin+zAxisTip);
-    painter.drawText( origin+1.1*zAxisTip, "z");
+    coordWidget->setAxis( -scene->camera.rightDirection(), -scene->camera.upwardDirection(), scene->camera.viewDirection());
+    QPixmap pix = coordWidget->renderPixmap(w,h);
+    painter.drawPixmap(x,y,pix);
   }
 
   painter.end();

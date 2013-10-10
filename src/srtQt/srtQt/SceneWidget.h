@@ -29,7 +29,11 @@
 
 #include "srtQt/Scene.h"
 
+class CoordinateWidget;
 namespace srtQt {
+
+
+
 
 /**
  * \class srtQt::SceneWidget SceneWidget.h srtQt/SceneWidget.h
@@ -121,6 +125,9 @@ class SceneWidget : public QFrame
   * @param parent Standard argument for the QWidget constructor
   */
   SceneWidget(QWidget *parent = 0);
+
+#warning documentation
+  ~SceneWidget();
 
  /**
   * \brief Set scene to be display
@@ -275,6 +282,7 @@ class SceneWidget : public QFrame
 
   // Used in opacity animation
   qreal     _coordsOpacity;
+  CoordinateWidget *coordWidget;
   QPropertyAnimation _opacityAnimation;
 };
 

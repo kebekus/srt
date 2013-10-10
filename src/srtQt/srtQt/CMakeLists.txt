@@ -41,9 +41,11 @@ SET(srtQtCore_SOURCES
 #
 SET(srtQtWidgets_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/SceneWidget.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/private/CoordinateWidget.h
   )
 SET(srtQtWidgets_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/SceneWidget.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/private/CoordinateWidget.cpp
   )
 
 
