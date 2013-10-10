@@ -9,7 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef PARSER_H
 #define PARSER_H
 
-namespace parser
+namespace srt
 {
 	enum {
 		token_err = 0,

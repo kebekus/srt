@@ -33,30 +33,30 @@ v4sf (*curve)(m34sf v, float a);
 
 int jit_curve(struct edit *edit)
 {
-	static class parser::jit *jit;
-	static struct parser::tree *curve_tree;
-	static struct parser::tree *deriv_tree[3];
+	static class srt::jit *jit;
+	static struct srt::tree *curve_tree;
+	static struct srt::tree *deriv_tree[3];
 
 	static int init = 0;
 	if (!init) {
-		jit = new parser::jit((char *)value_bc, value_bc_len);
-		curve_tree = parser::alloc_tree(8192);
+		jit = new srt::jit((char *)value_bc, value_bc_len);
+		curve_tree = srt::alloc_tree(8192);
 		for (int j = 0; j < 3; j++)
-			deriv_tree[j] = parser::alloc_tree(8192);
+			deriv_tree[j] = srt::alloc_tree(8192);
 		init = 1;
 	}
 
-	if (!parser::parse(curve_tree, edit->str)) {
-		edit_msg(edit, parser::error::get_str(), parser::error::get_pos());
+	if (!srt::parse(curve_tree, edit->str)) {
+		edit_msg(edit, srt::error::get_str(), srt::error::get_pos());
 		return 0;
 	}
-	if (!parser::reduce(curve_tree)) {
-		fprintf(stderr, "%s\n", parser::error::get_str());
+	if (!srt::reduce(curve_tree)) {
+		fprintf(stderr, "%s\n", srt::error::get_str());
 		return 0;
 	}
 	for (int j = 0; j < 3; j++) {
-		if (!parser::deriv(deriv_tree[j], curve_tree, parser::token_x + j) || !parser::reduce(deriv_tree[j])) {
-			fprintf(stderr, "%s\n", parser::error::get_str());
+		if (!srt::deriv(deriv_tree[j], curve_tree, srt::token_x + j) || !srt::reduce(deriv_tree[j])) {
+			fprintf(stderr, "%s\n", srt::error::get_str());
 			return 0;
 		}
 	}
@@ -397,9 +397,9 @@ int main(int argc, char **argv)
 	reset_edit(edit, str);
 	if (!jit_curve(edit)) {
 		fprintf(stderr, "\n%s\n", str);
-		for (int i = 0; i < parser::error::get_pos(); i++)
+		for (int i = 0; i < srt::error::get_pos(); i++)
 			fprintf(stderr, " ");
-		fprintf(stderr, "~ %s\n\n", parser::error::get_str());
+		fprintf(stderr, "~ %s\n\n", srt::error::get_str());
 		exit(1);
 	}
 	float a = 1.0;

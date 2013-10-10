@@ -9,7 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef COPY_H
 #define COPY_H
 #include "parser.h"
-namespace parser
+namespace srt
 {
 	struct node *copy_branch(struct tree *dst, struct node *src);
 	int copy(struct tree *dst, struct tree *src);

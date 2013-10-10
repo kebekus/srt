@@ -12,7 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "error.h"
 #include "reduce.h"
 
-namespace parser
+namespace srt
 {
 	struct node *node_error_set_num(int num)
 	{

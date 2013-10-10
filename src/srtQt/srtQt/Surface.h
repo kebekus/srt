@@ -28,7 +28,7 @@
 #include <QVariant>
 
 // Declare a number of classes
-namespace parser { class jit; struct tree; }
+namespace srt { class jit; struct tree; }
 struct stripe_data;
 
 namespace srtQt {
@@ -330,7 +330,7 @@ class Surface : public QObject
   void construct();
 
   // Mutex used to serialize access to the parser and the methods get_err_str()
-#warning TODO: flawed design
+  // TODO: flawed design
   static QMutex parserSerialization;
   
   // Read-Write lock, to be used for all private members that are defined below
@@ -344,7 +344,7 @@ class Surface : public QObject
   
   // If not empty, then an error occured in the method setEquation(). This
   // string describes the error in natural language
-#warning TODO: This is flawed design and will lead to problems with translations. Error codes should be used or translations provided.
+  // TODO: This is flawed design and will lead to problems with translations. Error codes should be used or translations provided.
   QString _errorString;
   
   // If _errorString is not empty, then this member points to the index in
@@ -356,9 +356,9 @@ class Surface : public QObject
 
   // Pointer to parser interna. 
   // TODO: I do not properly understand what that is.
-  parser::jit *jit;
-  struct parser::tree *curve_tree;
-  struct parser::tree *deriv_tree[3];
+  srt::jit *jit;
+  struct srt::tree *curve_tree;
+  struct srt::tree *deriv_tree[3];
   int64_t (*stripe)(struct stripe_data *sd, int j);
 };
 

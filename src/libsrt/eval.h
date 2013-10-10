@@ -8,7 +8,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #ifndef EVAL_H
 #define EVAL_H
-namespace parser
+namespace srt
 {
 	float func_pow(float left, float right);
 	float func_mul(float left, float right);

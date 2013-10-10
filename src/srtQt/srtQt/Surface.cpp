@@ -55,10 +55,10 @@ Surface::~Surface()
   // Get write access to private members. Wait till the last reader has finished
   QWriteLocker locker(&privateMemberLock);
   
-  parser::free_tree(curve_tree);
-  parser::free_tree(deriv_tree[0]);
-  parser::free_tree(deriv_tree[1]);
-  parser::free_tree(deriv_tree[2]);
+  srt::free_tree(curve_tree);
+  srt::free_tree(deriv_tree[0]);
+  srt::free_tree(deriv_tree[1]);
+  srt::free_tree(deriv_tree[2]);
   delete jit;
 }
 
@@ -151,22 +151,22 @@ bool Surface::_setEquation(const QString &equation)
   // Now the real work starts
 // TODO: This is really bad. A better solution should be found.
   QMutexLocker parserLocker(&parserSerialization);
-  if (!parser::parse(curve_tree, equation.toLatin1().constData())) {
-    _errorString = parser::error::get_str();
-    _errorIndex  = parser::error::get_pos();
+  if (!srt::parse(curve_tree, equation.toLatin1().constData())) {
+    _errorString = srt::error::get_str();
+    _errorIndex  = srt::error::get_pos();
     return true;
   }
   
-  if (!parser::reduce(curve_tree)) {
-    _errorString = parser::error::get_str();
-    _errorIndex  = parser::error::get_pos();
+  if (!srt::reduce(curve_tree)) {
+    _errorString = srt::error::get_str();
+    _errorIndex  = srt::error::get_pos();
     return true;
   }
 
   for (int j = 0; j < 3; j++) {
-    if (!parser::deriv(deriv_tree[j], curve_tree, parser::token_x + j) || !parser::reduce(deriv_tree[j])) {
-      _errorString = parser::error::get_str();
-      _errorIndex  = parser::error::get_pos();
+    if (!srt::deriv(deriv_tree[j], curve_tree, srt::token_x + j) || !srt::reduce(deriv_tree[j])) {
+      _errorString = srt::error::get_str();
+      _errorIndex  = srt::error::get_pos();
       return true;
     }
   }
@@ -282,11 +282,11 @@ void Surface::construct()
   stripe       = 0;
 
   // Initialize JIT parser interna. 
-  jit           = new parser::jit((char *)value_bc, value_bc_len);
-  curve_tree    = parser::alloc_tree(8192);
-  deriv_tree[0] = parser::alloc_tree(8192);
-  deriv_tree[1] = parser::alloc_tree(8192);
-  deriv_tree[2] = parser::alloc_tree(8192);
+  jit           = new srt::jit((char *)value_bc, value_bc_len);
+  curve_tree    = srt::alloc_tree(8192);
+  deriv_tree[0] = srt::alloc_tree(8192);
+  deriv_tree[1] = srt::alloc_tree(8192);
+  deriv_tree[2] = srt::alloc_tree(8192);
 
   // Wire up signals
   connect(this, SIGNAL(equationChanged()), this, SIGNAL(changed()));

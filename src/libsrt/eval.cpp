@@ -9,7 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "parser.h"
 #include <math.h>
 
-namespace parser
+namespace srt
 {
 	float func_pow(float left, float right)
 	{
