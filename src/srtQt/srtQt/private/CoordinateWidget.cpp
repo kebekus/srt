@@ -1,83 +1,113 @@
-
-#include <QSettings>
-#include <QtOpenGL>
-#include <QtOpenGL>
+/***************************************************************************
+ *   Copyright (C) 2013 Stefan Kebekus                                     *
+ *   stefan.kebekus@math.uni-freiburg.de                                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #include <math.h>
+#include <QVector3D>
 
 #include "CoordinateWidget.h"
 
-#define W 2.0
-#define L 7.0
 
+namespace srtQt {
 
 CoordinateWidget::CoordinateWidget(QWidget *parent)
-    : QGLWidget(parent)
+  : QGLWidget(parent)
 {
+  _backgroundColor = Qt::black;
+  _redArrow        = QVector3D(1,0,0);
+  _greenArrow      = QVector3D(0,1,0);
+  _blueArrow       = QVector3D(0,0,1);
 }
+
 
 CoordinateWidget::~CoordinateWidget()
 {
   makeCurrent();
-  for(int i=0; i<objects.size(); i++)
-    glDeleteLists(objects[i], 1);
+  
+  glDeleteLists(_redArrowID, 1);
+  glDeleteLists(_greenArrowID, 1);
+  glDeleteLists(_blueArrowID, 1);
 }
 
+
+void CoordinateWidget::setArrowVectors(QVector3D redArrow, QVector3D greenArrow, QVector3D blueArrow)
+{
+  _redArrow   = redArrow;
+  _greenArrow = greenArrow;
+  _blueArrow  = blueArrow;
+  update();
+};
+  
+
+void CoordinateWidget::setBackgroundColor(QColor backgroundColor) 
+{
+  _backgroundColor = backgroundColor;
+  update();
+};
 
 void CoordinateWidget::initializeGL()
 {
-    static const GLfloat lightPos[4] = { 10.0f, 10.0f, 0.0f, 1.0f };
-    static const GLfloat xx[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+  // Global GL Options 
+  glEnable(GL_DEPTH_TEST);
+  
+  //
+  // Initialize light
+  //
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  static const GLfloat lightPos[4] = { 0.0f, 10.0f, 10.0f, 0.0f };
+  glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+  static const GLfloat light0ambientColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  glLightfv(GL_LIGHT0, GL_AMBIENT, light0ambientColor);
+  static const GLfloat light0diffuseColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, light0diffuseColor);
 
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, xx);
-
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,1);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_DEPTH_TEST);
-    
-    const double Pi = 3.14159265358979323846;
-    objects.append(makeLine( QVector3D(0,0,0),  QVector3D(5, 0, 0), 0.3 ));
-    objects.append(makeLine( QVector3D(0,0,0),  QVector3D(0, 5, 0), 0.3 ));
-    objects.append(makeLine( QVector3D(0,0,0),  QVector3D(0, 0, 5), 0.3 ));
-
-    glEnable(GL_NORMALIZE);
-    glClearColor(0.02f, 0.02f, 0.02f, 1.0f);
+  // Construct three arrow objects with differently colored tips 
+  _redArrowID   = makeArrow(QVector3D(5.6, 0.0, 0.0), Qt::red);
+  _greenArrowID = makeArrow(QVector3D(0.0, 5.6, 0.0), Qt::green);
+  _blueArrowID  = makeArrow(QVector3D(0.0, 0.0, 5.6), Qt::blue);
 }
+
 
 void CoordinateWidget::paintGL()
 {
+  // Set background color
+  glClearColor(_backgroundColor.redF(), _backgroundColor.greenF(), _backgroundColor.blueF(), 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glEnable (GL_BLEND);
-  glEnable (GL_POLYGON_SMOOTH);
-  glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-  glEnable(GL_MULTISAMPLE);
-
   glPushMatrix();
+  
+  // Rotate so that arrows point in the appropriate directions
   GLdouble m[16];
-  
-  m[ 0] = _newX.x();   m[ 1] = _newY.x();   m[ 2] = _newZ.x();   m[ 3] = 0.0;
-  m[ 4] = _newX.y();   m[ 5] = _newY.y();   m[ 6] = _newZ.y();   m[ 7] = 0.0;
-  m[ 8] = _newX.z();   m[ 9] = _newY.z();   m[10] = _newZ.z();   m[11] = 0.0;
-  m[12] = 0.0;         m[13] = 0.0;         m[14] = 0.0;         m[15] = 1.0;
-
-  /*
-  m[ 0] = _newX.x();   m[ 1] = _newX.y();   m[ 2] = _newX.z();   m[ 3] = 0.0;
-  m[ 4] = _newY.x();   m[ 5] = _newY.y();   m[ 6] = _newY.z();   m[ 7] = 0.0;
-  m[ 8] = _newZ.x();   m[ 9] = _newZ.y();   m[10] = _newZ.z();   m[11] = 0.0;
-  m[12] = 0.0;         m[13] = 0.0;         m[14] = 0.0;         m[15] = 1.0;
-  */
-
+  m[ 0] = _redArrow.x();   m[ 1] = _greenArrow.x();   m[ 2] = _blueArrow.x();   m[ 3] = 0.0;
+  m[ 4] = _redArrow.y();   m[ 5] = _greenArrow.y();   m[ 6] = _blueArrow.y();   m[ 7] = 0.0;
+  m[ 8] = _redArrow.z();   m[ 9] = _greenArrow.z();   m[10] = _blueArrow.z();   m[11] = 0.0;
+  m[12] = 0.0;             m[13] = 0.0;               m[14] = 0.0;              m[15] = 1.0;
   glMultMatrixd(m);
-#warning need to do things here  
 
-  for(int i=0; i<objects.size(); i++)
-    drawGear(objects[i], 0.0, 0.0, 0.0, 0.0);
-  
+  glCallList(_redArrowID);
+  glCallList(_greenArrowID);
+  glCallList(_blueArrowID);
+
   glPopMatrix();
 }
+
 
 void CoordinateWidget::resizeGL(int width, int height)
 {
@@ -93,101 +123,86 @@ void CoordinateWidget::resizeGL(int width, int height)
 }
 
 
-GLuint CoordinateWidget::makeLine(QVector3D A, QVector3D B, qreal radius)
+GLuint CoordinateWidget::makeArrow(QVector3D B, QColor tipColor)
 {
-    const double Pi = 3.14159265358979323846;
+  const qreal radius    = 0.4;
+  const qreal Pi        = 3.14159265358979323846;
+  const int   divisions = 10;  
+  GLuint list = glGenLists(1);
+  glNewList(list, GL_COMPILE);
+  
+  // Set material: white
+  GLfloat materialEmissionColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
+  glMaterialfv(GL_FRONT, GL_EMISSION, materialEmissionColor);
+  GLfloat materialColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+  glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, materialColor);
 
-    GLuint list = glGenLists(1);
-    glNewList(list, GL_COMPILE);
+ 
+  // Construct two vectors N1, N2 that are normal to B
+  QVector3D H(1,1,1);
+  QVector3D N1 = QVector3D::normal( B, H );
+  QVector3D N2 = QVector3D::normal( B, N1 );
 
-    static const GLfloat reflectance1[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    static const GLfloat reflectance2[4] = { 0.5f, 0.5f, 1.0f, 1.0f };
-
-    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, reflectance1);
-    glMaterialfv(GL_BACK,  GL_AMBIENT_AND_DIFFUSE, reflectance2);
-
-    //    glShadeModel(GL_SMOOTH);
-
-    QVector3D H(1,1,1);
-    QVector3D N1 = QVector3D::normal( A, B, H );
-    QVector3D N2 = QVector3D::normal( A, B, N1 );
-
-    int divisions = 20;
-
-    // Add Stem of spacial arrow: cylinder
-    glBegin(GL_QUAD_STRIP);
-    for(int j=0; j<=divisions; j++) {
-      double Zn = 0 + j*2*Pi/divisions;
-      double Zm = 0 + (j+1)*2*Pi/divisions;
-      
-      QVector3D V1 = radius*sin(Zn)*N1 + radius*cos(Zn)*N2 + A;
-      QVector3D V2 = radius*sin(Zn)*N1 + radius*cos(Zn)*N2 + B;
-      QVector3D V3 = radius*sin(Zm)*N1 + radius*cos(Zm)*N2 + A;
-      QVector3D V4 = radius*sin(Zm)*N1 + radius*cos(Zm)*N2 + B;
-
-      QVector3D N = sin(0.5*(Zn+Zm))*N1 + cos(0.5*(Zn+Zm))*N2;
-
-      glNormal3d( N.x(), N.y(), N.z());
-      glVertex3d( V1.x(), V1.y(), V1.z() );
-      glVertex3d( V2.x(), V2.y(), V2.z() );
-    }
-    glEnd();
+  
+  // Add Stem of spacial arrow: cylinder
+  glBegin(GL_QUAD_STRIP);
+  for(int j=0; j<=divisions; j++) {
+    double Zn = 0 + j*2*Pi/divisions;
     
-
-    // Add Stem of spacial arrow: bottom cap
-    glBegin(GL_TRIANGLE_FAN);
-    QVector3D normal = (A-B).normalized();
-    glNormal3d( normal.x(), normal.y(), normal.z() );
-    glVertex3d( A.x(), A.y(), A.z() );
-    for(int j=0; j<=divisions; j++) {
-      double Zn = 0 + j*2*Pi/divisions;
-      QVector3D V1 = radius*sin(Zn)*N1 + radius*cos(Zn)*N2 + A;
-      glVertex3d( V1.x(), V1.y(), V1.z() );
-    }
-    glEnd();
-
-    // Add Arrow tip:  cap
-    glBegin(GL_TRIANGLE_FAN);
-    normal = (A-B).normalized();
-    glNormal3d( normal.x(), normal.y(), normal.z() );
-    glVertex3d( B.x(), B.y(), B.z() );
-    for(int j=0; j<=divisions; j++) {
-      double Zn = 0 + j*2*Pi/divisions;
-      
-      QVector3D V1 = 2*radius*sin(Zn)*N1 + 2*radius*cos(Zn)*N2 + B;
-      glVertex3d( V1.x(), V1.y(), V1.z() );
-    }
-    glEnd();
-
-    // Add Arrow tip:  cone
-    glBegin(GL_QUAD_STRIP);
-    QVector3D tip = B + 2*(B-A).normalized();
+    QVector3D V1 = radius*sin(Zn)*N1 + radius*cos(Zn)*N2;
+    QVector3D V2 = radius*sin(Zn)*N1 + radius*cos(Zn)*N2 + B;
+    QVector3D N  = sin(Zn)*N1 + cos(Zn)*N2;
+    
+    glNormal3d( N.x(), N.y(), N.z());
+    glVertex3d( V1.x(), V1.y(), V1.z() );
+    glVertex3d( V2.x(), V2.y(), V2.z() );
+  }
+  glEnd();
+  
+  // Add Stem of spacial arrow: bottom cap
+  glBegin(GL_TRIANGLE_FAN);
+  QVector3D normal = -B.normalized();
+  glNormal3d( normal.x(), normal.y(), normal.z() );
+  glVertex3d(0.0f, 0.0f, 0.0f);
+  for(int j=0; j<=divisions; j++) {
+    double Zn = 0 + j*2*Pi/divisions;
+    QVector3D V1 = radius*sin(Zn)*N1 + radius*cos(Zn)*N2;
+    glVertex3d( V1.x(), V1.y(), V1.z() );
+  }
+  glEnd();
+  
+  // Add arrow tip:  cap
+  glBegin(GL_TRIANGLE_FAN);
+  glVertex3d( B.x(), B.y(), B.z() );
+  for(int j=0; j<=divisions; j++) {
+    double Zn = 0 + j*2*Pi/divisions;
+    QVector3D V1 = 2*radius*sin(Zn)*N1 + 2*radius*cos(Zn)*N2 + B;
+    glVertex3d( V1.x(), V1.y(), V1.z() );
+  }
+  glEnd();
+  
+  // Add colored arrow tip:  cone
+  GLfloat tColor[] = {tipColor.redF(), tipColor.greenF(), tipColor.blueF(), 1.0f};
+  glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, tColor);
+  glBegin(GL_QUAD_STRIP);
+  QVector3D tip = B + 2*B.normalized();
+  for(int j=0; j<=divisions; j++) {
+    double Zn = 0 + j*2*Pi/divisions;
+    
+    QVector3D V1 = 2*radius*sin(Zn)*N1 + 2*radius*cos(Zn)*N2 + B;
+    QVector3D Vx = cos(Zn)*N1 - sin(Zn)*N2;
+    QVector3D N  = QVector3D::crossProduct(tip-V1, Vx).normalized();
+    
+    glNormal3d( N.x(), N.y(), N.z() );
     glVertex3d( tip.x(), tip.y(), tip.z() );
-    for(int j=0; j<=divisions; j++) {
-      double Zn = 0 + j*2*Pi/divisions;
-      double Zm = 0 + (j+1)*2*Pi/divisions;
-      
-      QVector3D V1 = 2*radius*sin(Zn)*N1 + 2*radius*cos(Zn)*N2 + B;
-      QVector3D V3 = 2*radius*sin(Zm)*N1 + 2*radius*cos(Zm)*N2 + B;
-      QVector3D N = -QVector3D::crossProduct(tip-V3, V1-V3).normalized();
-
-      glNormal3d( N.x(), N.y(), N.z() );
-      glVertex3d( tip.x(), tip.y(), tip.z() );
-      glVertex3d( V1.x(), V1.y(), V1.z() );
-      glVertex3d( tip.x(), tip.y(), tip.z() );
-      glVertex3d( V3.x(), V3.y(), V3.z() );
-    }
-    glEnd();
-    
-    glEndList();
-
-    return list;
+    glVertex3d( V1.x(), V1.y(), V1.z() );
+  }
+  glEnd();
+  
+  glEndList();
+  
+  return list;
 }
 
-void CoordinateWidget::drawGear(GLuint gear, GLdouble dx, GLdouble dy, GLdouble dz,
-                        GLdouble angle)
-{
-  glPushMatrix();
-  glCallList(gear);
-  glPopMatrix();
-}
+
+} // namespace srtQt

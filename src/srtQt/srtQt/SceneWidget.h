@@ -29,10 +29,10 @@
 
 #include "srtQt/Scene.h"
 
-class CoordinateWidget;
+
 namespace srtQt {
 
-
+class CoordinateWidget;
 
 
 /**

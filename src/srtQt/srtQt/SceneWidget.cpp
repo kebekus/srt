@@ -33,7 +33,8 @@ SceneWidget::SceneWidget(QWidget *parent)
   : QFrame(parent), animationTimer(this), _opacityAnimation(this, "coordsOpacity", this)
 {
   coordWidget = new CoordinateWidget();
-  coordWidget->show();
+  coordWidget->setBackgroundColor(Qt::black);
+  //  coordWidget->show();
 
   // Speed up painting. This widget is opaque, so no need to render a fancy
   // background which will never survive the day.
@@ -114,9 +115,11 @@ void SceneWidget::paintEvent(QPaintEvent *event)
     int y=height()-2*frameWidth()-w-w/5;
     
     painter.setOpacity(_coordsOpacity);
-    coordWidget->setAxis( -scene->camera.rightDirection(), -scene->camera.upwardDirection(), scene->camera.viewDirection());
+    coordWidget->setArrowVectors( -scene->camera.rightDirection(), -scene->camera.upwardDirection(), scene->camera.viewDirection());
     QPixmap pix = coordWidget->renderPixmap(w,h);
     painter.drawPixmap(x,y,pix);
+    painter.setPen(Qt::lightGray);
+    painter.drawRect(x,y,w,h);
   }
 
   painter.end();
@@ -244,7 +247,7 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event )
 
   // start opacity animation: fade out
   _opacityAnimation.stop();
-  _opacityAnimation.setDuration(800);
+  _opacityAnimation.setDuration(1500);
   _opacityAnimation.setStartValue(_coordsOpacity);
   _opacityAnimation.setEndValue(0.0);
   _opacityAnimation.start();
