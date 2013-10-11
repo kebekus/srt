@@ -43,7 +43,7 @@ void CoordinateWidget::initializeGL()
     objects.append(makeLine( QVector3D(0,0,0),  QVector3D(0, 0, 5), 0.3 ));
 
     glEnable(GL_NORMALIZE);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.02f, 0.02f, 0.02f, 1.0f);
 }
 
 void CoordinateWidget::paintGL()
@@ -100,13 +100,13 @@ GLuint CoordinateWidget::makeLine(QVector3D A, QVector3D B, qreal radius)
     GLuint list = glGenLists(1);
     glNewList(list, GL_COMPILE);
 
-    static const GLfloat reflectance1[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    static const GLfloat reflectance2[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    static const GLfloat reflectance1[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    static const GLfloat reflectance2[4] = { 0.5f, 0.5f, 1.0f, 1.0f };
 
     glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, reflectance1);
     glMaterialfv(GL_BACK,  GL_AMBIENT_AND_DIFFUSE, reflectance2);
 
-    glShadeModel(GL_SMOOTH);
+    //    glShadeModel(GL_SMOOTH);
 
     QVector3D H(1,1,1);
     QVector3D N1 = QVector3D::normal( A, B, H );
@@ -130,10 +130,6 @@ GLuint CoordinateWidget::makeLine(QVector3D A, QVector3D B, qreal radius)
       glNormal3d( N.x(), N.y(), N.z());
       glVertex3d( V1.x(), V1.y(), V1.z() );
       glVertex3d( V2.x(), V2.y(), V2.z() );
-      /*
-      glVertex3d( V3.x(), V3.y(), V3.z() );
-      glVertex3d( V4.x(), V4.y(), V4.z() );
-      */
     }
     glEnd();
     
@@ -164,26 +160,7 @@ GLuint CoordinateWidget::makeLine(QVector3D A, QVector3D B, qreal radius)
     glEnd();
 
     // Add Arrow tip:  cone
-    /*
-    glBegin(GL_TRIANGLES);
-    for(int j=0; j<=divisions; j++) {
-      double Zn = 0 + j*2*Pi/divisions;
-      double Zm = 0 + (j+1)*2*Pi/divisions;
-      
-      QVector3D V1 = 2*radius*sin(Zn)*N1 + 2*radius*cos(Zn)*N2 + B;
-      QVector3D V3 = 2*radius*sin(Zm)*N1 + 2*radius*cos(Zm)*N2 + B;
-      QVector3D tip = B + 2*(B-A).normalized();
-      QVector3D N = -QVector3D::crossProduct(tip-V3, V1-V3).normalized();
-
-      glNormal3d( N.x(), N.y(), N.z() );
-      glVertex3d( tip.x(), tip.y(), tip.z() );
-      glVertex3d( V3.x(), V3.y(), V3.z() );
-      glVertex3d( V1.x(), V1.y(), V1.z() );
-
-    }
-    glEnd();
-     */    
-    glBegin(GL_TRIANGLE_FAN);
+    glBegin(GL_QUAD_STRIP);
     QVector3D tip = B + 2*(B-A).normalized();
     glVertex3d( tip.x(), tip.y(), tip.z() );
     for(int j=0; j<=divisions; j++) {
@@ -192,13 +169,15 @@ GLuint CoordinateWidget::makeLine(QVector3D A, QVector3D B, qreal radius)
       
       QVector3D V1 = 2*radius*sin(Zn)*N1 + 2*radius*cos(Zn)*N2 + B;
       QVector3D V3 = 2*radius*sin(Zm)*N1 + 2*radius*cos(Zm)*N2 + B;
-      QVector3D N = QVector3D::crossProduct(tip-V3, V1-V3).normalized();
+      QVector3D N = -QVector3D::crossProduct(tip-V3, V1-V3).normalized();
 
       glNormal3d( N.x(), N.y(), N.z() );
+      glVertex3d( tip.x(), tip.y(), tip.z() );
       glVertex3d( V1.x(), V1.y(), V1.z() );
+      glVertex3d( tip.x(), tip.y(), tip.z() );
+      glVertex3d( V3.x(), V3.y(), V3.z() );
     }
     glEnd();
-
     
     glEndList();
 

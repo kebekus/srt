@@ -33,7 +33,7 @@ SceneWidget::SceneWidget(QWidget *parent)
   : QFrame(parent), animationTimer(this), _opacityAnimation(this, "coordsOpacity", this)
 {
   coordWidget = new CoordinateWidget();
-  //  coordWidget->show();
+  coordWidget->show();
 
   // Speed up painting. This widget is opaque, so no need to render a fancy
   // background which will never survive the day.
