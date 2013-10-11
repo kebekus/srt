@@ -9,7 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef DERIV_H
 #define DERIV_H
 #include "parser.h"
-namespace parser
+namespace srt
 {
 	int deriv(struct tree *dst, struct tree *src, int var);
 }

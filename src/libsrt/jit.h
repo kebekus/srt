@@ -10,7 +10,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define JIT_H
 #include "parser.h"
 
-namespace parser
+namespace srt
 {
 	class jit
 	{

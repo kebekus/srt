@@ -11,7 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "reduce.h"
 #include "error.h"
 
-namespace parser
+namespace srt
 {
 	static struct node *reset_num(struct node *node, float value)
 	{

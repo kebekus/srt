@@ -9,7 +9,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #ifndef REDUCE_H
 #define REDUCE_H
 #include "parser.h"
-namespace parser
+namespace srt
 {
 	int reduce(struct tree *tree);
 	struct node *reduce_branch(struct node *node);

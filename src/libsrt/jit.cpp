@@ -21,7 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <iostream>
 #include "jit.h"
 
-struct parser::jit::impl {
+struct srt::jit::impl {
 	llvm::Module *module;
 	llvm::ExecutionEngine *engine;
 	llvm::MemoryBuffer *bitcode;
@@ -36,13 +36,13 @@ struct parser::jit::impl {
 	~impl();
 	void reset();
 	llvm::Value *emit_pow(llvm::Value *base, int exp);
-	llvm::Value *emit(struct parser::node *node);
-	void build(struct parser::tree *tree, const char *name);
+	llvm::Value *emit(struct srt::node *node);
+	void build(struct srt::tree *tree, const char *name);
 	void link();
 	void *func(const char *name);
 };
 
-inline void parser::jit::impl::reset()
+inline void srt::jit::impl::reset()
 {
 	delete engine;
 	if (bitcode) {
@@ -69,7 +69,7 @@ inline void parser::jit::impl::reset()
 	}
 }
 
-inline parser::jit::impl::impl(char *code, int len) :
+inline srt::jit::impl::impl(char *code, int len) :
 	module(0),
 	engine(0),
 	bitcode(0),
@@ -101,7 +101,7 @@ inline parser::jit::impl::impl(char *code, int len) :
 	pass_man.add(llvm::createFunctionInliningPass());
 }
 
-inline llvm::Value *parser::jit::impl::emit_pow(llvm::Value *base, int exp)
+inline llvm::Value *srt::jit::impl::emit_pow(llvm::Value *base, int exp)
 {
 	if (0 == exp)
 		return llvm::ConstantFP::get(vector_type, 1);
@@ -113,7 +113,7 @@ inline llvm::Value *parser::jit::impl::emit_pow(llvm::Value *base, int exp)
 		return emit_pow(builder.CreateFMul(base, base, ""), exp / 2);
 }
 
-inline llvm::Value *parser::jit::impl::emit(struct parser::node *node)
+inline llvm::Value *srt::jit::impl::emit(struct srt::node *node)
 {
 	switch (node->token) {
 		case token_x:
@@ -143,7 +143,7 @@ inline llvm::Value *parser::jit::impl::emit(struct parser::node *node)
 	}
 }
 
-inline void parser::jit::impl::build(struct parser::tree *tree, const char *name)
+inline void srt::jit::impl::build(struct srt::tree *tree, const char *name)
 {
 	llvm::Function *func = engine->FindFunctionNamed(name);
 	if (!func) {
@@ -165,7 +165,7 @@ inline void parser::jit::impl::build(struct parser::tree *tree, const char *name
 	builder.CreateRet(emit(tree->root));
 }
 
-inline void parser::jit::impl::link()
+inline void srt::jit::impl::link()
 {
 //	module->dump();
 #if 0
@@ -195,7 +195,7 @@ inline void parser::jit::impl::link()
 #endif
 }
 
-inline void *parser::jit::impl::func(const char *name)
+inline void *srt::jit::impl::func(const char *name)
 {
 	llvm::Function *func = engine->FindFunctionNamed(name);
 	if (!func) {
@@ -205,17 +205,17 @@ inline void *parser::jit::impl::func(const char *name)
 	return engine->getPointerToFunction(func);
 }
 
-inline parser::jit::impl::~impl()
+inline srt::jit::impl::~impl()
 {
 	delete bitcode;
 	delete engine;
 //	delete module; engine owns module ..
 }
 
-void parser::jit::reset() { impl->reset(); }
-parser::jit::~jit() { delete impl; }
-void *parser::jit::func(const char *name) { return impl->func(name); }
-void parser::jit::link() { impl->link(); }
-void parser::jit::build(struct parser::tree *tree, const char *name) { impl->build(tree, name); }
-parser::jit::jit(char *code, int len) { impl = new struct impl(code, len); }
+void srt::jit::reset() { impl->reset(); }
+srt::jit::~jit() { delete impl; }
+void *srt::jit::func(const char *name) { return impl->func(name); }
+void srt::jit::link() { impl->link(); }
+void srt::jit::build(struct srt::tree *tree, const char *name) { impl->build(tree, name); }
+srt::jit::jit(char *code, int len) { impl = new struct impl(code, len); }
 
