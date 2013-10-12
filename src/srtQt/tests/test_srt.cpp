@@ -21,7 +21,7 @@
 #include <QtTest/QtTest>
 
 #include "srtQt/Scene.h"
-#include "srt_test.h"
+#include "test_srt.h"
 
 
 void srt_test::parser_errorReporting()

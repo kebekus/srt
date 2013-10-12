@@ -21,7 +21,8 @@
 #include <QtTest/QtTest>
 
 #include "srtQt/Scene.h"
-#include "srtSurface_test.h"
+#include "test_Surface.h"
+
 
 void Surface_test::increaseCounter()
 {

@@ -22,7 +22,7 @@
 #include <QtTest/QtTest>
 
 #include "srtQt/Camera.h"
-#include "srtCamera_test.h"
+#include "test_Camera.h"
 
 
 void Camera_test::increaseCounter()

@@ -126,7 +126,9 @@ class SceneWidget : public QFrame
   */
   SceneWidget(QWidget *parent = 0);
 
-#warning documentation
+ /**
+  * \brief Standard destructor
+  */
   ~SceneWidget();
 
  /**

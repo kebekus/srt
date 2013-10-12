@@ -34,10 +34,9 @@ SceneWidget::SceneWidget(QWidget *parent)
 {
   coordWidget = new CoordinateWidget();
   coordWidget->setBackgroundColor(Qt::black);
-  //  coordWidget->show();
 
-  // Speed up painting. This widget is opaque, so no need to render a fancy
-  // background which will never survive the day.
+  // Speed up painting a little. This widget is opaque, so no need to render a
+  // fancy background which will never survive the day.
   setAttribute(Qt::WA_OpaquePaintEvent);
 
   // Initialize Members
@@ -93,40 +92,38 @@ void SceneWidget::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
   
-  //  painter.fillRect( QRectF(frameRect().left()+frameWidth(), frameRect().top()+frameWidth(), frameRect().width()-2*frameWidth(), frameRect().height()-2*frameWidth()), Qt::black);
-
-  if (!scene.isNull())
+  if (!scene.isNull()) {
     if (!scene->surface.isEmpty() && !scene->surface.hasError()) {
       int width  = frameRect().width()-2*frameWidth();
       int height = frameRect().height()-2*frameWidth();
-
+      
       QImage img = scene->draw( QSize(width, height) );
       if (!img.isNull()) {
 	//	QImage scaled = img.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 	painter.drawImage( QPoint(frameWidth(), frameWidth()), img);
       }
     }
-
-
-  if (_coordsOpacity != 0.0) {
-    int w=(qMin(width(),height())-2*frameWidth())/4;
-    int h=w;
-    int x=width()-2*frameWidth()-w-w/5;
-    int y=height()-2*frameWidth()-w-w/5;
     
-    painter.setOpacity(_coordsOpacity);
-    coordWidget->setArrowVectors( -scene->camera.rightDirection(), -scene->camera.upwardDirection(), scene->camera.viewDirection());
-    QPixmap pix = coordWidget->renderPixmap(w,h);
-    painter.drawPixmap(x,y,pix);
-    painter.setPen(Qt::lightGray);
-    painter.drawRect(x,y,w,h);
+    
+    if (_coordsOpacity != 0.0) {
+      int w=(qMin(width(),height())-2*frameWidth())/4;
+      int x=width()-2*frameWidth()-w-w/5;
+      int y=height()-2*frameWidth()-w-w/5;
+      
+      painter.setOpacity(_coordsOpacity);
+      coordWidget->setArrowVectors( -scene->camera.rightDirection(), -scene->camera.upwardDirection(), scene->camera.viewDirection());
+      QPixmap pix = coordWidget->renderPixmap(w,w);
+      painter.drawPixmap(x,y,pix);
+      painter.setPen(Qt::lightGray);
+      painter.drawRect(x,y,w,w);
+    }
   }
-
+  
   painter.end();
   QFrame::paintEvent(event);
 }
 
-  
+
 void SceneWidget::setCoordsOpacity(qreal coordsOpacity)
 {
   _coordsOpacity = qBound(0.0, coordsOpacity, 1.0);
@@ -219,7 +216,6 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event )
   }
   event->accept();
 
-
   // Compute axis and rotational speed, reset timer to record mouse speed when
   // the next event takes place
   int deltaX = originalXPos - event->globalX();
@@ -261,7 +257,6 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event )
   setRotationSpeed(_manipulationRotationalSpeed);
   if (_manipulationRotationalSpeed != 0.0)
     setRotation(true);
-
 }
 
 

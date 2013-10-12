@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.8.6)
 
 #
+# Enable testing
+#
+ENABLE_TESTING()
+
+#
 # Add uninstall target
 #
 configure_file(
