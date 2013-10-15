@@ -40,6 +40,12 @@ IF (${Qt5Core_FOUND})
   INSTALL(TARGETS srtQt5Core DESTINATION lib)
   INSTALL(FILES ${srtQtCore_HEADERS} DESTINATION include/srtQt/Qt5/srtQt)
 
+
+  #
+  # CMake config file
+  #
+  INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/srtQt5Config.cmake DESTINATION lib/srtQt5-${srtQt_VERSION_STRING})
+  
 ELSE (${Qt5Core_FOUND})
   
   MESSAGE(STATUS "Qt5 development packages were not found. srtQt5Core will not be build.")

@@ -158,15 +158,66 @@ int main(int argc, char **argv)
 
    Developing applications with Qt, we have made very good experiences with the
    CMake build system. We have therefore included auxiliary files in this
-   software package which makes development with CMake very simple. For your convenience, we have also
-   included several [example projects](../examples "Example projects").
+   software package which makes development with CMake very simple. For your
+   convenience, we have also included several [example projects](../examples
+   "Example projects") which show how to use srtQt in cmake and qmake-based
+   projects.
+
+   \subsubsection S2a1 Compilation with cmake
+
+   To compile and link your application against srtQt4 libraries, include the
+   following statements in your CMakeLists.txt.
+
+@code
+#
+# Find Qt4
+#
+# We require Qt4.8.0 or newer.
+#
+FIND_PACKAGE(Qt4 4.8.0 REQUIRED)
 
 
-   \subsubsection S2a1 Compilation with qmake
+#
+# Find srtQt4
+#
+# Add include and library directories, so that compiler and linker can find what
+# they need.
+#
+FIND_PACKAGE(srtQt4 REQUIRED)
+INCLUDE_DIRECTORIES(${srtQt4_INCLUDE_DIRS})
+LINK_DIRECTORIES(${srtQt4_LINK_DIRS})
 
 
+#
+# Minimalistic GUI application
+#
+# The command 'TARGET_LINK_LIBRARIES' pull in the 'srtQt4Core' and
+# 'srtQt4Widget' libraries, which are used in the program.
+#
+ADD_EXECUTABLE(minimalExampleGUI minimalExampleGUI.cpp )
+SET_TARGET_PROPERTIES(minimalExampleGUI PROPERTIES AUTOMOC TRUE)
+QT4_USE_MODULES(minimalExampleGUI Core Gui)
+TARGET_LINK_LIBRARIES(minimalExampleGUI ${srtQt4_coreLibrary} ${srtQt4_widgetLibrary})
+@endcode
 
-   \subsubsection S2a2 Compilation with cmake
+   The command 'FIND_PACKAGE(srtQt4 REQUIRED)' or its Qt5 counterpart 'FIND_PACKAGE(srtQt5 REQUIRED)' will set the following variables.
+
+   Qt4                  |Qt5                  |Description
+   ---------------------|---------------------|------------------------
+   srtQt4_FOUND         |srtQt5_FOUND         |True
+   srtQt4_INCLUDE_DIRS  |srtQt5_INCLUDE_DIRS  |Include path
+   srtQt4_LINK_DIRS     |srtQt5_LINK_DIRS     |Library path
+   srtQt4_coreLibrary   |srtQt5_coreLibrary   |Name of core library
+   srtQt4_widgetLibrary |--                   |Name of Widget Library
+
+   Include C++ headers with statement such as the following.
+
+@code
+ #include <srtQt/SceneWidget.h>
+@endcode
+
+
+   \subsubsection S2a2 Compilation with qmake
 
 
    \subsection S2c Supporting the ssc file format
