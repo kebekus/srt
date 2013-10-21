@@ -154,19 +154,28 @@ int main(int argc, char **argv)
 
    \subsection A Software requirements
 
+   To build your program with srtQt, the following software tools are required.
+
+   - Qt4 or Qt5
+
+   - The srt library
+
+   - CMake. Unless you wish to hardcode all library and include paths in your
+     project files, CMake is used even when your project builds using QMake. The
+     section \ref S2a2 shows how this is done.
+
+
    \subsection S2a Build system support
 
-   Developing applications with Qt, we have made very good experiences with the
-   CMake build system. We have therefore included auxiliary files in this
-   software package which makes development with CMake very simple. For your
-   convenience, we have also included several [example projects](../examples
-   "Example projects") which show how to use srtQt in cmake and qmake-based
-   projects.
+   The srtQt libraries come with auxiliary files which makes development with
+   CMake and QMake very simple. For your convenience, we have included several
+   [example projects](../examples "Example projects") which show how to use
+   srtQt in cmake and qmake-based projects.
 
    \subsubsection S2a1 Compilation with cmake
 
-   To compile and link your application against srtQt4 libraries, include the
-   following statements in your CMakeLists.txt.
+   The following sample 'CMakeLists.txt's, taken from the [example projects](../examples "Example projects"), show how
+   to compile and link your application against the srtQt4 and srtQt5 libraries.
 
 @code
 #
@@ -200,7 +209,49 @@ QT4_USE_MODULES(minimalExampleGUI Core Gui)
 TARGET_LINK_LIBRARIES(minimalExampleGUI ${srtQt4_coreLibrary} ${srtQt4_widgetLibrary})
 @endcode
 
-   The command 'FIND_PACKAGE(srtQt4 REQUIRED)' or its Qt5 counterpart 'FIND_PACKAGE(srtQt5 REQUIRED)' will set the following variables.
+@code
+#
+# Set up cmake
+#
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
+
+
+#
+# Find Qt5
+#
+# We require Qt5.0.0 or newer.
+#
+FIND_PACKAGE(Qt5Core 5.0.0 REQUIRED)
+
+
+#
+# Find srtQt5
+#
+# Add include and library directories, so that compiler and linker can find what
+# they need.
+#
+FIND_PACKAGE(srtQt5 REQUIRED)
+INCLUDE_DIRECTORIES(${srtQt5_INCLUDE_DIRS})
+LINK_DIRECTORIES(${srtQt5_LINK_DIRS})
+
+
+#
+# Minimalistic command line application
+#
+# Note Qt5's Gui module is required, even for applications that have no
+# graphical user interface. The reason is that srtQt5 renders scenes to QImages,
+# which are contained in Qt's Gui module.
+#
+# The command 'TARGET_LINK_LIBRARIES' pulls in the 'srtQt5Core' library, which
+# is used in the program.
+#
+ADD_EXECUTABLE(minimalExampleCLI minimalExampleCLI.cpp)
+SET_TARGET_PROPERTIES(minimalExampleCLI PROPERTIES AUTOMOC TRUE)
+QT5_USE_MODULES(minimalExampleCLI Core Gui)
+TARGET_LINK_LIBRARIES(minimalExampleCLI ${srtQt5_coreLibrary})
+@endcode
+
+   The command 'FIND_PACKAGE(srtQt4)' or its Qt5 counterpart 'FIND_PACKAGE(srtQt5)' will set the following variables.
 
    Qt4                  |Qt5                  |Description
    ---------------------|---------------------|------------------------
@@ -210,7 +261,7 @@ TARGET_LINK_LIBRARIES(minimalExampleGUI ${srtQt4_coreLibrary} ${srtQt4_widgetLib
    srtQt4_coreLibrary   |srtQt5_coreLibrary   |Name of core library
    srtQt4_widgetLibrary |--                   |Name of Widget Library
 
-   Include C++ headers with statement such as the following.
+   Include headers from  your C++ source files with a statement such as the following.
 
 @code
  #include <srtQt/SceneWidget.h>
@@ -219,6 +270,37 @@ TARGET_LINK_LIBRARIES(minimalExampleGUI ${srtQt4_coreLibrary} ${srtQt4_widgetLib
 
    \subsubsection S2a2 Compilation with qmake
 
+   The following sample QMake project files, taken from the [example projects](../examples "Example projects"), show how
+   to compile and link your application against the srtQt4 and srtQt5 libraries when using QMake. Observe that the 
+   'cmake' command is used to set the include and library paths.
+
+@code
+#
+# Sample project file for QMake/Qt4
+#
+# Set compiler and linker flags
+#
+QMAKE_CXXFLAGS += $$system(cmake --find-package -DNAME=srtQt4 -DLANGUAGE=C -DCOMPILER_ID=GNU -DMODE=COMPILE)
+QMAKE_LFLAGS   += $$system(cmake --find-package -DNAME=srtQt4 -DLANGUAGE=C -DCOMPILER_ID=GNU -DMODE=LINK) 
+
+# Add the srtQt4Core library. Since this library uses the 'srt' library internally, we must also list it here
+QMAKE_LIBS     += -lsrtQt4Core -lsrt
+
+# Since we are using widgets in the example program, add the srtQt4Widgets library
+QMAKE_LIBS     += -lsrtQt4Widgets
+
+
+#
+# The library setQt4Widgets uses GL widgets internally. We therefore need to include Qt's openGL module here
+#
+QT             += opengl
+
+# List of all source files
+SOURCES        += minimalExampleGUI.cpp
+
+# Name of the binary that will eventually be generated
+TARGET          = minimalExampleGUI
+@endcode
 
    \subsection S2c Supporting the ssc file format
 

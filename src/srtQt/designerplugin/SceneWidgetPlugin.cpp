@@ -111,5 +111,6 @@ QString SceneWidgetPlugin::includeFile() const
   return "srtSceneWidget.h";
 }
 
-
+#ifndef Q_PLUGIN_METADATA
 Q_EXPORT_PLUGIN2(scenewidgetplugin, SceneWidgetPlugin)
+#endif

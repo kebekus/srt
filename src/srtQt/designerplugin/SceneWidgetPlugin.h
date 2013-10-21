@@ -29,6 +29,9 @@
 class SceneWidgetPlugin : public QObject, public QDesignerCustomWidgetInterface
 {
   Q_OBJECT;
+#ifdef Q_PLUGIN_METADATA
+  Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QDesignerCustomWidgetInterface")
+#endif
   Q_INTERFACES(QDesignerCustomWidgetInterface);
 
  public:

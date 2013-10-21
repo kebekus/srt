@@ -19,5 +19,29 @@
 #
 
 
-ADD_SUBDIRECTORY(qt4)
-ADD_SUBDIRECTORY(qt5)
+# Find Qt5
+FIND_PACKAGE(Qt5Designer 5.0.0)
+
+IF (${Qt5Core_FOUND})
+
+  #
+  # Qt Designer plugin for Qt5
+  #
+  QT5_ADD_RESOURCES(srtQt5SceneWidgetPlugin_RESOURCES_RCC 
+    ../SceneWidgetPlugin.qrc)
+  ADD_LIBRARY(srtQt5SceneWidgetPlugin
+    SHARED
+    ../SceneWidgetPlugin.cpp
+    ${srtQt5SceneWidgetPlugin_RESOURCES_RCC}
+    )
+  QT5_USE_MODULES(srtQt5SceneWidgetPlugin Core Designer Gui)
+  TARGET_LINK_LIBRARIES(srtQt5SceneWidgetPlugin srtQt5Widgets)
+  SET_TARGET_PROPERTIES(srtQt5SceneWidgetPlugin PROPERTIES AUTOMOC TRUE)
+  MESSAGE(STATUS ${QT_PLUGINS_DIR})
+  INSTALL(TARGETS srtQt5SceneWidgetPlugin DESTINATION ${QT_PLUGINS_DIR}/designer)
+  
+ELSE (${Qt5Core_FOUND})
+  
+  MESSAGE(STATUS "Qt5 development packages were not found. The Qt5 designer plugin will not be build.")
+  
+ENDIF (${Qt5Core_FOUND})

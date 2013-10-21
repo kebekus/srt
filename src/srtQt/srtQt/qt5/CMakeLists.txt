@@ -42,12 +42,27 @@ IF (${Qt5Core_FOUND})
 
 
   #
+  # srtQt5Widgets
+  #
+  ADD_LIBRARY(srtQt5Widgets
+    SHARED
+    ${srtQtWidgets_SOURCES}
+    )
+  QT5_USE_MODULES(srtQt5Widgets Core Gui OpenGL)
+  TARGET_LINK_LIBRARIES(srtQt5Widgets srtQt5Core)
+  SET_TARGET_PROPERTIES(srtQt5Widgets PROPERTIES AUTOMOC TRUE)
+  SET_TARGET_PROPERTIES(srtQt5Widgets PROPERTIES VERSION ${srtQt_VERSION_STRING} SOVERSION ${srtQt_VERSION_MAJOR})
+  INSTALL(TARGETS srtQt5Widgets DESTINATION lib)
+  INSTALL(FILES ${srtQtWidgets_HEADERS} DESTINATION include/srtQt/Qt5/srtQt)
+  
+  
+  #
   # CMake config file
   #
   INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/srtQt5Config.cmake DESTINATION lib/srtQt5-${srtQt_VERSION_STRING})
   
 ELSE (${Qt5Core_FOUND})
   
-  MESSAGE(STATUS "Qt5 development packages were not found. srtQt5Core will not be build.")
+  MESSAGE(STATUS "Qt5 development packages were not found. The libraries srtQt5Core and srtQt5Widgets will not be build.")
   
 ENDIF (${Qt5Core_FOUND})
