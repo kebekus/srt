@@ -1,7 +1,7 @@
 #
 # Find Doxygen and configure 'Doxyfile'
 #
-FIND_PACKAGE(Doxygen REQUIRED)
+FIND_PACKAGE(Doxygen)
 
 
 #
@@ -21,6 +21,8 @@ ADD_EXECUTABLE(logoMaker
 QT4_USE_MODULES(logoMaker Core Gui)
 TARGET_LINK_LIBRARIES(logoMaker srtQt4Core)
 
+
+IF (${Doxygen_FOUND})
 
 #
 # API documentation
@@ -43,6 +45,12 @@ ADD_CUSTOM_COMMAND(TARGET doc POST_BUILD
   )
 INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/apidoc/html DESTINATION share/doc/srtQt-${srtQt_VERSION_STRING})
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/examples DESTINATION share/doc/srtQt-${srtQt_VERSION_STRING})
+
+ELSE (${Doxygen_FOUND})
+  
+  MESSAGE(STATUS "Doxygen was not found. The API documentation will not be build.")
+  
+ENDIF (${Doxygen_FOUND})
 
 
 #
